@@ -1,11 +1,18 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
-import React from 'react'
+import React, { useRef, useState} from 'react'
 import ButtonCustom from '../../components/button'
 import { RadioButton } from 'react-native-paper';
+import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
+import { firebaseConfig } from '../../config'
+import { sendVerification, verifyCode } from '../../function/sendVerification';
+
 const NameAndPhone = ({ navigation }) => {
-  var [phone, setPhone] = React.useState('')
-  var [name, setName] = React.useState('')
-  const [checked, setChecked] = React.useState('Nam');
+  var [phone, setPhone] = useState('')
+  var [name, setName] = useState('')
+  const [checked, setChecked] = useState('Nam');
+
+  const recaptchaVerifier = useRef(null);
+  const [verificationId, setVerificationId] = useState(null);
 
   return (
     <View style={{ backgroundColor: 'lightblue', width: '100%', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
@@ -58,12 +65,33 @@ const NameAndPhone = ({ navigation }) => {
             placeholderTextColor={'gray'}
           />
         </View>
-        <ButtonCustom title={'Xác thực OTP'} backgroundColor={'cyan'} onPress={
-          () => {
-            // onSignup()
-            navigation.navigate('AuthenticateOTP', { name: name, gender: checked, phone: phone })
-          }
-        } />
+        <FirebaseRecaptchaVerifierModal
+        ref={recaptchaVerifier}
+        firebaseConfig={firebaseConfig}
+      />
+        <ButtonCustom title={'Gửi mã OTP'} backgroundColor={'cyan'} 
+        onPress={() => {
+          sendVerification(phone, recaptchaVerifier, (data)=>{setVerificationId(data)})
+        }}
+        />
+        {
+          verificationId && <ButtonCustom title={'Xác thực OTP'} backgroundColor={'cyan'}
+          onPress={()=>{
+            navigation.navigate('AuthenticateOTP', {
+              phone: phone,
+              verificationId: verificationId,
+              callBack: (uid) => { // hàm thực thi sau khi xác thực thành công
+                navigation.navigate('CreatePassword', {
+                  id: uid,
+                  phone: phone,
+                  name: name,
+                  gender: checked
+                })
+              }
+            })
+          }}
+          />
+        }
       </View>
     </View>
   )

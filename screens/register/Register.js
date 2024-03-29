@@ -1,6 +1,6 @@
 import { createStackNavigator } from "@react-navigation/stack"
 import NameAndPhone from "./NameAndPhone"
-import AuthenticateOTP from "./AuthenticateOTP"
+import AuthenticateOTP from "../../components/otp/AuthenticateOTP"
 import CreatePassword from "./CreatePassword"
 
 const Stack = createStackNavigator()

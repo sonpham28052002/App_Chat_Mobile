@@ -1,9 +1,14 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { OtpInput } from "react-native-otp-entry";
-import ButtonCustom from '../../components/button'
+import ButtonCustom from '../button'
+import { confirmCode } from '../../function/confirmCodeOTP';
 
-const AuthenticateOTP = ({navigation, route}) => {
+const AuthenticateOTP = ({route}) => {
+
+    const [code, setCode] = React.useState('')
+    const [err, setErr] = React.useState(null)
+
     return (
         <View style={{ flex: 1, backgroundColor: 'lightblue', width: '100%', paddingHorizontal: 10, justifyContent: 'center' }}>
             <View style={{ flex: 1, justifyContent: 'center' }}>
@@ -22,19 +27,25 @@ const AuthenticateOTP = ({navigation, route}) => {
                             borderColor: 'black',
                         }
                     }}
-                    onTextChange={(text) => console.log(text)} />
+                    onTextChange={(text) => setCode(text)} />
                 </View>
                 <ButtonCustom title={'Xác thực'} backgroundColor={'cyan'} onPress={
                     () => {
-                       navigation.navigate('CreatePassword', route.params)
+                        confirmCode(route.params.verificationId, code, 
+                            (uid) => { // hàm thực thi sau khi xác thực thành công
+                                setCode('');
+                                route.params.callBack(uid)
+                            },
+                            () => {setErr('Mã OTP không đúng!')}) // hàm thực thi sau khi xác thực thất bại
                     }
                 } />
-                <View style={{flexDirection: 'row', marginTop:20}}>
+                <Text style={{color: 'red', fontSize: 20, textAlign: 'center'}}>{err}</Text>
+                {/* <View style={{flexDirection: 'row', marginTop:20}}>
                     <Text style={styles.text}>Bạn không nhận được mã? </Text>
                     <TouchableOpacity style={{
                         fontSize: 20, color: 'blue', justifyContent: 'flex-end', alignItems: 'center'
                     }}><Text>Gửi lại</Text></TouchableOpacity>
-                </View>
+                </View> */}
             </View>
         </View>
     )

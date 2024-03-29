@@ -28,7 +28,7 @@ const CreatePassword = ({ navigation, route }) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                id: '5',
+                id: route.params.id,
                 phone: route.params.phone,
                 password: password,
                 createDate: new Date().toISOString(),

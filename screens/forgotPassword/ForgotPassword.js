@@ -1,6 +1,6 @@
 import { View, ScrollView, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import React, { useState } from 'react'
-import { firebaseConfig } from "../../config/firebase.js";
+// import { firebaseConfig } from "../../config/firebase.js";
 import firebase from "firebase/compat/app";
 
 const ForgotPassword = ({navigation}) => {

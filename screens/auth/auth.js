@@ -23,7 +23,11 @@ export default function Auth() {
         }}
         >
           <Stack.Screen name="Login" component={Login}/>
-          <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="Register" 
+          options={{
+            headerShown: false
+          }}
+          component={Register} />
           <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
           <Stack.Screen name="AuthenOtp" component={AuthenOtp} />
           <Stack.Screen name="ResetPass" component={ResetPass} />

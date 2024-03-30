@@ -1,9 +1,14 @@
 import { View, ScrollView, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import React, { useState } from 'react'
+import { firebaseConfig } from "../../config/firebase.js";
+import firebase from "firebase/compat/app";
 
-const ForgotPassword = () => {
+const ForgotPassword = ({navigation}) => {
   const [phoneNumber, setPhoneNumber] = useState("");
-
+  // console.log("object", phoneNumber);
+  function forgotpass (){
+    navigation.navigate('AuthenOtp', { sdt: phoneNumber });
+  }
   return (
     <View>
       <View style={{
@@ -50,8 +55,6 @@ const ForgotPassword = () => {
           autoCapitalize="none"
           keyboardType="phone-pad"
           autoFocus={true}
-          onFocus={() => setIsFocusedSdt(true)}
-          onBlur={() => setIsFocusedSdt(false)}
           onChangeText={(text) => setPhoneNumber(text)}
         />
         <TouchableOpacity style={{ marginLeft: 'auto' }}>
@@ -59,7 +62,8 @@ const ForgotPassword = () => {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={{ width: '50%', height: '40px', backgroundColor: '#1faeeb', borderRadius: 20, marginHorizontal: 'auto' }}>
+      <TouchableOpacity onPress={forgotpass}
+       style={{ width: '50%', height: '40px', backgroundColor: '#1faeeb', borderRadius: 20, marginHorizontal: 'auto' }}>
         <Text style={{ fontSize: 20, color: 'white', margin: 'auto' }}>
          Tiếp tục
         </Text>

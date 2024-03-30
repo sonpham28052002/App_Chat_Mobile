@@ -8,7 +8,7 @@ export const firebaseConfig = {
   projectId : "test-84df6" , 
   storageBucket : "test-84df6.appspot.com" , 
   messagingSenderId : "192261909325" , 
-  appId : "1:192261909325:web:d882e4cf4c97b1e1486504" 
+  appId : "1:192261909325:web:d882e4cf4c97b1e1486504"
 }
 
 if (!firebase.apps.length) {

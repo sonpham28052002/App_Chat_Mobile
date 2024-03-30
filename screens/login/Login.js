@@ -18,7 +18,6 @@ const Login = ({ navigation }) => {
  // Đăng nhập
 const handleLogin = () => {
   let found = false;
-  navigation.navigate("Home");
   account.forEach((a) => {
     if (a.phone == phoneNumber && a.password == password) {
       setId(a.id);

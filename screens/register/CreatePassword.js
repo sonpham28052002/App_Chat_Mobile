@@ -1,17 +1,20 @@
-import { View, Text, TouchableOpacity, TextInput } from 'react-native'
-import React from 'react'
+import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native'
+import React, { useState } from 'react'
 import ButtonCustom from '../../components/button'
 import { Entypo } from '@expo/vector-icons';
+import { RadioButton } from 'react-native-paper';
 
 const CreatePassword = ({ navigation, route }) => {
-    var [eye1, setEye1] = React.useState('eye-with-line')
-    var [eye2, setEye2] = React.useState('eye-with-line')
-    var [secureTextEntry1, setSecureTextEntry1] = React.useState(true)
-    var [secureTextEntry2, setSecureTextEntry2] = React.useState(true)
-    var [password, setPassword] = React.useState('')
-    var [rePassword, setRePassword] = React.useState('')
-    var [notification, setNotification] = React.useState('')
-    console.log(route.params)
+    var [eye1, setEye1] = useState('eye-with-line')
+    var [eye2, setEye2] = useState('eye-with-line')
+    var [secureTextEntry1, setSecureTextEntry1] = useState(true)
+    var [secureTextEntry2, setSecureTextEntry2] = useState(true)
+
+    var [name, setName] = useState('')
+    const [checked, setChecked] = useState('Nam');
+    var [password, setPassword] = useState('')
+    var [rePassword, setRePassword] = useState('')
+    var [notification, setNotification] = useState('')
 
     function checkPassword() {
         if (password != rePassword) {
@@ -57,9 +60,9 @@ const CreatePassword = ({ navigation, route }) => {
             },
             body: JSON.stringify({
                 id: data.id,
-                userName: route.params.name,
+                userName: name,
                 phone: data.phone,
-                gender: route.params.gender,
+                gender: checked,
             })
         })
             .then(response => {
@@ -77,13 +80,40 @@ const CreatePassword = ({ navigation, route }) => {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: 'lightblue', padding: 10 }}>
-            <View>
-                <Text style={{ fontSize: 30, fontWeight: 700 }}>Nhập mật khẩu để hoàn tất đăng ký</Text>
+        <View style={{ flex: 1, backgroundColor: 'lightblue', padding: 10}}>
+            <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: '10%' }}>
+                <Text style={{ width: '100%', fontSize: 30, fontWeight: 700, textAlign: 'center' }}>Nhập thông tin để hoàn tất đăng ký</Text>
             </View>
-            <View>
-                <View style={{ height: 150, justifyContent: 'space-between', marginBottom: 20 }}>
-                    <Text style={{ fontSize: 20 }}>Mật khẩu:</Text>
+            <View style={{ justifyContent: 'center' }}>
+                <View style={{ height: 230, justifyContent: 'space-between', marginBottom: 20 }}>
+                    <TextInput style={{
+                        padding: 10,
+                        height: 40,
+                        fontSize: 20,
+                        borderColor: 'black',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }}
+                        value={name}
+                        onChangeText={setName}
+                        placeholder={'Nhập tên tài khoản'}
+                        placeholderTextColor={'gray'}
+                    />
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.text}>Giới tính:</Text>
+                        <RadioButton
+                            value="Nam"
+                            status={checked === 'Nam' ? 'checked' : 'unchecked'}
+                            onPress={() => setChecked('Nam')}
+                        />
+                        <Text style={styles.text}>Nam</Text>
+                        <RadioButton
+                            value="Nữ"
+                            status={checked === 'Nữ' ? 'checked' : 'unchecked'}
+                            onPress={() => setChecked('Nữ')}
+                        />
+                        <Text style={styles.text}>Nữ</Text>
+                    </View>
                     <View style={{ flexDirection: 'row', width: '100%' }}>
                         <View style={{ width: '88%' }}>
                             <TextInput style={{
@@ -116,7 +146,6 @@ const CreatePassword = ({ navigation, route }) => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <Text style={{ fontSize: 20 }}>Nhập lại mật khẩu:</Text>
                     <View style={{ flexDirection: 'row', width: '100%' }}>
                         <View style={{ width: '88%' }}>
                             <TextInput style={{
@@ -163,5 +192,12 @@ const CreatePassword = ({ navigation, route }) => {
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  }
+})
 
 export default CreatePassword

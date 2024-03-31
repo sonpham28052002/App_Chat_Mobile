@@ -8,7 +8,7 @@ const InputPassword = (props) => {
     return (
         <View style={{ flexDirection: 'row', width: '100%' }}>
             <View style={{ width: '88%' }}>
-                <TextInput style={{
+            <TextInput style={{
                     padding: 10,
                     height: 40,
                     fontSize: 20,

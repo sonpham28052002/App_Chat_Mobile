@@ -90,7 +90,7 @@ const EditProfile = ({navigation}) => {
       // Cập nhật dữ liệu người dùng chỉ với trường avt
       const updatedUserData = { ...userNewData, avt: response.data };
       //update dữ liệu về backend
-    const updateUserResponse = await axios.post('https://deploybackend-production.up.railway.app/users/updateUser', updatedUserData);
+    const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUserData);
     console.log('Dữ liệu trả về sau update', updateUserResponse.data);
     dispatch(save(updatedUserData))
     } catch (error) {

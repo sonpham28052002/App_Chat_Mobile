@@ -5,6 +5,8 @@ import { Entypo } from '@expo/vector-icons';
 import { RadioButton } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import InputPassword from '../../components/InputPassword';
+import { checkValidName, checkValidPassword } from '../../function/checkValid';
+import { validname, validPassword } from '../../regex/valid';
 
 const CreatePassword = ({ navigation, route }) => {
 
@@ -121,14 +123,19 @@ const CreatePassword = ({ navigation, route }) => {
                 </View>
                 <ButtonCustom title={'Đăng ký'} backgroundColor={'cyan'} onPress={
                     () => {
-                        if (checkPassword() && password != '') {
-                            handleRegister()
-                            Alert.alert('Đăng ký thành công. Hãy tiến hành đăng nhập!')
-                            navigation.navigate('Login', {
-                                id: route.params.id,
-                                phone: route.params.phone,
-                                password: password
-                            })
+                        if (!checkValidName(name, validname)) {
+                            setNotification('Tên không hợp lệ')
+                        } else if(!checkValidPassword(password, validPassword)) {
+                            setNotification('Mật khẩu phải độ dài từ 8 ký tự trở lên và chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số')
+                        } else if (checkPassword() && password != '') {
+                            setNotification('')
+                            // handleRegister()
+                            // Alert.alert('Đăng ký thành công. Hãy tiến hành đăng nhập!')
+                            // navigation.navigate('Login', {
+                            //     id: route.params.id,
+                            //     phone: route.params.phone,
+                            //     password: password
+                            // })
                         }
                     }
                 } />

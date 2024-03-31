@@ -9,6 +9,7 @@ import ScanQR from './ScanQR'
 import EditProfile from '../user/EditProfile' 
 const Stack = createStackNavigator()
 const HomChat = ({navigation}) => {
+  
   return (
     <Stack.Navigator>
         <Stack.Screen name="TabHome" component={TabHome}

@@ -128,14 +128,13 @@ const CreatePassword = ({ navigation, route }) => {
                         } else if(!checkValidPassword(password, validPassword)) {
                             setNotification('Mật khẩu phải độ dài từ 8 ký tự trở lên và chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số')
                         } else if (checkPassword() && password != '') {
-                            setNotification('')
-                            // handleRegister()
-                            // Alert.alert('Đăng ký thành công. Hãy tiến hành đăng nhập!')
-                            // navigation.navigate('Login', {
-                            //     id: route.params.id,
-                            //     phone: route.params.phone,
-                            //     password: password
-                            // })
+                            handleRegister()
+                            Alert.alert('Đăng ký thành công. Hãy tiến hành đăng nhập!')
+                            navigation.navigate('Login', {
+                                id: route.params.id,
+                                phone: route.params.phone,
+                                password: password
+                            })
                         }
                     }
                 } />

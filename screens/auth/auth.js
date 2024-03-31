@@ -22,7 +22,11 @@ export default function Auth() {
           headerShown: true
         }}
         >
-          <Stack.Screen name="Login" component={Login}/>
+          <Stack.Screen name="Login" component={Login}
+          options={{
+            headerShown: false
+          }}
+          />
           <Stack.Screen name="Register" 
           options={{
             headerShown: false

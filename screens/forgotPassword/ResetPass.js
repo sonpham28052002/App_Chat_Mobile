@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   View,
   Text,
@@ -14,13 +14,24 @@ const ForgotPassword = ({ navigation, route }) => {
   const [confirmMk, setConfirmMk] = useState("");
   const [notification, setNotification] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-
+  const [isFieldsFilled, setIsFieldsFilled] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+  useEffect(() => {
+    if (mkMoi.length != 0&&confirmMk.length!=0) {
+      setIsFieldsFilled(true);
+    } else {
+      setIsFieldsFilled(false);
+    }
+  }, [mkMoi.length, confirmMk.length]);
   function handleResetPass() {
     if (mkMoi !== confirmMk) {
       setNotification("Mật khẩu không khớp");
     } else {
       setNotification("");
-      fetch(`https://deploybackend-production.up.railway.app/account/forgotPasswordAccount?id=5&passwordNew=${mkMoi}`, {
+      fetch(`https://deploybackend-production.up.railway.app/account/forgotPasswordAccount?id=${route.params.id}&passwordNew=${mkMoi}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -39,12 +50,21 @@ const ForgotPassword = ({ navigation, route }) => {
   }
 
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+    <View style={{ flex: 1, alignItems: "center", }}>
+      <View style={{ width:'95%', height:30, flexDirection:'row', justifyContent:'space-between'}}>
+        <Text style={{ fontSize: 17, fontWeight: "500",color:'#0250B6'  }}>Đặt lại mật khẩu</Text>
+        <TouchableOpacity onPress={togglePasswordVisibility}>
+  <Text style={{ fontSize: 17, color: "#767A7F" }}>
+    {showPassword ? "Ẩn" : "Hiện"}
+  </Text>
+</TouchableOpacity>
+      </View>
       <TextInput
         style={styles.input}
         placeholder="Nhập mã mật khẩu mới"
         placeholderTextColor="#635b5b"
         value={mkMoi}
+        secureTextEntry={!showPassword}
         autoCapitalize="none"
         onChangeText={(text) => setMkMoi(text)}
       />
@@ -53,13 +73,16 @@ const ForgotPassword = ({ navigation, route }) => {
         placeholder="Nhập lại mật khẩu mới"
         placeholderTextColor="#635b5b"
         value={confirmMk}
+        secureTextEntry={!showPassword}
         autoCapitalize="none"
         onChangeText={(text) => setConfirmMk(text)}
       />
       <Text style={{ color: "red", marginBottom: 10 }}>{notification}</Text>
       <TouchableOpacity
         onPress={handleResetPass}
-        style={[styles.button, { backgroundColor: "#1faeeb" }]}
+        style={[styles.button, {backgroundColor: isFieldsFilled ? "blue" : "gray",
+      }]}
+        disabled={!isFieldsFilled}
       >
         <Text style={{ fontSize: 20, color: "white", margin: "auto" }}>
           Tiếp tục
@@ -99,8 +122,10 @@ const styles = StyleSheet.create({
     height: 40,
     color: "#635b5b",
     fontSize: 18,
-    width: "85%",
+    width: "95%",
     marginBottom: 10,
+    borderEndWidth: 1,
+    borderEndColor: "#635b5b",
   },
   button: {
     width: "50%",

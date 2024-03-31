@@ -1,75 +1,154 @@
 import { View, ScrollView, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 // import { firebaseConfig } from "../../config/firebase.js";
 import firebase from "firebase/compat/app";
+import CountryPicker from "react-native-country-picker-modal";
+import PhoneNumber from "libphonenumber-js";
+import axios from 'axios';
 
 const ForgotPassword = ({navigation}) => {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  // console.log("object", phoneNumber);
-  function forgotpass (){
-    navigation.navigate('AuthenOtp', { sdt: phoneNumber });
+  const [sdt, setsdt] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isFocusedSdt, setIsFocusedSdt] = useState(false);
+  useEffect(() => {
+    setIsFieldsFilled(sdt !== "");
+  }, [sdt]);
+  const [isFieldsFilled, setIsFieldsFilled] = useState(false);
+  const [countryCode, setCountryCode] = useState("VN");
+  const [callingCode, setCallingCode] = useState("+84");
+  const handleCountryChange = (country) => {
+    setCountryCode(country.cca2);
+    setCallingCode("+" + country.callingCode.join(""));
+  };
+ async function forgotpass (){
+    try {
+    const phoneNumber = PhoneNumber.isPossibleNumber(sdt, countryCode);
+    if (phoneNumber) {
+      const formatPhone = '84'+ sdt.replace(/^0/, '');
+      const res = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${formatPhone}`);
+      if (res.data) {
+        // console.log("res", res.data.id);
+        navigation.navigate('AuthenOtp', { sdt:formatPhone,id: res.data.id });
+
+      }
+      else {
+        setErrorMessage("Số điện thoại chưa được đăng kí");
+      } 
+    } else {
+      setErrorMessage("Số điện thoại không hợp lệ cho quốc gia đã chọn");
+    }
+      // format số điện thoại, bỏ số 0 ở đầu và thêm 84
+      
+    } catch (error) {
+      console.log(error);
+    }
   }
   return (
-    <View>
-      <View style={{
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#1fadea",
-        paddingVertical: 17,
-        paddingHorizontal: 14,
-      }}>
-        <Text style={{
-          color: "#fdf8f8",
-          fontSize: 20,
-          flex: 1,
-          fontWeight: 'bold',
-        }}> Lấy lại mật khẩu</Text>
-      </View>
+    <View style={styles.container}>
+    <View style={styles.ViewTop}>
+      <Text>Vui lòng nhập số điện thoại để lấy lại mật khẩu</Text>
+    </View>
+    <View style={styles.ViewInput}>
       <View
         style={{
-          backgroundColor: "#d9d9d9",
-          paddingVertical: 7,
-          paddingHorizontal: 14,
-          marginBottom: 32,
-        }}>
-        <Text
-          style={{
-            color: "#000000",
-            fontSize: 16,
-          }}>
-          Nhập số điện thoại để lấy lại mật khẩu
-        </Text>
-      </View>
-
-      <View style={{ flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBlockColor: "#06c3ff", width: "95%", marginBottom: 16, marginHorizontal: 15 }}>
+          width: "90%",
+          flexDirection: "row",
+          alignItems: "center",
+          borderBottomWidth: 1,
+          height: 50,
+          borderBottomColor: isFocusedSdt ? "blue" : "gray",
+        }}
+      >
+        <CountryPicker
+          containerButtonStyle={{ marginTop: 0 }}
+          withCallingCode
+          withFilter
+          withFlag
+          onSelect={handleCountryChange}
+          countryCode={countryCode}
+        />
         <TextInput
-          style={{
-            height: 40,
-            color: "#635b5b",
-            fontSize: 18,
-            width: "85%",
-          }}
-          placeholder="Nhập số điện thoại"
-          placeholderTextColor="#635b5b"
-          value={phoneNumber}
+          style={[styles.input]}
+          placeholder="Số điện thoại"
           autoCapitalize="none"
           keyboardType="phone-pad"
           autoFocus={true}
-          onChangeText={(text) => setPhoneNumber(text)}
+          value={sdt}
+          onFocus={() => setIsFocusedSdt(true)}
+          onBlur={() => setIsFocusedSdt(false)}
+          onChangeText={(text) => setsdt(text)}
         />
-        <TouchableOpacity style={{ marginLeft: 'auto' }}>
-          <Text style={{ fontSize: 18, color: "#B0B4BB" }}>x</Text>
-        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity onPress={forgotpass}
-       style={{ width: '50%', height: '40px', backgroundColor: '#1faeeb', borderRadius: 20, marginHorizontal: 'auto' }}>
-        <Text style={{ fontSize: 20, color: 'white', margin: 'auto' }}>
-         Tiếp tục
-        </Text>
+    </View>
+    <Text
+      style={{ fontSize: 18, color: "red", marginLeft: 17 }}
+    >
+      {errorMessage}
+    </Text>
+    <View
+      style={{
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 10,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => {
+          forgotpass();
+        }}
+        style={{
+          borderRadius: 19,
+          width: 100,
+          height: 39,
+          backgroundColor: isFieldsFilled ? "#006AF5" : "gray",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        disabled={!isFieldsFilled}
+      >
+        <Text style={{ color: "white" }}>Tiếp tục</Text>
       </TouchableOpacity>
     </View>
-  )
+  </View>
+);
 }
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  ViewTop: {
+    width: "100%",
+    height: 50,
+    backgroundColor: "#E9EBED",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  ViewInput: {
+    width: "100%",
+    height: 70,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  inputPass: {
+    width: "90%",
+    height: 50,
+    fontSize: 19,
+  },
+  input: {
+    width: "90%",
+    height: 50,
+    fontSize: 19,
+  },
+  ViewBottom: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "90%",
+    bottom: 20,
+    position: "absolute",
+  },
+});
 export default ForgotPassword;
+

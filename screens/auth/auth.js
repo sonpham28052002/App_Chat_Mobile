@@ -41,9 +41,39 @@ export default function Auth() {
             headerShown: false
           }}
           component={Register} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-          <Stack.Screen name="AuthenOtp" component={AuthenOtp} />
-          <Stack.Screen name="ResetPass" component={ResetPass} />
+          <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPassword}
+          options={{
+            headerShown: true,
+            title: "Lấy lại mật khẩu",
+            headerStyle: {
+              backgroundColor: "#00aaff",
+            },
+          }}
+        />
+         <Stack.Screen
+          name="AuthenOtp"
+          component={AuthenOtp}
+          options={{
+            headerShown: true,
+            title: "Nhập mã xác thực",
+            headerStyle: {
+              backgroundColor: "#00aaff",
+            },
+          }}
+        />
+         <Stack.Screen
+          name="ResetPass"
+          component={ResetPass}
+          options={{
+            headerShown: true,
+            title: "Tạo mật khẩu mới",
+            headerStyle: {
+              backgroundColor: "#00aaff",
+            },
+          }}
+        />
           <Stack.Screen name="Home" component={TabHome} 
           options={{
             headerShown: false

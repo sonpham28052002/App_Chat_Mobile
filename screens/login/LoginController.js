@@ -4,6 +4,7 @@ import AuthenticateOTP from "../../components/otp/AuthenticateOTP"
 import LoginOtp from './LoginOtp'
 import PhoneInputText from '../../components/PhoneInputText'
 import Home from '../afterLogin/listChat/HomeChat'
+import ListChat from "../afterLogin/listChat/ListChat"
 const Stack = createStackNavigator()
 const LoginController = () => {
   return (
@@ -13,7 +14,7 @@ const LoginController = () => {
     }}
     >
        <Stack.Screen name="PhoneInputText" component={PhoneInputText}
-      initialParams={ {screens: "Home"}} 
+      initialParams={ {screens: "ListChat"}} 
       options={{title: 'Số điện thoại'}}
       />
       <Stack.Screen name="AuthenticateOTP" component={AuthenticateOTP}

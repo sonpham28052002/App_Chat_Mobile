@@ -8,7 +8,7 @@ const InputPassword = (props) => {
     return (
         <View style={{ flexDirection: 'row', width: '100%' }}>
             <View style={{ width: '88%' }}>
-                <TextInput style={{
+            <TextInput style={{
                     padding: 10,
                     height: 40,
                     fontSize: 20,
@@ -18,7 +18,7 @@ const InputPassword = (props) => {
                 }}
                     onChangeText={props.setPassword}
                     secureTextEntry={secureTextEntry}
-                    placeholder='Nhập mật khẩu'
+                    placeholder={props.placeholder}
                     placeholderTextColor={'gray'}
                 />
             </View>

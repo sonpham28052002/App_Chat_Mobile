@@ -40,7 +40,7 @@ export default function Auth() {
             headerShown: false
           }}
           />
-          <Stack.Screen name="CreatePassword" component={CreatePassword} />
+          {/* <Stack.Screen name="CreatePassword" component={CreatePassword} /> */}
           <Stack.Screen name="User" component={User} />
         </Stack.Navigator>
         </NavigationContainer>

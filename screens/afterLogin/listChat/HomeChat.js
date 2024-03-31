@@ -6,7 +6,9 @@ import Chat from './Chat'
 import TabHome from '../tabHome/TabHome'
 import OptionChat from './OptionChat'
 import ScanQR from './ScanQR'
-import EditProfile from '../user/EditProfile' 
+import EditProfile from '../user/EditProfile'
+import ChangePassword from '../user/ChangePassword'
+import UserProfile from '../user/UserProfile'
 const Stack = createStackNavigator()
 const HomChat = ({navigation}) => {
   return (
@@ -35,6 +37,8 @@ const HomChat = ({navigation}) => {
          options={{
           headerShown: false
         }} />
+        <Stack.Screen name="ChangePassword" component={ChangePassword} />
+        <Stack.Screen name="UserProfile" component={UserProfile} />
     </Stack.Navigator>
   )
 }

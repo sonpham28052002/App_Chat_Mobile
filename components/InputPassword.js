@@ -18,7 +18,7 @@ const InputPassword = (props) => {
                 }}
                     onChangeText={props.setPassword}
                     secureTextEntry={secureTextEntry}
-                    placeholder='Nhập mật khẩu'
+                    placeholder={props.placeholder}
                     placeholderTextColor={'gray'}
                 />
             </View>

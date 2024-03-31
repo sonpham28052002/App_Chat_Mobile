@@ -11,7 +11,7 @@ import axios from 'axios'; // Import axios correctly
 
 const Stack = createStackNavigator();
 
-const HomChat = ({ navigation, route }) => {
+const HomeChat = ({ navigation, route }) => {
   const dispatch = useDispatch();
   
   useEffect(() => {
@@ -33,15 +33,17 @@ const HomChat = ({ navigation, route }) => {
 
   return (
     <Stack.Navigator>
-      {/* <Stack.Screen name="TabHome" component={TabHome} options={{ headerShown: false }} /> */}
-      <Stack.Screen name="ListChat" initialParams={navigation} component={ListChat}
-      options={{
-        headerShown:false
-      }}
-       />
-      <Stack.Screen
-        name="Chat"
-        component={Chat}
+        {/* <Stack.Screen name="TabHome" component={TabHome}
+        options={{
+          headerShown: false
+        }}
+        ></Stack.Screen> */}
+        <Stack.Screen name="ListChat" initialParams={navigation} component={ListChat} 
+        options={{
+          headerShown: false
+        }}
+        />
+        <Stack.Screen name="Chat" component={Chat} 
         options={{
           headerStyle: {
             backgroundColor: 'lightblue',
@@ -61,4 +63,4 @@ const HomChat = ({ navigation, route }) => {
   );
 };
 
-export default HomChat;
+export default HomeChat;

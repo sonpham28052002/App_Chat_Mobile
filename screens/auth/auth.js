@@ -9,9 +9,10 @@ import ForgotPassword from '../forgotPassword/ForgotPassword';
 import HomeChat from '../afterLogin/listChat/HomeChat';
 import CreatePassword from '../register/CreatePassword';
 import User  from '../afterLogin/user/User';
-
+import LoginOtp from '../login/LoginOtp.js';
 import AuthenOtp from '../forgotPassword/AuthenOtp.js'
 import ResetPass from '../forgotPassword/ResetPass.js'
+import LoginController from '../login/LoginController.js';
 const Stack = createStackNavigator()
 
 export default function Auth() {
@@ -22,7 +23,18 @@ export default function Auth() {
           headerShown: true
         }}
         >
-          <Stack.Screen name="Login" component={Login}/>
+          <Stack.Screen name="Login" component={Login}
+           options={{
+            headerShown: false}}
+          />
+          <Stack.Screen name="LoginOtp" component={LoginOtp}
+           options={{
+            headerShown: false}}
+          />
+          <Stack.Screen name="LoginController" component={LoginController}
+           options={{
+            headerShown: false}}
+          />
           <Stack.Screen name="Register" 
           options={{
             headerShown: false

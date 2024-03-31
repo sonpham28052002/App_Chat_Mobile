@@ -1,5 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState,useEffect } from 'react'
 import ButtonCustom from './button'
 import { RadioButton } from 'react-native-paper';
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
@@ -7,15 +7,12 @@ import { firebaseConfig } from '../config'
 import { sendVerification } from '../function/sendVerification';
 import PhoneInput from "react-native-phone-input";
 import AuthenticateOTP from './otp/AuthenticateOTP';
-
 const PhoneInputText = ({navigation, route}) => {
-
   const phoneInput = useRef(null);
   const [phone, setPhone] = useState('');
 
   const recaptchaVerifier = useRef(null);
   const [verificationId, setVerificationId] = useState(null);
-
   return (
     <View style={{flex: 1, justifyContent: 'center', paddingHorizontal: '5%'}}>
       <PhoneInput ref={phoneInput}
@@ -42,12 +39,8 @@ const PhoneInputText = ({navigation, route}) => {
         confirmTextStyle={{ fontSize: 20, color: 'green' }}
         pickerItemStyle={{ fontSize: 20 }}
       />
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaVerifier}
-        firebaseConfig={firebaseConfig}
-      />
       <View style={{marginVertical: 10}}>
-      <ButtonCustom title={'Gửi mã OTP'} backgroundColor={'cyan'}
+      <ButtonCustom title={'Gửi mã OTP'} backgroundColor={'#1faeeb'}
         onPress={() => {
           sendVerification(phone, recaptchaVerifier, (data) => { setVerificationId(data) })
         }}
@@ -63,13 +56,21 @@ const PhoneInputText = ({navigation, route}) => {
               callBack: (uid) => { //hàm thực thi sau khi xác thực thành công
                 navigation.navigate(route.params.screens, { //chuyển đến màn hình tiếp theo
                   id: uid,
-                  phone: phone,
+                  phone: phone.slice(1),
+              
                 })
               }
             })
           }}
         />
       }
+      <View style={{alignContent:'center',alignItems:'center'}}>
+      <FirebaseRecaptchaVerifierModal
+        ref={recaptchaVerifier}
+        firebaseConfig={firebaseConfig}
+      />
+      </View>
+     
     </View>
   )
 }

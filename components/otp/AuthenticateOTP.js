@@ -1,14 +1,13 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { OtpInput } from "react-native-otp-entry";
 import ButtonCustom from '../button'
 import { confirmCode } from '../../function/confirmCodeOTP';
 
 const AuthenticateOTP = ({route}) => {
-
+    // const { phoneNumber, verificationId, callBack } = route.params;
     const [code, setCode] = React.useState('')
     const [err, setErr] = React.useState(null)
-
     return (
         <View style={{ flex: 1, backgroundColor: 'lightblue', width: '100%', paddingHorizontal: 10, justifyContent: 'center' }}>
             <View style={{ flex: 1, justifyContent: 'center' }}>

@@ -3,14 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons'; 
 // import store from '../../../Redux/Redux';
 import { useSelector } from 'react-redux';
-
 const ListChat = ({ navigation, route }) => {
-  useEffect(()=>{
-    const handleLogin = async () => {
-     console.log(route.params.id);
-     };
-     handleLogin();
-  },[]);
+  // useEffect(() => {
+  //   navigation.setOptions({
+  //     headerRight: () => (
+  //       <TouchableOpacity onPress={() => navigation.replace('NewScreen')}>
+  //         <Text>Replace</Text>
+  //       </TouchableOpacity>
+  //     ),
+  //   });
+  // }, [navigation]);
   const name = useSelector((state) => state.account.userName);
   const avt = useSelector((state) => state.account.avt);
   return (

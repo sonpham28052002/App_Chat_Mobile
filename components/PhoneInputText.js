@@ -18,10 +18,10 @@ const PhoneInputText = ({navigation, route}) => {
   const [verificationId, setVerificationId] = useState(null);
 
   return (
-    <LinearGradient style={{flex: 1, justifyContent: 'center', paddingHorizontal: '5%'}}
-    colors={['#7cc0d8', '#FED9B7']}
-              start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+    <LinearGradient style={{ flex: 1, justifyContent: 'center', paddingHorizontal: '5%' }}
+      colors={['#7cc0d8', '#FED9B7']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
     >
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%'}}>
       <Image source={require('../assets/bgr.png')} style={{width: 200, height: 200}}/>

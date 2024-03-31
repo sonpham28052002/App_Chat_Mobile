@@ -13,6 +13,7 @@ import LoginOtp from '../login/LoginOtp.js';
 import AuthenOtp from '../forgotPassword/AuthenOtp.js'
 import ResetPass from '../forgotPassword/ResetPass.js'
 import LoginController from '../login/LoginController.js';
+import TabHome from '../afterLogin/tabHome/TabHome.js';
 const Stack = createStackNavigator()
 
 export default function Auth() {
@@ -43,13 +44,13 @@ export default function Auth() {
           <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
           <Stack.Screen name="AuthenOtp" component={AuthenOtp} />
           <Stack.Screen name="ResetPass" component={ResetPass} />
-          <Stack.Screen name="Home" component={HomeChat} 
+          <Stack.Screen name="Home" component={TabHome} 
           options={{
             headerShown: false
           }}
           />
-          <Stack.Screen name="CreatePassword" component={CreatePassword} />
-          <Stack.Screen name="User" component={User} />
+          {/* <Stack.Screen name="CreatePassword" component={CreatePassword} /> */}
+          {/* <Stack.Screen name="User" component={User} /> */}
         </Stack.Navigator>
         </NavigationContainer>
       );

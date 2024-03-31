@@ -4,7 +4,9 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import User from '../user/User'
 import Contact from '../Contact'
 import ListChat from '../listChat/ListChat'
+import HomeChat from '../listChat/HomeChat'
 import UserProfile from '../user/UserProfile'
+import HomeUser from '../user/HomeUser'
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
@@ -15,7 +17,7 @@ const TabHome = () => {
     <Tab.Navigator>
       <Tab.Screen 
         name="Tin nhắn" 
-        component={ListChat} 
+        component={HomeChat} 
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="chatbubble-ellipses-outline" size={24} color="#0A68FE" />
@@ -33,7 +35,7 @@ const TabHome = () => {
       />
       <Tab.Screen 
         name="Cá nhân" 
-        component={UserProfile} 
+        component={HomeUser} 
         options={{
           tabBarIcon: ({ color }) => (
             <FontAwesome6 name="user" size={24} color="#0A68FE" />

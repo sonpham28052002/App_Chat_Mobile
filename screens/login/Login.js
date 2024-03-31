@@ -94,7 +94,7 @@ const Login = ({ navigation }) => {
         <View style={{ backgroundColor: "#d9d9d9", paddingVertical: 7, paddingHorizontal: 14, marginBottom: 32 }}>
           <Text style={{ color: "#000000", fontSize: 20 }}>Vui lòng nhập số điện thoại và mật khẩu đăng nhập</Text>
         </View>
-        {showError && ( 
+        {showError && (
           <Text style={{ color: "red", fontSize: 16, marginHorizontal: 15 }}>{error}</Text>
         )}
       <View style={{flex: 1, justifyContent: 'center'}}>

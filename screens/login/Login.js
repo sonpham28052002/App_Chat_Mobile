@@ -10,9 +10,10 @@ import { Entypo } from '@expo/vector-icons';
 import LoginOtp from "./LoginOtp";
 import LoginController from "./LoginController";
 import Home from '../afterLogin/listChat/HomeChat'  
+import InputPassword from "../../components/InputPassword";
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("84814929002");
-  const [password, setPassword] = useState("cuongdacap123");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [account, setAccount] = useState([]);
   const [error, setError] = useState("");
@@ -20,28 +21,24 @@ const Login = ({ navigation }) => {
   const [showError, setShowError] = useState(false);
   const dispatch = useDispatch();
   const  phoneInput = useRef(null);
-  var [eye1, setEye1] = useState('eye-with-line')
-    var [eye2, setEye2] = useState('eye-with-line')
-  var [secureTextEntry1, setSecureTextEntry1] = useState(true)
-  var [secureTextEntry2, setSecureTextEntry2] = useState(true)
   const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('');
 
   const handleLogin = async () => {
      let found = false;
     try {
-      console.log(phoneNumber);
-      console.log(password);
+      // console.log(phoneNumber);
+      // console.log(password);
       // Gọi API để kiểm tra tài khoản
       const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountPhoneAndPassword?phone=${phoneNumberWithoutPlus}&password=${password}`);
       if (accountRes.data) {
-        console.log(accountRes.data);
+        // console.log(accountRes.data);
         const userId = accountRes.data.id;
         const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
         if (userRes.data) {
-          console.log(userRes.data);
+          // console.log(userRes.data);
           dispatch(save(userRes.data));
           found = true;
-          navigation.navigate("Home");
+          navigation.navigate("TabHome",{id: userRes.data.id});
         }
       } else {
           if (!found) { 
@@ -97,7 +94,8 @@ const Login = ({ navigation }) => {
         {showError && (
           <Text style={{ color: "red", fontSize: 16, marginHorizontal: 15 }}>{error}</Text>
         )}
-      <View style={{flex: 1, justifyContent: 'center'}}>
+<View style={{justifyContent:'center',alignContent:'center',  paddingHorizontal: 10}}>
+<View style={{flex: 1, justifyContent: 'center',width:'88%'}}>
       <PhoneInput ref={phoneInput}
         initialCountry='vn'
         onChangePhoneNumber={(phoneNumber) => {
@@ -105,19 +103,17 @@ const Login = ({ navigation }) => {
           setPhoneNumberWithoutPlus(formattedPhoneNumber);
         }}
         style={{
-          paddingLeft: 10,
-          width: '100%',
-          height: 80,
-          borderColor: 'black',
-          borderTopWidth:1,
-          borderBottomWidth:1,
-          // borderRadius: 5,
-          marginVertical: 10
+          padding: 10,
+                    height: 40,
+                    fontSize: 20,
+                    borderColor: 'black',
+                    borderWidth: 2,
+                    borderRadius: 5,
         }}
         textStyle={{
           paddingHorizontal: 10,
           fontSize: 20,
-          height: 80,
+          height: 40,
           borderLeftWidth: 1,
         }}
         cancelText='Hủy'
@@ -127,31 +123,14 @@ const Login = ({ navigation }) => {
         pickerItemStyle={{ fontSize: 20 }}
       />
       </View>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-          <TextInput
-            style={{ flex: 1, height: 80, color: "#635b5b", fontSize: 20 }}
-            placeholder="Mật khẩu"
-            placeholderTextColor="#635b5b"
-            onChangeText={(text) => setPassword(text)}
-            value={password}
-            secureTextEntry={secureTextEntry1}
-          />
-            <View style={{ width: '12%', justifyContent: 'center', alignItems: 'center' }}>
-                            <TouchableOpacity onPress={() => {
-                                if (eye1 == 'eye') {
-                                    setEye1('eye-with-line')
-                                    setSecureTextEntry1(!secureTextEntry1)
-                                }
-                                else {
-                                    setEye1('eye')
-                                    setSecureTextEntry1(!secureTextEntry1)
-                                }
-                            }}>
-                                <Entypo name={eye1} size={30} color="black" />
-                            </TouchableOpacity>
-                        </View>
-        </View>
-        <Text style={{ color: "#2752eb", fontSize: 20, marginBottom: 49, marginLeft: 15, textDecorationLine: "underline", textDecorationColor: "#2752eb" }} onPress={handleForgotPassword}>Lấy lại mật khẩu</Text>
+      <View style={{marginTop:20}}>
+      <InputPassword setPassword={setPassword} placeholder="Nhập mật khẩu" />
+      </View>
+</View>
+<View style={{marginTop:10}}>
+<Text style={{ color: "#2752eb", fontSize: 20, marginBottom: 49, marginLeft: 15, textDecorationLine: "underline", textDecorationColor: "#2752eb" }} onPress={handleForgotPassword}>Lấy lại mật khẩu</Text>
+</View>
+      
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.buttonLogin} onPress={handleLogin}>
             <Text style={styles.buttonTextLogin}>Đăng nhập</Text>

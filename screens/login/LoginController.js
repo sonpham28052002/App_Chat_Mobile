@@ -12,7 +12,7 @@ const LoginController = () => {
     }}
     >
        <Stack.Screen name="PhoneInputText" component={PhoneInputText}
-      initialParams={ {screens: "Home"}} 
+      initialParams={ {screens: "TabHome"}} 
       options={{title: 'Số điện thoại'}}
       />
       <Stack.Screen name="AuthenticateOTP" component={AuthenticateOTP}

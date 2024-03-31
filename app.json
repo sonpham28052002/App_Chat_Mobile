@@ -21,7 +21,7 @@
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
-        },
+        }
         // "expo-av",
         // {
         //   "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
@@ -38,7 +38,7 @@
         "NSContactsUsageDescription": "Ứng dụng yêu cầu quyền truy cập danh bạ",
         "NSFaceIDUsageDescription": "Vui lòng cho phép ứng dụng truy cập Face ID để xác thực.",
         "permissions": ["INTERNET"]
-      },
+      }
      
     },
     "android": {

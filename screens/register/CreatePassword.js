@@ -1,8 +1,10 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native'
 import React, { useState } from 'react'
 import ButtonCustom from '../../components/button'
 import { Entypo } from '@expo/vector-icons';
 import { RadioButton } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import InputPassword from '../../components/InputPassword';
 
 const CreatePassword = ({ navigation, route }) => {
     var [eye1, setEye1] = useState('eye-with-line')
@@ -80,7 +82,11 @@ const CreatePassword = ({ navigation, route }) => {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: 'lightblue', padding: 10}}>
+        <LinearGradient style={{ flex: 1, padding: 10 }}
+            colors={['#7cc0d8', '#FED9B7']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+        >
             <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: '10%' }}>
                 <Text style={{ width: '100%', fontSize: 30, fontWeight: 700, textAlign: 'center' }}>Nhập thông tin để hoàn tất đăng ký</Text>
             </View>
@@ -91,7 +97,7 @@ const CreatePassword = ({ navigation, route }) => {
                         height: 40,
                         fontSize: 20,
                         borderColor: 'black',
-                        borderWidth: 1,
+                        borderWidth: 2,
                         borderRadius: 5
                     }}
                         value={name}
@@ -114,90 +120,33 @@ const CreatePassword = ({ navigation, route }) => {
                         />
                         <Text style={styles.text}>Nữ</Text>
                     </View>
-                    <View style={{ flexDirection: 'row', width: '100%' }}>
-                        <View style={{ width: '88%' }}>
-                            <TextInput style={{
-                                padding: 10,
-                                height: 40,
-                                fontSize: 20,
-                                borderColor: 'black',
-                                borderWidth: 1,
-                                borderRadius: 5
-                            }}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry={secureTextEntry1}
-                                placeholder='Nhập mật khẩu'
-                                placeholderTextColor={'gray'}
-                            />
-                        </View>
-                        <View style={{ width: '12%', justifyContent: 'center', alignItems: 'center' }}>
-                            <TouchableOpacity onPress={() => {
-                                if (eye1 == 'eye') {
-                                    setEye1('eye-with-line')
-                                    setSecureTextEntry1(!secureTextEntry1)
-                                }
-                                else {
-                                    setEye1('eye')
-                                    setSecureTextEntry1(!secureTextEntry1)
-                                }
-                            }}>
-                                <Entypo name={eye1} size={30} color="black" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                    <View style={{ flexDirection: 'row', width: '100%' }}>
-                        <View style={{ width: '88%' }}>
-                            <TextInput style={{
-                                padding: 10,
-                                height: 40,
-                                fontSize: 20,
-                                borderColor: 'black',
-                                borderWidth: 1,
-                                borderRadius: 5
-                            }}
-                                value={rePassword}
-                                onChangeText={setRePassword}
-                                secureTextEntry={secureTextEntry2}
-                                placeholder='Nhập lại mật khẩu'
-                                placeholderTextColor={'gray'}
-                            />
-                        </View>
-                        <View style={{ width: '12%', justifyContent: 'center', alignItems: 'center' }}>
-                            <TouchableOpacity onPress={() => {
-                                if (eye2 == 'eye') {
-                                    setEye2('eye-with-line')
-                                    setSecureTextEntry2(!secureTextEntry2)
-                                }
-                                else {
-                                    setEye2('eye')
-                                    setSecureTextEntry2(!secureTextEntry1)
-                                }
-                            }}>
-                                <Entypo name={eye2} size={30} color="black" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+                    <InputPassword setPassword={setPassword}/>
+                    <InputPassword setPassword={setRePassword}/>
                 </View>
                 <ButtonCustom title={'Đăng ký'} backgroundColor={'cyan'} onPress={
                     () => {
                         if (checkPassword() && password != '') {
                             handleRegister()
-                            navigation.navigate('Login')
+                            Alert.alert('Đăng ký thành công. Hãy tiến hành đăng nhập!')
+                            navigation.navigate('Login', {
+                                id: route.params.id,
+                                phone: route.params.phone,
+                                password: password
+                            })
                         }
                     }
                 } />
                 <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'red' }}>{notification}</Text>
             </View>
-        </View>
+        </LinearGradient>
     )
 }
 
 const styles = StyleSheet.create({
-  text: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  }
+    text: {
+        fontSize: 20,
+        fontWeight: 'bold',
+    }
 })
 
 export default CreatePassword

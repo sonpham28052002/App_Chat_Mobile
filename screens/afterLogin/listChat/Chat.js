@@ -194,7 +194,7 @@ const Chat = ({ navigation }) => {
                 />
             </Animated.View>
 
-            {/* <View style={{ height: height * 0.5 }}>
+            <View style={{ height: height * 0.5 }}>
                 <EmojiSelector
                     style={{ width: width }}
                     category={Categories.symbols}
@@ -210,7 +210,7 @@ const Chat = ({ navigation }) => {
                         }
                     }
                 />
-            </View> */}
+            </View>
         </View>
     )
 }

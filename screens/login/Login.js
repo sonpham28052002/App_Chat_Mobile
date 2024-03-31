@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { save } from "../../Redux/slice";
 
-const Login = ({ navigation }) => {
+const Login = ({ navigation, route }) => {
   const [phoneNumber, setPhoneNumber] = useState("84814929002");
   const [password, setPassword] = useState("cuongdacap123");
   const [showPassword, setShowPassword] = useState(false);
@@ -15,24 +15,25 @@ const Login = ({ navigation }) => {
   const [showError, setShowError] = useState(false);
   const dispatch = useDispatch();
 
- // Đăng nhập
-const handleLogin = () => {
-  let found = false;
-  account.forEach((a) => {
-    if (a.phone == phoneNumber && a.password == password) {
-      setId(a.id);
-      fetchUserById(a.id);
-      found = true; 
+  // Đăng nhập
+  const handleLogin = () => {
+    let found = false;
+
+    account.forEach((a) => {
+      if (a.phone == phoneNumber && a.password == password) {
+        setId(a.id);
+        fetchUserById(a.id);
+        found = true;
+      }
+    });
+    if (!found) {
+      setError("Số điện thoại hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại");
+      setShowError(true);
+    } else {
+      setError("");
+      setShowError(false);
     }
-  });
-  if (!found) { 
-    setError("Số điện thoại hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại");
-    setShowError(true);
-  } else { 
-    setError("");
-    setShowError(false);
-  }
-};
+  };
 
 
   // Gọi API để lấy thông tin user bằng id
@@ -96,7 +97,7 @@ const handleLogin = () => {
         <View style={{ backgroundColor: "#d9d9d9", paddingVertical: 7, paddingHorizontal: 14, marginBottom: 32 }}>
           <Text style={{ color: "#000000", fontSize: 20 }}>Vui lòng nhập số điện thoại và mật khẩu đăng nhập</Text>
         </View>
-        {showError && ( 
+        {showError && (
           <Text style={{ color: "red", fontSize: 16, marginHorizontal: 15 }}>{error}</Text>
         )}
         <TextInput

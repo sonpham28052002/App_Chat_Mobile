@@ -7,10 +7,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import InputPassword from '../../components/InputPassword';
 
 const CreatePassword = ({ navigation, route }) => {
-    var [eye1, setEye1] = useState('eye-with-line')
-    var [eye2, setEye2] = useState('eye-with-line')
-    var [secureTextEntry1, setSecureTextEntry1] = useState(true)
-    var [secureTextEntry2, setSecureTextEntry2] = useState(true)
 
     var [name, setName] = useState('')
     const [checked, setChecked] = useState('Nam');
@@ -120,8 +116,8 @@ const CreatePassword = ({ navigation, route }) => {
                         />
                         <Text style={styles.text}>Nữ</Text>
                     </View>
-                    <InputPassword setPassword={setPassword}/>
-                    <InputPassword setPassword={setRePassword}/>
+                    <InputPassword setPassword={setPassword} placeholder="Nhập mật khẩu"/>
+                    <InputPassword setPassword={setRePassword} placeholder="Nhập lại mật khẩu"/>
                 </View>
                 <ButtonCustom title={'Đăng ký'} backgroundColor={'cyan'} onPress={
                     () => {

@@ -1,29 +1,29 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView, View, ScrollView, Image, Text, TouchableOpacity, TextInput, StyleSheet } from "react-native";
 import { useSelector, useDispatch } from 'react-redux';
 import { Entypo } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { EvilIcons } from '@expo/vector-icons';
-import { useIsFocused  } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import { updateAvatar } from "../../../Redux/slice";
 const UserProfile = ({ navigation }) => {
     const name = useSelector((state) => state.account.userName);
     const avt = useSelector((state) => state.account.avt);
     const [searchText, setSearchText] = useState('');
-    const [avatar, setAvatar] = useState(avt); 
+    const [avatar, setAvatar] = useState(avt);
     const isFocused = useIsFocused();
-    const dispatch = useDispatch(); 
+    const dispatch = useDispatch();
     useEffect(() => {
-      if (isFocused) {
-        dispatch(updateAvatar(avatar));
-      }
+        if (isFocused) {
+            dispatch(updateAvatar(avatar));
+        }
     }, [isFocused]);
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView style={styles.scrollView}>
                 <View style={styles.searchContainer}>
-                <EvilIcons name="search" size={40} color="white" />
+                    <EvilIcons name="search" size={40} color="white" />
                     <TextInput
                         placeholder="Tìm kiếm"
                         placeholderTextColor="#ffffff"
@@ -37,7 +37,7 @@ const UserProfile = ({ navigation }) => {
                     style={styles.profileContainer}>
                     <View style={styles.avatarContainer}>
                         <Image
-                            source={{ uri: avt }} 
+                            source={{ uri: avt }}
                             resizeMode="cover"
                             style={styles.avatar}
                         />
@@ -50,37 +50,38 @@ const UserProfile = ({ navigation }) => {
                 <View style={styles.touchableOpacity}>
                     <TouchableOpacity style={styles.item}>
                         <View style={styles.contentButton}>
-                        <Entypo name="wallet" size={24} color="#015CE0" />
-                        <Text style={styles.text}>Ví QR</Text>
+                            <Entypo name="wallet" size={24} color="#015CE0" />
+                            <Text style={styles.text}>Ví QR</Text>
                         </View>
                         <Text style={styles.description}>
-                        Lưu trữ và xuất trình các mã QR quan trọng
-                    </Text>
+                            Lưu trữ và xuất trình các mã QR quan trọng
+                        </Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.item}>
                         <View style={styles.contentButton}>
-                        <Entypo name="icloud" size={24} color="#015CE0" />
-                        <Text style={styles.text}>Cloud của tôi</Text>
+                            <Entypo name="icloud" size={24} color="#015CE0" />
+                            <Text style={styles.text}>Cloud của tôi</Text>
                         </View>
                         <Text style={styles.description}>Lưu trữ các tin nhắn quan trọng</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.item}>
                         <View style={styles.contentButton}>
-                        <Feather name="pie-chart" size={24} color="#015CE0" />
-                        <Text style={styles.text}>Quản lí dung lượng và bộ nhớ</Text>
+                            <Feather name="pie-chart" size={24} color="#015CE0" />
+                            <Text style={styles.text}>Quản lí dung lượng và bộ nhớ</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.item} onPress={()=>{
+                        navigation.navigate('ChangePassword')
+                    }}>
+                        <View style={styles.contentButton}>
+                            <MaterialIcons name="security" size={24} color="#015CE0" />
+                            <Text style={styles.text}>Tài khoản và bảo mật</Text>
                         </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.item}>
-                    <View style={styles.contentButton}>
-                    <MaterialIcons name="security" size={24} color="#015CE0" />
-                        <Text style={styles.text}>Tài khoản và bảo mật</Text>
-
-</View>      
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.item}>
                         <View style={styles.contentButton}>
-                        <Feather name="lock" size={24} color="#015CE0" />
-                        <Text style={styles.text}>Quyền riêng tư</Text>
+                            <Feather name="lock" size={24} color="#015CE0" />
+                            <Text style={styles.text}>Quyền riêng tư</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1faeeb',
         paddingVertical: 15,
         paddingHorizontal: 10,
-        flexDirection:'row'
+        flexDirection: 'row'
     },
     searchInput: {
         backgroundColor: '#1faeeb',
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 60,
         height: 60,
-        borderRadius: 30, 
+        borderRadius: 30,
     },
     profileInfo: {
         flex: 1,
@@ -143,18 +144,18 @@ const styles = StyleSheet.create({
     touchableOpacity: {
         flexDirection: "column",
         alignItems: "flex-start",
-        borderColor:"#DDDDDD",
-        borderBottomWidth:1,
+        borderColor: "#DDDDDD",
+        borderBottomWidth: 1,
     },
     item: {
         alignItems: "flex-start",
         justifyContent: "flex-start",
         marginHorizontal: 14,
         marginBottom: 20,
-      
+
     },
-    contentButton:{
-        marginTop:20,
+    contentButton: {
+        marginTop: 20,
 
         flexDirection: "row",
     },

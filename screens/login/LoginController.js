@@ -12,7 +12,7 @@ const LoginController = () => {
       headerShown: false
     }}
     >
-       <Stack.Screen name="PhoneInputText" component={PhoneInputText}
+      <Stack.Screen name="PhoneInputText" component={PhoneInputText}
       initialParams={ {screens: "Home"}} 
       options={{title: 'Số điện thoại'}}
       />

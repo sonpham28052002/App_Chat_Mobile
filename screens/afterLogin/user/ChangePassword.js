@@ -4,6 +4,7 @@ import InputPassword from '../../../components/InputPassword'
 import ButtonCustom from '../../../components/button'
 import axios from 'axios'
 import { useSelector } from 'react-redux'
+import { LinearGradient } from 'expo-linear-gradient'
 
 const ChangePassword = () => {
   const phone = useSelector((state) => state.account.phone)
@@ -12,7 +13,7 @@ const ChangePassword = () => {
   const [rePassword, setRePassword] = useState('')
   const [notification, setNotification] = useState('')
 
-  function checkPassword({navigation}) {
+  function checkPassword({ navigation }) {
     if (newPassword != rePassword) {
       setNotification('Mật khẩu không khớp')
       return false
@@ -28,7 +29,7 @@ const ChangePassword = () => {
         setNotification('')
         Alert.alert("Đổi mật khẩu thành công!")
         navigation.navigate('UserProfile')
-      }else{
+      } else {
         setNotification('Mật khẩu cũ không đúng')
       }
     } catch (error) {
@@ -38,7 +39,11 @@ const ChangePassword = () => {
   }
 
   return (
-    <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+    <LinearGradient style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}
+      colors={['#7cc0d8', '#FED9B7']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
       <View style={{ width: '100%', height: 300, justifyContent: 'space-between', paddingHorizontal: 10 }}>
         <InputPassword setPassword={setOldPassword} placeholder='Nhập mật khẩu cũ' />
         <InputPassword setPassword={setNewPassword} placeholder='Nhập mật khẩu mới' />
@@ -46,7 +51,7 @@ const ChangePassword = () => {
         <ButtonCustom title="Đổi mật khẩu" onPress={checkPassword} />
         <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'red' }}>{notification}</Text>
       </View>
-    </View>
+    </LinearGradient>
   )
 }
 

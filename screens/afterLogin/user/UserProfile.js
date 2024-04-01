@@ -22,12 +22,7 @@ const UserProfile = ({ navigation }) => {
     const handleLogout = () => {
         if (Platform.OS === 'web') {
             if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                 navigation.dispatch(
-            CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-            })
-        );
+                   navigation.navigate('Login')
             }
         } else {
             Alert.alert(
@@ -41,12 +36,7 @@ const UserProfile = ({ navigation }) => {
                     {
                         text: 'Đăng xuất',
                         onPress: () => {
-                           navigation.dispatch(
-            CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-            })
-        );
+                           navigation.navigate('Login')
                         },
                     },
                 ],

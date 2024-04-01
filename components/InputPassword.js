@@ -1,20 +1,19 @@
-import { View, TextInput, TouchableOpacity } from 'react-native'
+import { View, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { Entypo } from '@expo/vector-icons';
+import { TextInput } from 'react-native-paper';
 
 const InputPassword = (props) => {
     var [eye, setEye] = useState('eye-with-line')
     var [secureTextEntry, setSecureTextEntry] = useState(true)
     return (
-        <View style={{ flexDirection: 'row', width: '100%' }}>
-            <View style={{ width: '88%' }}>
-            <TextInput style={{
-                    padding: 10,
-                    height: 40,
+        <View style={{ flexDirection: 'row', width: '100%', backgroundColor: 'white',
+        borderWidth: 2, borderColor: 'black', borderRadius: 5 }}>
+            <View style={{ width: '88%'}}>
+                <TextInput style={{
+                    height: 45,
                     fontSize: 20,
-                    borderColor: 'black',
-                    borderWidth: 2,
-                    borderRadius: 5
+                    backgroundColor: 'white',
                 }}
                     onChangeText={props.setPassword}
                     secureTextEntry={secureTextEntry}

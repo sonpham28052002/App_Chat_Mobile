@@ -1,5 +1,5 @@
-import React, { useState, useEffect,useRef } from "react";
-import { SafeAreaView, View, ScrollView, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from "react";
+import { SafeAreaView, View, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import axios from 'axios';
 // import store from "../../Redux/Redux";
 import { useDispatch } from 'react-redux';
@@ -9,8 +9,10 @@ import PhoneInput from "react-native-phone-input";
 import { Entypo } from '@expo/vector-icons';
 import LoginOtp from "./LoginOtp";
 import LoginController from "./LoginController";
-import Home from '../afterLogin/listChat/HomeChat'  
+import Home from '../afterLogin/listChat/HomeChat'
 import InputPassword from "../../components/InputPassword";
+import { LinearGradient } from 'expo-linear-gradient'
+
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("84814929002");
   const [password, setPassword] = useState("111");
@@ -20,12 +22,12 @@ const Login = ({ navigation }) => {
   const [id, setId] = useState("");
   const [showError, setShowError] = useState(false);
   const dispatch = useDispatch();
-  const  phoneInput = useRef(null);
+  const phoneInput = useRef(null);
   const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('');
 
   const handleLogin = async () => {
-     let found = false;
-  
+    let found = false;
+
     try {
       // Gọi API để kiểm tra tài khoản
       const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountPhoneAndPassword?phone=${phoneNumberWithoutPlus}&password=${password}`);
@@ -37,16 +39,16 @@ const Login = ({ navigation }) => {
           // console.log(userRes.data);
           dispatch(save(userRes.data));
           found = true;
-          navigation.navigate("TabHome",{id: userRes.data.id});
+          navigation.navigate("TabHome", { id: userRes.data.id });
         }
       } else {
-          if (!found) { 
-    setError("Số điện thoại hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại");
-    setShowError(true);
-  } else { 
-    setError("");
-    setShowError(false);
-  }
+        if (!found) {
+          setError("Số điện thoại hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại");
+          setShowError(true);
+        } else {
+          setError("");
+          setShowError(false);
+        }
         setShowError(true);
       }
     } catch (error) {
@@ -60,7 +62,7 @@ const Login = ({ navigation }) => {
 
   const handleLoginOtp = (user) => {
     navigation.navigate('LoginController');
-};
+  };
 
 
   const handleForgotPassword = () => {
@@ -82,54 +84,59 @@ const Login = ({ navigation }) => {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <ScrollView style={{ flex: 1, backgroundColor: "#ffffff", paddingBottom: 17 }}>
-        <TouchableOpacity style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#1fadea", paddingVertical: 17, paddingHorizontal: 14 }}>
-          <Text style={{ color: "#fdf8f8", fontSize: 20, flex: 1 }}>Đăng nhập</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <LinearGradient style={{ flex: 1, paddingBottom: 17 }}
+        colors={['#7cc0d8', '#FED9B7']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <TouchableOpacity style={{ width: '100%', height: 50, paddingVertical: 10, alignItems: "center", justifyContent: 'center', backgroundColor: "#1fadea" }}>
+          <Text style={{ color: "#fdf8f8", fontSize: 30 }}>Đăng nhập</Text>
         </TouchableOpacity>
-        <View style={{ backgroundColor: "#d9d9d9", paddingVertical: 7, paddingHorizontal: 14, marginBottom: 32 }}>
-          <Text style={{ color: "#000000", fontSize: 20 }}>Vui lòng nhập số điện thoại và mật khẩu đăng nhập</Text>
+        <View style={{ height: 200, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+          <Image source={require('../../assets/bgr.png')} style={{ width: 200, height: 200 }} />
         </View>
         {showError && (
           <Text style={{ color: "red", fontSize: 16, marginHorizontal: 15 }}>{error}</Text>
         )}
-<View style={{justifyContent:'center',alignContent:'center',  paddingHorizontal: 10}}>
-<View style={{flex: 1, justifyContent: 'center',width:'88%'}}>
-      <PhoneInput ref={phoneInput}
-        initialCountry='vn'
-        onChangePhoneNumber={(phoneNumber) => {
-          const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.slice(1) : phoneNumber;
-          setPhoneNumberWithoutPlus(formattedPhoneNumber);
-        }}
-        style={{
-          padding: 10,
-                    height: 40,
-                    fontSize: 20,
-                    borderColor: 'black',
-                    borderWidth: 2,
-                    borderRadius: 5,
-        }}
-        textStyle={{
-          paddingHorizontal: 10,
-          fontSize: 20,
-          height: 40,
-          borderLeftWidth: 1,
-        }}
-        cancelText='Hủy'
-        cancelTextStyle={{ fontSize: 20, color: 'red' }}
-        confirmText='Xác nhận'
-        confirmTextStyle={{ fontSize: 20, color: 'green' }}
-        pickerItemStyle={{ fontSize: 20 }}
-      />
-      </View>
-      <View style={{marginTop:20}}>
-      <InputPassword setPassword={setPassword} placeholder="Nhập mật khẩu" />
-      </View>
-</View>
-<View style={{marginTop:10}}>
-<Text style={{ color: "#2752eb", fontSize: 20, marginBottom: 49, marginLeft: 15, textDecorationLine: "underline", textDecorationColor: "#2752eb" }} onPress={handleForgotPassword}>Lấy lại mật khẩu</Text>
-</View>
-      
+        <View style={{ justifyContent: 'center', height: 100, alignContent: 'center', paddingHorizontal: 10 }}>
+          <View style={{ flex: 1, justifyContent: 'center', width: '100%' }}>
+            <PhoneInput ref={phoneInput}
+              initialCountry='vn'
+              onChangePhoneNumber={(phoneNumber) => {
+                const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.slice(1) : phoneNumber;
+                setPhoneNumberWithoutPlus(formattedPhoneNumber);
+              }}
+              style={{
+                height: 50,
+                paddingLeft: 10,
+                fontSize: 20,
+                borderColor: 'black',
+                backgroundColor: 'white',
+                borderWidth: 2,
+                borderRadius: 5,
+              }}
+              textStyle={{
+                paddingHorizontal: 10,
+                fontSize: 20,
+                height: 40,
+                borderLeftWidth: 1,
+              }}
+              cancelText='Hủy'
+              cancelTextStyle={{ fontSize: 20, color: 'red' }}
+              confirmText='Xác nhận'
+              confirmTextStyle={{ fontSize: 20, color: 'green' }}
+              pickerItemStyle={{ fontSize: 20 }}
+            />
+          </View>
+          <View style={{ marginTop: 20 }}>
+            <InputPassword setPassword={setPassword} placeholder="Nhập mật khẩu" />
+          </View>
+        </View>
+        <View style={{ marginTop: 10, height: 50}}>
+          <Text style={{ color: "#2752eb", marginLeft: 10, fontSize: 20, textDecorationLine: "underline", textDecorationColor: "#2752eb" }} onPress={handleForgotPassword}>Lấy lại mật khẩu</Text>
+        </View>
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.buttonLogin} onPress={handleLogin}>
             <Text style={styles.buttonTextLogin}>Đăng nhập</Text>
@@ -139,12 +146,12 @@ const Login = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.buttonOtpContainer}>
-        <TouchableOpacity style={styles.buttonOtp} onPress={handleLoginOtp}>
+          <TouchableOpacity style={styles.buttonOtp} onPress={handleLoginOtp}>
             <Text style={styles.buttonTextOtp}>Đăng nhập bằng OTP</Text>
           </TouchableOpacity>
         </View>
-        <Text style={{ color: "#635b5b", fontSize: 12, marginLeft: 126, marginBottom: 50 }}>Các câu hỏi thường gặp</Text>
-      </ScrollView>
+        <Text style={{ color: "#635b5b", fontSize: 12, marginLeft: 126}}>Các câu hỏi thường gặp</Text>
+      </LinearGradient>
     </SafeAreaView>
   );
 }
@@ -174,10 +181,13 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   buttonOtp: {
-    flex: 1,
+    // flex: 1,
     alignItems: "center",
     backgroundColor: "#1faeeb",
     borderRadius: 20,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 13,
     marginBottom: 20,
     marginRight: 5,
@@ -194,8 +204,8 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 20,
   },
-  buttonOtpContainer:{
-    margin:10
+  buttonOtpContainer: {
+    margin: 10
   }
 });
 

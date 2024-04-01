@@ -8,6 +8,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 
 const ChangePassword = ({ navigation }) => {
   const phone = useSelector((state) => state.account.phone)
+  const avt = useSelector((state) => state.account.avt)
+  const userName = useSelector((state) => state.account.userName)
   const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [rePassword, setRePassword] = useState('')
@@ -44,9 +46,10 @@ const ChangePassword = ({ navigation }) => {
       end={{ x: 1, y: 1 }}
     >
       <View style={{flex: 0.8, justifyContent: 'center', alignItems: 'center'}}>
-          <Image source={{ uri: 'https://w7.pngwing.com/pngs/340/946/png-transparent-avatar-user-computer-icons-software-developer-avatar-child-face-heroes-thumbnail.png'}}
+          <Image source={{ uri: avt}}
             style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 3 }}
           />
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'black' }}>{userName}</Text>
       </View>
       <View style={{ flex: 1, width: '100%', height: 300, justifyContent: 'space-between', paddingHorizontal: 10 }}>
         <InputPassword setPassword={setOldPassword} placeholder='Nhập mật khẩu cũ' />

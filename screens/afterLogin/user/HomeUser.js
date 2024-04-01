@@ -15,7 +15,11 @@ const HomeUser = () => {
         <Stack.Screen name="UserProfile" component={UserProfile} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
         <Stack.Screen name="User" component={User} />
-        <Stack.Screen name="ChangePassword" component={ChangePassword} />
+        <Stack.Screen name="ChangePassword" component={ChangePassword} 
+        options={{
+          headerShown: true
+        }}
+        />
     </Stack.Navigator>
   )
 }

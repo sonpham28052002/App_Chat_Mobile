@@ -15,6 +15,7 @@ import ResetPass from '../forgotPassword/ResetPass.js'
 import LoginController from '../login/LoginController.js';
 import TabHome from '../afterLogin/tabHome/TabHome.js';
 import HomChat from '../afterLogin/listChat/HomeChat';
+import UserProfile from '../afterLogin/user/UserProfile.js';
 const Stack = createStackNavigator()
 
 export default function Auth() {
@@ -52,6 +53,7 @@ export default function Auth() {
             headerShown: false
           }}
           />
+          <Stack.Screen name="UserProfile" component={UserProfile} />
           {/* <Stack.Screen name="CreatePassword" component={CreatePassword} /> */}
           {/* <Stack.Screen name="User" component={User} /> */}
         </Stack.Navigator>

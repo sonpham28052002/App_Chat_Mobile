@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, ScrollView, Image, Text, TouchableOpacity, TextInput, StyleSheet, Platform,Alert } from "react-native";
+import { SafeAreaView, View, ScrollView, Image, Text, TouchableOpacity, TextInput, StyleSheet, Platform, Alert } from "react-native";
 import { useSelector, useDispatch } from 'react-redux';
 import { Entypo, Feather, MaterialIcons, EvilIcons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
@@ -22,12 +22,12 @@ const UserProfile = ({ navigation }) => {
     const handleLogout = () => {
         if (Platform.OS === 'web') {
             if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                 navigation.dispatch(
-            CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-            })
-        );
+                navigation.dispatch(
+                    CommonActions.reset({
+                        index: 0,
+                        routes: [{ name: 'Login' }],
+                    })
+                );
             }
         } else {
             Alert.alert(
@@ -41,12 +41,13 @@ const UserProfile = ({ navigation }) => {
                     {
                         text: 'Đăng xuất',
                         onPress: () => {
-                           navigation.dispatch(
-            CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-            })
-        );
+                            // navigation.dispatch(
+                            //     CommonActions.reset({
+                            //         index: 0,
+                            //         routes: [{ name: 'Login' }],
+                            //     })
+                            // );
+                            navigation.navigate("Login")
                         },
                     },
                 ],
@@ -106,7 +107,7 @@ const UserProfile = ({ navigation }) => {
                             <Text style={styles.text}>Quản lí dung lượng và bộ nhớ</Text>
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.item} onPress={()=>{
+                    <TouchableOpacity style={styles.item} onPress={() => {
                         navigation.navigate('ChangePassword')
                     }}>
                         <View style={styles.contentButton}>

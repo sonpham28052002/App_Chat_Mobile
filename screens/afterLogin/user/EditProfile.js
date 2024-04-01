@@ -91,7 +91,6 @@ const EditProfile = ({navigation}) => {
       const updatedUserData = { ...userNewData, avt: response.data };
       //update dữ liệu về backend
     const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUserData);
- //   console.log('Dữ liệu trả về sau update', updateUserResponse.data);
     dispatch(save(updatedUserData))
     } catch (error) {
     //  console.error('Lỗi upload ảnh', error);

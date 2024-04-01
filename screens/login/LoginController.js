@@ -2,7 +2,7 @@ import { createStackNavigator } from "@react-navigation/stack"
 import AuthenticateOTP from "../../components/otp/AuthenticateOTP"
 import PhoneInputText from '../../components/PhoneInputText'
 import Home from '../afterLogin/listChat/HomeChat'
-import ListChat from "../afterLogin/listChat/ListChat"
+import TabHome from '../afterLogin/tabHome/TabHome'
 const Stack = createStackNavigator()
 const LoginController = () => {
   return (
@@ -18,9 +18,6 @@ const LoginController = () => {
       <Stack.Screen name="AuthenticateOTP" component={AuthenticateOTP}
       options={{title: 'Xác thực OTP'}}
       />
-      {/* <Stack.Screen name="Home" component={Home} 
-      options={{title: 'Trang chủ chat'}}
-      /> */}
     </Stack.Navigator>
   )
 }

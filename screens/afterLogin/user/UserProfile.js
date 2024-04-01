@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, ScrollView, Image, Text, TouchableOpacity, TextInput, StyleSheet } from "react-native";
+import { SafeAreaView, View, ScrollView, Image, Text, TouchableOpacity, TextInput, StyleSheet, Platform, Alert } from "react-native";
 import { useSelector, useDispatch } from 'react-redux';
-import { Entypo } from '@expo/vector-icons';
-import { Feather } from '@expo/vector-icons';
-import { MaterialIcons } from '@expo/vector-icons';
-import { EvilIcons } from '@expo/vector-icons';
+import { Entypo, Feather, MaterialIcons, EvilIcons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { updateAvatar } from "../../../Redux/slice";
+import { CommonActions } from '@react-navigation/native';
 const UserProfile = ({ navigation }) => {
     const name = useSelector((state) => state.account.userName);
     const avt = useSelector((state) => state.account.avt);
@@ -14,11 +12,50 @@ const UserProfile = ({ navigation }) => {
     const [avatar, setAvatar] = useState(avt);
     const isFocused = useIsFocused();
     const dispatch = useDispatch();
+
     useEffect(() => {
         if (isFocused) {
             dispatch(updateAvatar(avatar));
         }
     }, [isFocused]);
+
+    const handleLogout = () => {
+        if (Platform.OS === 'web') {
+            if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                navigation.dispatch(
+                    CommonActions.reset({
+                        index: 0,
+                        routes: [{ name: 'Login' }],
+                    })
+                );
+            }
+        } else {
+            Alert.alert(
+                'Xác nhận',
+                'Bạn có chắc chắn muốn đăng xuất?',
+                [
+                    {
+                        text: 'Hủy',
+                        style: 'cancel',
+                    },
+                    {
+                        text: 'Đăng xuất',
+                        onPress: () => {
+                            // navigation.dispatch(
+                            //     CommonActions.reset({
+                            //         index: 0,
+                            //         routes: [{ name: 'Login' }],
+                            //     })
+                            // );
+                            navigation.navigate("Login")
+                        },
+                    },
+                ],
+                { cancelable: false }
+            );
+        }
+    }
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView style={styles.scrollView}>
@@ -70,7 +107,7 @@ const UserProfile = ({ navigation }) => {
                             <Text style={styles.text}>Quản lí dung lượng và bộ nhớ</Text>
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.item} onPress={()=>{
+                    <TouchableOpacity style={styles.item} onPress={() => {
                         navigation.navigate('ChangePassword')
                     }}>
                         <View style={styles.contentButton}>
@@ -82,6 +119,12 @@ const UserProfile = ({ navigation }) => {
                         <View style={styles.contentButton}>
                             <Feather name="lock" size={24} color="#015CE0" />
                             <Text style={styles.text}>Quyền riêng tư</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.item} onPress={handleLogout}>
+                        <View style={styles.contentButton}>
+                            <MaterialIcons name="logout" size={24} color="#015CE0" />
+                            <Text style={styles.text}>Đăng xuất</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -152,11 +195,9 @@ const styles = StyleSheet.create({
         justifyContent: "flex-start",
         marginHorizontal: 14,
         marginBottom: 20,
-
     },
     contentButton: {
         marginTop: 20,
-
         flexDirection: "row",
     },
     text: {
@@ -168,8 +209,6 @@ const styles = StyleSheet.create({
         color: "#635b5b",
         fontSize: 15,
         marginBottom: 10,
-        marginLeft: 14,
-        textAlign: "left",
     },
 });
 

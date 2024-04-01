@@ -14,6 +14,9 @@ import AuthenOtp from '../forgotPassword/AuthenOtp.js'
 import ResetPass from '../forgotPassword/ResetPass.js'
 import LoginController from '../login/LoginController.js';
 import TabHome from '../afterLogin/tabHome/TabHome.js';
+import HomChat from '../afterLogin/listChat/HomeChat';
+import UserProfile from '../afterLogin/user/UserProfile.js';
+import ForgotPasswordStack from '../forgotPassword/ForgotPasswordStack.js';
 const Stack = createStackNavigator()
 
 export default function Auth() {
@@ -40,45 +43,18 @@ export default function Auth() {
           options={{
             headerShown: false
           }}
+          
           component={Register} />
-          <Stack.Screen
-          name="ForgotPassword"
-          component={ForgotPassword}
-          options={{
-            headerShown: true,
-            title: "Lấy lại mật khẩu",
-            headerStyle: {
-              backgroundColor: "#00aaff",
-            },
-          }}
-        />
-         <Stack.Screen
-          name="AuthenOtp"
-          component={AuthenOtp}
-          options={{
-            headerShown: true,
-            title: "Nhập mã xác thực",
-            headerStyle: {
-              backgroundColor: "#00aaff",
-            },
-          }}
-        />
-         <Stack.Screen
-          name="ResetPass"
-          component={ResetPass}
-          options={{
-            headerShown: true,
-            title: "Tạo mật khẩu mới",
-            headerStyle: {
-              backgroundColor: "#00aaff",
-            },
-          }}
-        />
-          <Stack.Screen name="Home" component={TabHome} 
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordStack} />
+          <Stack.Screen name="AuthenOtp" component={AuthenOtp} />
+          <Stack.Screen name="ResetPass" component={ResetPass} />
+          {/* <Stack.Screen name="Home" component={HomChat} /> */}
+          <Stack.Screen name="TabHome" component={TabHome} 
           options={{
             headerShown: false
           }}
           />
+          <Stack.Screen name="UserProfile" component={UserProfile} />
           {/* <Stack.Screen name="CreatePassword" component={CreatePassword} /> */}
           {/* <Stack.Screen name="User" component={User} /> */}
         </Stack.Navigator>

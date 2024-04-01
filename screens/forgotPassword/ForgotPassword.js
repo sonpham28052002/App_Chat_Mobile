@@ -1,12 +1,13 @@
 import { View, ScrollView, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useState,useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 // import { firebaseConfig } from "../../config/firebase.js";
 import firebase from "firebase/compat/app";
-import CountryPicker from "react-native-country-picker-modal";
+// import CountryPicker from "react-native-country-picker-modal";
 import PhoneNumber from "libphonenumber-js";
 import axios from 'axios';
+import PhoneInputText from '../../components/PhoneInputText';
 
-const ForgotPassword = ({navigation}) => {
+const ForgotPassword = ({ navigation }) => {
   const [sdt, setsdt] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isFocusedSdt, setIsFocusedSdt] = useState(false);
@@ -20,98 +21,98 @@ const ForgotPassword = ({navigation}) => {
     setCountryCode(country.cca2);
     setCallingCode("+" + country.callingCode.join(""));
   };
- async function forgotpass (){
+  async function forgotpass() {
     try {
-    const phoneNumber = PhoneNumber.isPossibleNumber(sdt, countryCode);
-    if (phoneNumber) {
-      const formatPhone = '84'+ sdt.replace(/^0/, '');
-      const res = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${formatPhone}`);
-      if (res.data) {
-        // console.log("res", res.data.id);
-        navigation.navigate('AuthenOtp', { sdt:formatPhone,id: res.data.id });
+      const phoneNumber = PhoneNumber.isPossibleNumber(sdt, countryCode);
+      if (phoneNumber) {
+        const formatPhone = '84' + sdt.replace(/^0/, '');
+        const res = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${formatPhone}`);
+        if (res.data) {
+          // console.log("res", res.data.id);
+          navigation.navigate('AuthenOtp', { sdt: formatPhone, id: res.data.id });
 
+        }
+        else {
+          setErrorMessage("Số điện thoại chưa được đăng kí");
+        }
+      } else {
+        setErrorMessage("Số điện thoại không hợp lệ cho quốc gia đã chọn");
       }
-      else {
-        setErrorMessage("Số điện thoại chưa được đăng kí");
-      } 
-    } else {
-      setErrorMessage("Số điện thoại không hợp lệ cho quốc gia đã chọn");
-    }
       // format số điện thoại, bỏ số 0 ở đầu và thêm 84
-      
+
     } catch (error) {
       console.log(error);
     }
   }
   return (
     <View style={styles.container}>
-    <View style={styles.ViewTop}>
-      <Text>Vui lòng nhập số điện thoại để lấy lại mật khẩu</Text>
-    </View>
-    <View style={styles.ViewInput}>
-      <View
-        style={{
-          width: "90%",
-          flexDirection: "row",
-          alignItems: "center",
-          borderBottomWidth: 1,
-          height: 50,
-          borderBottomColor: isFocusedSdt ? "blue" : "gray",
-        }}
-      >
-        <CountryPicker
+      <View style={styles.ViewTop}>
+        <Text>Vui lòng nhập số điện thoại để lấy lại mật khẩu</Text>
+      </View>
+      <View style={styles.ViewInput}>
+        <View
+          style={{
+            width: "90%",
+            flexDirection: "row",
+            alignItems: "center",
+            borderBottomWidth: 1,
+            height: 50,
+            borderBottomColor: isFocusedSdt ? "blue" : "gray",
+          }}
+        >
+          {/* <CountryPicker
           containerButtonStyle={{ marginTop: 0 }}
           withCallingCode
           withFilter
           withFlag
           onSelect={handleCountryChange}
           countryCode={countryCode}
-        />
-        <TextInput
-          style={[styles.input]}
-          placeholder="Số điện thoại"
-          autoCapitalize="none"
-          keyboardType="phone-pad"
-          autoFocus={true}
-          value={sdt}
-          onFocus={() => setIsFocusedSdt(true)}
-          onBlur={() => setIsFocusedSdt(false)}
-          onChangeText={(text) => setsdt(text)}
-        />
+        /> */}
+          <TextInput
+            style={[styles.input]}
+            placeholder="Số điện thoại"
+            autoCapitalize="none"
+            keyboardType="phone-pad"
+            autoFocus={true}
+            value={sdt}
+            onFocus={() => setIsFocusedSdt(true)}
+            onBlur={() => setIsFocusedSdt(false)}
+            onChangeText={(text) => setsdt(text)}
+          />
+        </View>
+      </View>
+      <Text
+        style={{ fontSize: 18, color: "red", marginLeft: 17 }}
+      >
+        {errorMessage}
+      </Text>
+      <View
+        style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          marginTop: 10,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => {
+            forgotpass();
+          }}
+          style={{
+            borderRadius: 19,
+            width: 100,
+            height: 39,
+            backgroundColor: isFieldsFilled ? "#006AF5" : "gray",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          disabled={!isFieldsFilled}
+        >
+          <Text style={{ color: "white" }}>Tiếp tục</Text>
+        </TouchableOpacity>
       </View>
     </View>
-    <Text
-      style={{ fontSize: 18, color: "red", marginLeft: 17 }}
-    >
-      {errorMessage}
-    </Text>
-    <View
-      style={{
-        width: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-        marginTop: 10,
-      }}
-    >
-      <TouchableOpacity
-        onPress={() => {
-          forgotpass();
-        }}
-        style={{
-          borderRadius: 19,
-          width: 100,
-          height: 39,
-          backgroundColor: isFieldsFilled ? "#006AF5" : "gray",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-        disabled={!isFieldsFilled}
-      >
-        <Text style={{ color: "white" }}>Tiếp tục</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-);
+  );
 }
 const styles = StyleSheet.create({
   container: {

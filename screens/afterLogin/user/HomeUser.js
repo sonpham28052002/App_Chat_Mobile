@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import UserProfile from './UserProfile'
 import EditProfile from './EditProfile'
 import User from './User'
+import Login from '../../login/Login'
 import ChangePassword from './ChangePassword'
 
 const Stack = createStackNavigator()
@@ -16,6 +17,11 @@ const HomeUser = () => {
         <Stack.Screen name="EditProfile" component={EditProfile} />
         <Stack.Screen name="User" component={User} />
         <Stack.Screen name="ChangePassword" component={ChangePassword} />
+        {/* <Stack.Screen name="Login" component={Login}
+        options={{
+          headerShown: true
+        }}
+        /> */}
     </Stack.Navigator>
   )
 }

@@ -2,7 +2,7 @@ import { View, ScrollView, Image, Text, TextInput, TouchableOpacity, StyleSheet 
 import React, { useState,useEffect } from 'react'
 // import { firebaseConfig } from "../../config/firebase.js";
 import firebase from "firebase/compat/app";
-import CountryPicker from "react-native-country-picker-modal";
+// import CountryPicker from "react-native-country-picker-modal";
 import PhoneNumber from "libphonenumber-js";
 import axios from 'axios';
 
@@ -59,14 +59,14 @@ const ForgotPassword = ({navigation}) => {
           borderBottomColor: isFocusedSdt ? "blue" : "gray",
         }}
       >
-        <CountryPicker
+        {/* <CountryPicker
           containerButtonStyle={{ marginTop: 0 }}
           withCallingCode
           withFilter
           withFlag
           onSelect={handleCountryChange}
           countryCode={countryCode}
-        />
+        /> */}
         <TextInput
           style={[styles.input]}
           placeholder="Số điện thoại"

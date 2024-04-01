@@ -3,20 +3,38 @@ import { Button, Dimensions, StyleSheet, TouchableOpacity, Text, View, Platform 
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import BarcodeMask from 'react-native-barcode-mask';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { useSelector } from 'react-redux';
+import SockJS from 'sockjs-client';
+import { over } from 'stompjs';
 
 const finderWidth = 280;
 const finderHeight = 230;
 const { width, height } = Dimensions.get('window');
 const viewMinX = (width - finderWidth) / 2;
 const viewMinY = (height - finderHeight) / 2;
-
+const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+ const stompClient = over(socket);
+ stompClient.connect(
+      {},
+      () => {
+        console.log("Running");
+      },
+      (error) => {
+        console.error('Error connecting to WebSocket server:', error);
+      }
+    );
 export default function ScanQR({ navigation }) {
   const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [authenticationResult, setAuthenticationResult] = useState(false);
   const [timeLeft, setTimeLeft] = useState(5);
-  const [canLogin, setCanLogin] = useState(false); // Thêm biến state mới
+  const [canLogin, setCanLogin] = useState(false);
+  const [cameraVisible, setCameraVisible] = useState(false);
+  const [firstDataSent, setFirstDataSent] = useState(false); // Thêm biến firstDataSent để kiểm tra xem dữ liệu đã được gửi lần đầu chưa
+  const id = useSelector((state) => state.account.id);
+  const name = useSelector((state) => state.account.userName);
+  const avt = useSelector((state) => state.account.avt);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -32,11 +50,13 @@ export default function ScanQR({ navigation }) {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
+      if (status === 'granted') {
+        setCameraVisible(true);
+      }
     })();
   }, []);
 
   useEffect(() => {
-    // Cập nhật trạng thái của biến state dựa trên giá trị của timeLeft
     if (timeLeft === 0) {
       setCanLogin(true);
     } else {
@@ -44,6 +64,11 @@ export default function ScanQR({ navigation }) {
     }
   }, [timeLeft]);
 
+  const sendUserQR = (data) => {
+      console.log("Data");
+      console.log(data);
+    stompClient.send('/app/QR', {}, JSON.stringify(data));
+  };
   const handleBarCodeScanned = async ({ type, data, bounds }) => {
     if (!scanned) {
       setShowConfirmation(true);
@@ -57,8 +82,17 @@ export default function ScanQR({ navigation }) {
         y <= viewMinY + finderHeight / 2
       ) {
         setScanned(true);
-
         let authResult;
+          sendUserQR({
+            ip: data,
+            content: JSON.stringify({
+              idUser: undefined,
+              avt: avt,
+              name: name
+            })
+          });
+          console.log('gửi lần 1 thành công');
+          setFirstDataSent(true);
         if (Platform.OS === 'ios') {
           authResult = await LocalAuthentication.authenticateAsync({
             promptMessage: 'Xác thực bằng Face ID hoặc Vân tay để đăng nhập',
@@ -69,10 +103,21 @@ export default function ScanQR({ navigation }) {
             promptMessage: 'Xác thực bằng vân tay hoặc password để đăng nhập',
           });
         }
-
-        setAuthenticationResult(authResult.success);
-        console.log("Type QR",{type});
-        console.log("Data",{data});
+        setAuthenticationResult(authResult.success)
+        console.log(authResult.success);
+        if (authResult.success) {
+          // setTimeout(() => {
+            await sendUserQR({
+              ip: data,
+              content: JSON.stringify({
+                idUser: id,
+                avt: avt,
+                name: name
+              })
+            });
+            console.log('gửi lần 2 thành công');
+          // }, 10000);
+        }
       }
     }
   };
@@ -81,9 +126,9 @@ export default function ScanQR({ navigation }) {
     setScanned(false);
     setShowConfirmation(false);
     setTimeLeft(5);
-    setCanLogin(false); // Reset trạng thái của nút đăng nhập
+    setCanLogin(false);
+    setFirstDataSent(false); // Đặt lại biến firstDataSent khi quét lại
   };
-
   if (hasPermission === null) {
     return <Text>Yêu cầu quyền camera</Text>;
   }
@@ -93,7 +138,7 @@ export default function ScanQR({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      {!showConfirmation && (
+      {cameraVisible && !showConfirmation && (
         <BarCodeScanner
           onBarCodeScanned={handleBarCodeScanned}
           barCodeTypes={[BarCodeScanner.Constants.BarCodeType.qr]}

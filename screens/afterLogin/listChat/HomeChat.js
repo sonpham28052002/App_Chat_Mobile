@@ -5,7 +5,7 @@ import Chat from './Chat';
 import OptionChat from './OptionChat';
 import ScanQR from './ScanQR';
 import TabHome from '../tabHome/TabHome';
-
+import { useDispatch } from 'react-redux';
 
 const Stack = createStackNavigator();
 

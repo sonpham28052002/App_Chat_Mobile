@@ -26,7 +26,7 @@
     "expo": "~50.0.2",
     "expo-av": "^13.10.5",
     "expo-barcode-scanner": "~12.9.3",
-    "expo-camera": "~14.0.6",
+    "expo-camera": "~14.1.1",
     "expo-contacts": "~12.8.2",
     "expo-firebase-core": "^6.0.0",
     "expo-firebase-recaptcha": "^2.3.1",

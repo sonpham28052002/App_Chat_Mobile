@@ -10,14 +10,13 @@ import HomeUser from '../user/HomeUser'
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useDispatch } from 'react-redux';
 import { save, updateAvatar } from '../../../Redux/slice';
 import axios from 'axios'; // Import axios correctly
+import { useDispatch, useSelector } from 'react-redux';
 const Tab = createMaterialBottomTabNavigator()
 
 const TabHome = ({route}) => {
   const dispatch = useDispatch();
-  
   useEffect(() => {
     if (route.params && route.params.id) { // Kiểm tra xem route.params và route.params.id có tồn tại không
       console.log(route.params.id);

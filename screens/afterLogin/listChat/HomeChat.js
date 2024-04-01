@@ -5,32 +5,11 @@ import Chat from './Chat';
 import OptionChat from './OptionChat';
 import ScanQR from './ScanQR';
 import TabHome from '../tabHome/TabHome';
-import { useDispatch } from 'react-redux';
-import { save, updateAvatar } from '../../../Redux/slice';
-import axios from 'axios'; // Import axios correctly
+
 
 const Stack = createStackNavigator();
 
 const HomChat = ({ navigation, route }) => {
-  const dispatch = useDispatch();
-  
-  useEffect(() => {
-    if (route.params && route.params.id) { // Kiểm tra xem route.params và route.params.id có tồn tại không
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${route.params.id}`);
-          dispatch(save(response.data));
-          console.log(response.data);
-        } catch (error) {
-          console.error('Lỗi khi gọi API:', error);
-        }
-      };
-
-      fetchData();
-    }
-  }, [dispatch, route.params]);
-
-
   return (
     <Stack.Navigator>
       {/* <Stack.Screen name="TabHome" component={TabHome} options={{ headerShown: false }} /> */}

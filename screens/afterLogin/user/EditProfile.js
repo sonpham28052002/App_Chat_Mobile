@@ -76,7 +76,7 @@ const EditProfile = ({navigation}) => {
         name:filename,
       });
       formData.append('name', filename);
-     console.log("FormData",formData);
+    // console.log("FormData",formData);
       const response = await axios.post('https://deploybackend-production.up.railway.app/azure/changeImage', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -91,10 +91,9 @@ const EditProfile = ({navigation}) => {
       const updatedUserData = { ...userNewData, avt: response.data };
       //update dữ liệu về backend
     const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUserData);
-    console.log('Dữ liệu trả về sau update', updateUserResponse.data);
     dispatch(save(updatedUserData))
     } catch (error) {
-      console.error('Lỗi upload ảnh', error);
+    //  console.error('Lỗi upload ảnh', error);
     }
   };
   //Hàm xử lí chọn ảnh khi nhấn vào ảnh đại diện

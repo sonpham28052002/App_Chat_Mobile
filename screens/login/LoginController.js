@@ -18,9 +18,6 @@ const LoginController = () => {
       <Stack.Screen name="AuthenticateOTP" component={AuthenticateOTP}
       options={{title: 'Xác thực OTP'}}
       />
-      <Stack.Screen name="Home" component={TabHome} 
-      options={{title: 'Trang chủ chat'}}
-      />
     </Stack.Navigator>
   )
 }

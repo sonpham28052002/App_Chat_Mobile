@@ -5,11 +5,10 @@ import Chat from './Chat';
 import OptionChat from './OptionChat';
 import ScanQR from './ScanQR';
 import TabHome from '../tabHome/TabHome';
-import { useDispatch } from 'react-redux';
-import { save, updateAvatar } from '../../../Redux/slice';
-import axios from 'axios'; // Import axios correctly
+
 
 const Stack = createStackNavigator();
+
 
 const HomeChat = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -29,8 +28,6 @@ const HomeChat = ({ navigation, route }) => {
       fetchData();
     }
   }, [dispatch, route.params]);
-
-
   return (
     <Stack.Navigator>
         {/* <Stack.Screen name="TabHome" component={TabHome}

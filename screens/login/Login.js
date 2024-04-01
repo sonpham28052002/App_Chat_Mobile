@@ -13,7 +13,7 @@ import Home from '../afterLogin/listChat/HomeChat'
 import InputPassword from "../../components/InputPassword";
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("84814929002");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("111");
   const [showPassword, setShowPassword] = useState(false);
   const [account, setAccount] = useState([]);
   const [error, setError] = useState("");
@@ -25,9 +25,8 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
      let found = false;
+  
     try {
-      // console.log(phoneNumber);
-      // console.log(password);
       // Gọi API để kiểm tra tài khoản
       const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountPhoneAndPassword?phone=${phoneNumberWithoutPlus}&password=${password}`);
       if (accountRes.data) {

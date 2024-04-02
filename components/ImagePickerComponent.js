@@ -2,7 +2,7 @@ import React from 'react';
 import { Platform, Alert,TouchableOpacity,Text } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
-
+import { SimpleLineIcons } from '@expo/vector-icons';
 const ImagePickerComponent = ({ onSelectImage }) => {
 
     const selectImage = async (isAvatar) => {
@@ -98,8 +98,8 @@ const ImagePickerComponent = ({ onSelectImage }) => {
   };
 
   return (
-    <TouchableOpacity onPress={handleSelectOption} style={{height:50,width:50}}>
-    <Text>Chọn ảnh</Text>
+  <TouchableOpacity onPress={handleSelectOption} style={{ height: 50, width: 50 }}>
+      <SimpleLineIcons name="picture" size={35} color="black" />
     </TouchableOpacity>
   );
 };

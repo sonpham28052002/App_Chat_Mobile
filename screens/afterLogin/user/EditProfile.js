@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import profileImage from '../../../assets/profile.png';
 import { Audio } from 'expo-av';
 import ButtonWithAudio from '../../../components/ButtonWithAudio';
+import { Feather } from '@expo/vector-icons';
 const EditProfile = ({navigation}) => {
   const coverImage= useSelector((state) => state.account.coverImage);
   const name = useSelector((state) => state.account.userName);
@@ -63,7 +64,7 @@ const EditProfile = ({navigation}) => {
       console.log("Không có hình ảnh đươc chọn");
     }
   };
-
+//Upload Image lên azure
   const uploadImage = async (uri) => {
     try {
    // Lấy tên của file từ URI
@@ -126,15 +127,26 @@ const EditProfile = ({navigation}) => {
       );
     }
   };
-  
+  const handleNavigationEdit= ()=>{
+    navigation.navigate('ButtonEditUserProfile')
+  }
   return (
     <SafeAreaView style={{ flex: 1,backgroundColor:"#FFFFFF" }}>
       <View style={{ flex: 1.5/3 }}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <View style={{flexDirection:'row'}}>
+ <View>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
       <Ionicons name="chevron-back" size={30} color="black" />
         </TouchableOpacity>
+        </View>
+          <View style={{marginLeft:'80%'}}>
+     <TouchableOpacity onPress={handleNavigationEdit}>
+    <Feather name="more-horizontal" size={40} color="white" />
+      </TouchableOpacity>
+     </View>
+        </View>
         <View style={styles.buttonAudio}>
-      <ButtonWithAudio />
+          <ButtonWithAudio />
     </View>
         {coverImage && (
           <Image

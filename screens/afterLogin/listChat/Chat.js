@@ -18,7 +18,7 @@ const Chat = ({ navigation }) => {
     const [mess, setMess] = useState('');
     const [colorEmoji, setColorEmoji] = useState('black');
     const { width, height } = Dimensions.get('window');
-    const animate = useRef(new Animated.Value(height - 100)).current;
+    const animate = useRef(new Animated.Value(height - 90)).current;
 
     useEffect(() => {
         navigation.setOptions({
@@ -42,7 +42,7 @@ const Chat = ({ navigation }) => {
         setMessages([
             {
                 _id: 1,
-                text: 'Hello developer',
+                text: 'Cường nè chào nhe!!',
                 createdAt: new Date(),
                 user: {
                     _id: 2,

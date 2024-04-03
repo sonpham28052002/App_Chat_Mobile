@@ -11,7 +11,7 @@ const InputPassword = (props) => {
         borderWidth: 2, borderColor: 'black', borderRadius: 5 }}>
             <View style={{ width: '88%'}}>
                 <TextInput style={{
-                    height: 40,
+                    height: 45,
                     fontSize: 20,
                     backgroundColor: 'white',
                 }}

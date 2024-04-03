@@ -15,11 +15,17 @@ const ListChat = ({ navigation, route }) => {
   // }, [navigation]);
   const name = useSelector((state) => state.account.userName);
   const avt = useSelector((state) => state.account.avt);
+
+  const id = useSelector((state) => state.account.id);
+
   return (
     <View style={{ marginTop: 40, marginLeft: 20,flexDirection:"row"}}>
       <View>
-      <TouchableOpacity onPress={() => navigation.navigate("Chat", route.params)}>
-        <Text>{name}</Text>
+      <TouchableOpacity onPress={() => navigation.navigate("Chat", 
+          id == 'jgfqCBTFdEgDmpHHXaNHdZV8B982'?
+          'RGpCgF0lR1aGVcttckhAbBHWcSp2' : 'jgfqCBTFdEgDmpHHXaNHdZV8B982'
+          )}>
+        <Text>Chat với Sơn Phạm</Text>
       </TouchableOpacity>
       <Image source={{ uri: avt }} style={{ width: 50, height: 50, borderRadius: 25 }} />
       </View>

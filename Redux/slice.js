@@ -13,8 +13,8 @@ const accountSlice = createSlice({
       console.log("updateAvatar:", action.payload)
       Object.assign(state, action.payload);
     }
+   
   },
 });
-
 export const { save, updateAvatar } = accountSlice.actions;
 export default accountSlice.reducer;

@@ -1,161 +1,194 @@
-import { View, Text, Dimensions, Animated, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { GiftedChat } from 'react-native-gifted-chat'
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Dimensions, Animated, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { GiftedChat } from 'react-native-gifted-chat';
 import { TextInput } from 'react-native-paper';
-import { Entypo } from '@expo/vector-icons';
-import { SimpleLineIcons, Octicons, MaterialIcons } from '@expo/vector-icons';
-import EmojiSelector, { Categories } from "react-native-emoji-selector";
-// import WebSocket from 'react-native-websocket';
-// import io from 'socket.io-client';
-// import { on } from 'hammerjs';
+import { Entypo, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+// import EmojiSelector, { Categories } from "react-native-emoji-selector";
+import EmojiPicker from 'rn-emoji-keyboard'
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
-import { func } from 'prop-types';
-
-import ChatRegion from './ChatRegion';
-import { render } from 'react-dom';
-
-const Chat = ({ navigation }) => {
+import { useSelector } from 'react-redux';
+import ImagePickerComponent from '../../../components/ImagePickerComponent'; // Import ImagePickerComponent
+import 'react-native-get-random-values';
+const { v4: uuidv4 } = require('uuid');
+const Chat = ({ navigation, route }) => {
+    console.log('Receive:', route.params);
+    const sender = useSelector((state) => state.account);
     const [messages, setMessages] = useState([])
     var stompClient = useRef(null);
+    const [uriImage, setUriImage] = useState(null);
+    const textInputRef = useRef(null);
+    const [position, setPosition] = useState({ start: 0, end: 0 });
+    const [mess, setMess] = useState('');
+    const [colorEmoji, setColorEmoji] = useState('black');
+    const { width, height } = Dimensions.get('window');
+    // const animate = useRef(new Animated.Value(height - 50)).current;
+    // const [extend, setExtend] = useState(false);
+    const [showEmoji, setShowEmoji] = useState(false);
 
     useEffect(() => {
         navigation.setOptions({
-            headerRight: () => {
-                return (
-                    <View style={{
-                        width: 160,
-                        flexDirection: 'row',
-                        paddingHorizontal: 20,
-                        justifyContent: 'space-between',
-                    }}>
-                        <Octicons name="device-camera-video" size={35} color="white" />
-                        <Octicons name="search" size={35} color="white" />
-                        <TouchableOpacity style={{ width: 35 }}
-                            onPress={() => navigation.navigate('OptionChat')}
-                        >
-                            <Octicons name="list-unordered" size={35} color="white" />
-                        </TouchableOpacity>
-                    </View>
-                )
-            }
-        })
+            headerRight: () => (
+                <View style={{
+                    width: 120,
+                    height: 50,
+                    flexDirection: 'row',
+                    paddingHorizontal: 20,
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    {/* <Entypo name="device-camera-video" size={35} color="white" /> */}
+                    <FontAwesome name="search" size={35} color="white" />
+                    <TouchableOpacity style={{ width: 35 }}
+                        onPress={() => navigation.navigate('OptionChat')}>
+                        <Entypo name="menu" size={40} color="white" />
+                    </TouchableOpacity>
+                </View>
+            )
+        });
 
-        setMessages([
-            {
-                _id: 1,
-                text: 'Hello developer',
-                createdAt: new Date(),
-                user: {
-                    _id: 2,
-                    name: 'React Native',
-                    avatar: 'https://placeimg.com/140/140/any',
-                },
-            },
-        ])
-
-        const socket = new SockJS('http://localhost:8080/ws');
+        const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError); 
-    }, [])
-
+    }, []);
 
     function onConnected() {
-        stompClient.current.subscribe('/topic/public', onMessageReceived)
-        stompClient.current.send('/app/chat.addUser', {},
-            JSON.stringify({ sender: 'son'}))
+        stompClient.current.subscribe('/user/'+sender.id+'/singleChat', onMessageReceived)
     }
 
     function onMessageReceived(payload) {
-        const message = JSON.parse(payload.body)
+        const message = JSON.parse(payload.body);
         console.log(message);
-        // if(message.content){
-        //     const newMessage = {
-        //         _id: message.id, // Generate unique ID for the message
-        //         text: mess.trim(),
-        //         createdAt: message.sendDate,
-        //         user: {
-        //             _id: 1,
-        //         },
-        //     };
-        //     sendMessage()
-        //     setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-        // }
-        
+        if(message.sender.id === sender.id) return;
+        const newMessage = {
+            _id: message.id,
+            createdAt: message.senderDate,
+            user: {
+                _id: route.params,
+                name: sender.userName,
+                avatar: sender.avt,
+            }
+        };
+        if(message.content)
+            newMessage.text = message.content;
+        else{
+            newMessage.image = message.url;
+        }
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
     }
 
     function onError(error) {
-        console.log('Could not connect to WebSocket server. Please refresh and try again!')
+        console.log('Could not connect to WebSocket server. Please refresh and try again!');
     }
 
-    function sendMessage() {
-        var messageContent = 'haha';
-        if(messageContent && stompClient.current) {
-            console.log("OK");
+    function sendMessage(id, type) {
+        if(stompClient.current){
             var chatMessage = {
-                sender: 'Phong',
-                content: messageContent,
-                isSeen: false,
-                receiver: 'Toan',
-                sendDate: new Date()
+                id: id,
+                messageType: type,
+                sender: {id: sender.id},
+                receiver: {id: route.params},
             };
-            stompClient.current.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+            if(mess && type === 'Text')
+                chatMessage.content = mess;
+            else{
+                const titleFile = uriImage.substring(uriImage.lastIndexOf("/") + 1);
+                chatMessage.size = 10;
+                chatMessage.titleFile = titleFile;
+                chatMessage.url = uriImage;
+                console.log("chatMes",chatMessage);
+            }
+            stompClient.current.send("/app/private-single-message", {}, JSON.stringify(chatMessage));
         }
     }
 
-    var [position, setPosition] = useState({ start: 0, end: 0 })
-    const textInputRef = useRef(null);
+    const handleSend = () => {
+        if (mess.trim() === '' && !uriImage) {
+            Alert.alert("Chưa gửi tin nhắn hoặc chọn ảnh"); 
+        } else {
+            if (mess.trim() !== '') {
+                const id = uuidv4();
+                const newMessage = {
+                    _id: id, // Generate unique ID for the message
+                    text: mess.trim(),
+                    createdAt: new Date(),
+                    user: {
+                        _id: sender.id,
+                        name: sender.userName,
+                        avatar: sender.avt,
+                    },
+                };
+                sendMessage(id, 'Text');
+                setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+                setMess(''); // Clear the TextInput value after sending
+            } else if (uriImage) {
+                handleSendImage();
+                setUriImage(null);
+            }
+        }
+    };
+
+    const handleImageSelect = (uri) => {
+        setUriImage(uri);
+    };
+
+    const handleSendImage = () => {
+        const id = uuidv4();
+        // const id=new Date();
+
+        const newMessage = {
+            _id: id,
+            image: uriImage,
+            createdAt: new Date(),
+            user: {
+                _id: sender.id,
+                name: sender.userName,
+                avatar: sender.avt,
+            },
+        };
+        const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
+        sendMessage(id, fileType)
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+    };
+
     const handleFocusText = () => {
         if (textInputRef.current) {
             textInputRef.current.focus();
         }
-    }
-    var [extend, setExtend] = useState(true)
-    var [mess, setMess] = useState('')
-    var [colorEmoji, setColorEmoji] = useState('black')
-    let { width, height } = Dimensions.get('window')
-    const animate = useRef(new Animated.Value(height - 60)).current
-
-    const onSend = () => {
-        if (mess.trim() === '') return; // Prevent sending empty message
-        const newMessage = {
-            _id: Math.random().toString(), // Generate unique ID for the message
-            text: mess.trim(),
-            createdAt: new Date(),
-            user: {
-                _id: 1,
-            },
-        };
-        sendMessage()
-        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-        setMess(''); // Clear the TextInput value after sending
     };
 
     return (
-        <View style={{ width: width, flex: 1, height: height, justifyContent: 'space-between' }}>
-            <Animated.View style={{ height: animate, backgroundColor: 'lightgray', marginBottom: 25 }}>
+        <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
+            <KeyboardAvoidingView style={{flex: 1}}
+                keyboardVerticalOffset={50}
+                behavior={Platform.OS == "ios"? "padding" : undefined}
+            >
+            <View style={{ height: height - 80, backgroundColor: 'lightgray', marginBottom: 25 }}>
                 <GiftedChat
                     renderInputToolbar={(props) =>
                         <View style={{ flexDirection: 'row', width: width, backgroundColor: 'white', alignItems: 'center' }}>
                             <View style={{ flexDirection: 'row', paddingHorizontal: 10, width: width - 45, height: 80, justifyContent: 'space-between', alignItems: 'center' }}>
                                 <TouchableOpacity
                                     onPress={() => {
-                                        if (extend) {
-                                            Animated.timing(animate, {
-                                                toValue: height * 0.5,
-                                                duration: 500,
-                                            }).start()
-                                            setExtend(false)
-                                            setColorEmoji('cyan')
-                                        } else {
-                                            Animated.timing(animate, {
-                                                toValue: height - 60,
-                                                duration: 500,
-                                            }).start()
-                                            setExtend(true)
-                                            setColorEmoji('black')
-                                        }
-                                        handleFocusText()
+                                        // if (extend) {
+                                        //     Animated.timing(animate, {
+                                        //         toValue: height - 90,
+                                        //         duration: 500,
+                                        //         useNativeDriver: false
+                                        //     }).start();
+                                        //     setExtend(false);
+                                        //     setColorEmoji('cyan');
+                                        // } else {
+                                        //     Animated.timing(animate, {
+                                        //         toValue: height * 0.5,
+                                        //         duration: 500,
+                                        //         useNativeDriver: false
+                                        //     }).start();
+                                        //     setExtend(true);
+                                        //     setColorEmoji('black');
+                                        // }
+                                        setShowEmoji(!showEmoji);
+                                        handleFocusText();
                                     }}
                                 >
                                     <Entypo name="emoji-happy" size={35} color={colorEmoji} />
@@ -164,22 +197,20 @@ const Chat = ({ navigation }) => {
                                     <TextInput placeholder="Tin nhắn" style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
                                         value={mess}
                                         onChangeText={text => {
-                                            setMess(text)
-                                            // setPosition(textInputRef.current.selection)
+                                            setMess(text);
                                         }}
                                         selection={position}
                                         ref={textInputRef}
-                                        onSelectionChange={event => setPosition(event.nativeEvent.selection)
-                                        }
+                                        onSelectionChange={event => setPosition(event.nativeEvent.selection)}
                                     />
                                 </View>
                                 <View style={{ flexDirection: 'row', width: 85, justifyContent: 'space-between' }}>
                                     <Entypo name="dots-three-horizontal" size={35} color="black" />
-                                    <SimpleLineIcons name="picture" size={35} color="black" />
+                                    <ImagePickerComponent onSelectImage={handleImageSelect} />
                                 </View>
                             </View>
                             <TouchableOpacity
-                                onPress={props.onSend}
+                                onPress={handleSend}
                                 style={{ width: 45, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' }}
                             >
                                 <MaterialIcons name="send" size={35} color="cyan" />
@@ -187,32 +218,38 @@ const Chat = ({ navigation }) => {
                         </View>
                     }
                     messages={messages}
-                    onSend={messages => onSend()}
+                    onSend={handleSend}
                     user={{
-                        _id: 1,
+                        _id: sender.id,
+                        name: sender.userName,
+                        avatar: sender.avt
                     }}
                 />
-            </Animated.View>
-
-            <View style={{ height: height * 0.5 }}>
+            </View>
+            </KeyboardAvoidingView>
+            {/* <View style={{ height: height * 0.5 }}>
                 <EmojiSelector
                     style={{ width: width }}
                     category={Categories.symbols}
-                    onEmojiSelected={
-                        emoji => {
-                            if (mess !== '')
-                                // console.log(mess.substring(position.end))
-                                setMess(mess.substring(0, position.start) + emoji + mess.substring(position.end))
-                            else
-                                setMess(emoji)
-                            // setPosition({start: position.start + 1, end: position.end + 1})
-                            handleFocusText()
-                        }
-                    }
+                    onEmojiSelected={emoji => {
+                        if (mess !== '')
+                            setMess(mess.substring(0, position.start) + emoji + mess.substring(position.end))
+                        else
+                            setMess(emoji)
+                    }}
                 />
-            </View>
+            </View> */}
+            {showEmoji && 
+                <EmojiPicker onEmojiSelected={emoji => {
+                    if (mess !== '')
+                        setMess(mess.substring(0, position.start) + emoji.emoji + mess.substring(position.end))
+                    else
+                        setMess(emoji.emoji)
+                }}
+                    open={showEmoji} onClose={() => setShowEmoji(false)}
+                />}
         </View>
-    )
+    );
 }
 
-export default Chat
+export default Chat;

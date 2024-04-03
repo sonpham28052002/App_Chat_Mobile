@@ -12,10 +12,10 @@ import LoginController from "./LoginController";
 import Home from '../afterLogin/listChat/HomeChat'
 import InputPassword from "../../components/InputPassword";
 import { LinearGradient } from 'expo-linear-gradient'
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
-  const [phoneNumber, setPhoneNumber] = useState("84814929002");
-  const [password, setPassword] = useState("111");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("0123456789Cc");
   const [showPassword, setShowPassword] = useState(false);
   const [account, setAccount] = useState([]);
   const [error, setError] = useState("");
@@ -23,7 +23,7 @@ const Login = ({ navigation }) => {
   const [showError, setShowError] = useState(false);
   const dispatch = useDispatch();
   const phoneInput = useRef(null);
-  const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('');
+  const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('84814929002');
 
   const handleLogin = async () => {
     let found = false;
@@ -37,8 +37,12 @@ const Login = ({ navigation }) => {
         const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
         if (userRes.data) {
           // console.log(userRes.data);
+          const account=userRes.data
+          console.log("account",account);
           dispatch(save(userRes.data));
           found = true;
+          await AsyncStorage.setItem('isLoggedIn', 'true');
+          await AsyncStorage.setItem('userData', JSON.stringify({account}));
           navigation.navigate("TabHome", { id: userRes.data.id });
         }
       } else {
@@ -82,6 +86,27 @@ const Login = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
+//  useEffect(() => {
+//     const checkLoginStatus = async () => {
+//       try {
+//         const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+//         if (isLoggedIn === 'true') {
+//           const account = await AsyncStorage.getItem('account');
+//           if (account) {
+//             console.log(account);
+//             dispatch(save(account));
+//           }
+//            navigation.navigate("TabHome");
+//         } else {
+//           navigation.navigate("Login");
+//         }
+//       } catch (error) {
+//         console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
+//       }
+//     };
+
+//     checkLoginStatus();
+//   }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -93,13 +118,13 @@ const Login = ({ navigation }) => {
         <TouchableOpacity style={{ width: '100%', height: 50, paddingVertical: 10, alignItems: "center", justifyContent: 'center', backgroundColor: "#1fadea" }}>
           <Text style={{ color: "#fdf8f8", fontSize: 30 }}>Đăng nhập</Text>
         </TouchableOpacity>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-          <Image source={require('../../assets/bgr.png')} style={{ width: 220, height: 220 }} />
+        <View style={{ height: 200, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+          <Image source={require('../../assets/bgr.png')} style={{ width: 200, height: 200 }} />
         </View>
         {showError && (
           <Text style={{ color: "red", fontSize: 16, marginHorizontal: 15 }}>{error}</Text>
         )}
-        <View style={{ justifyContent: 'center', alignContent: 'center', paddingHorizontal: 10 }}>
+        <View style={{ justifyContent: 'center', height: 100, marginTop:10, alignContent: 'center', paddingHorizontal: 10 }}>
           <View style={{ flex: 1, justifyContent: 'center', width: '100%' }}>
             <PhoneInput ref={phoneInput}
               initialCountry='vn'
@@ -108,7 +133,7 @@ const Login = ({ navigation }) => {
                 setPhoneNumberWithoutPlus(formattedPhoneNumber);
               }}
               style={{
-                height: 40,
+                height: 50,
                 paddingLeft: 10,
                 fontSize: 20,
                 borderColor: 'black',
@@ -133,8 +158,8 @@ const Login = ({ navigation }) => {
             <InputPassword setPassword={setPassword} placeholder="Nhập mật khẩu" />
           </View>
         </View>
-        <View style={{ marginTop: 10 }}>
-          <Text style={{ color: "#2752eb", fontSize: 20, marginBottom: 49, marginLeft: 15, textDecorationLine: "underline", textDecorationColor: "#2752eb" }} onPress={handleForgotPassword}>Lấy lại mật khẩu</Text>
+        <View style={{ marginTop: 10, height: 50}}>
+          <Text style={{ color: "#2752eb", marginLeft: 10, fontSize: 20, textDecorationLine: "underline", textDecorationColor: "#2752eb" }} onPress={handleForgotPassword}>Lấy lại mật khẩu</Text>
         </View>
 
         <View style={styles.buttonContainer}>
@@ -150,7 +175,7 @@ const Login = ({ navigation }) => {
             <Text style={styles.buttonTextOtp}>Đăng nhập bằng OTP</Text>
           </TouchableOpacity>
         </View>
-        <Text style={{ color: "#635b5b", fontSize: 12, marginLeft: 126, marginBottom: 50 }}>Các câu hỏi thường gặp</Text>
+        <Text style={{ color: "#635b5b", fontSize: 12, marginLeft: 126}}>Các câu hỏi thường gặp</Text>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -181,10 +206,13 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   buttonOtp: {
-    flex: 1,
+    // flex: 1,
     alignItems: "center",
     backgroundColor: "#1faeeb",
     borderRadius: 20,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 13,
     marginBottom: 20,
     marginRight: 5,

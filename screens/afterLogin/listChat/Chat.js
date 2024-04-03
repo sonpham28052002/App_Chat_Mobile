@@ -10,12 +10,12 @@ import EmojiSelector, { Categories } from "react-native-emoji-selector";
 // import { on } from 'hammerjs';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
-import { func } from 'prop-types';
+import { useSelector } from 'react-redux';
 
-import ChatRegion from './ChatRegion';
-import { render } from 'react-dom';
-
-const Chat = ({ navigation }) => {
+const { v4: uuidv4 } = require('uuid');
+const Chat = ({ navigation, route }) => {
+    console.log('Receive:', route.params);
+    const sender = useSelector((state) => state.account);
     const [messages, setMessages] = useState([])
     var stompClient = useRef(null);
 
@@ -41,65 +41,69 @@ const Chat = ({ navigation }) => {
             }
         })
 
-        setMessages([
-            {
-                _id: 1,
-                text: 'Hello developer',
-                createdAt: new Date(),
-                user: {
-                    _id: 2,
-                    name: 'React Native',
-                    avatar: 'https://placeimg.com/140/140/any',
-                },
-            },
-        ])
+        // setMessages([
+        //     {
+        //         _id: '1',
+        //         text: 'Hello developer',
+        //         createdAt: new Date(),
+        //         user: {
+        //             _id: 'jgfqCBTFdEgDmpHHXaNHdZV8B982',
+        //             name: 'Sơn Phạm',
+        //             avatar: 'https://ih1.redbubble.net/image.1924158667.9986/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.jpg',
+        //         },
+        //     },
+        // ])
 
-        const socket = new SockJS('http://localhost:8080/ws');
+        const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError); 
     }, [])
 
 
     function onConnected() {
-        stompClient.current.subscribe('/topic/public', onMessageReceived)
-        stompClient.current.send('/app/chat.addUser', {},
-            JSON.stringify({ sender: 'son'}))
+        let channel;
+        if(route.params < sender.id)
+            channel = route.params + sender.id
+        else
+            channel = sender.id + route.params
+        console.log('Channel: ', channel);
+        stompClient.current.subscribe('/user/'+sender.id+'/singleChat', onMessageReceived)
     }
 
     function onMessageReceived(payload) {
         const message = JSON.parse(payload.body)
         console.log(message);
-        // if(message.content){
-        //     const newMessage = {
-        //         _id: message.id, // Generate unique ID for the message
-        //         text: mess.trim(),
-        //         createdAt: message.sendDate,
-        //         user: {
-        //             _id: 1,
-        //         },
-        //     };
-        //     sendMessage()
-        //     setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-        // }
-        
+        if(message.content){
+            if(message.sender.id === sender.id) return;
+            const newMessage = {
+                _id: message.id,
+                text: message.content,
+                createdAt: message.senderDate,
+                user: {
+                    _id: route.params,
+                    name: sender.userName,
+                    avatar: sender.avt,
+                }
+            };
+            // sendMessage()
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        }
     }
 
     function onError(error) {
         console.log('Could not connect to WebSocket server. Please refresh and try again!')
     }
 
-    function sendMessage() {
-        var messageContent = 'haha';
-        if(messageContent && stompClient.current) {
-            console.log("OK");
+    function sendMessage(id) {
+        if(mess && stompClient.current) {
             var chatMessage = {
-                sender: 'Phong',
-                content: messageContent,
-                isSeen: false,
-                receiver: 'Toan',
-                sendDate: new Date()
+                id: id,
+                messageType: "Text",
+                sender: {id: sender.id},
+                receiver: {id: route.params},
+                content: mess
             };
-            stompClient.current.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+            stompClient.current.send("/app/private-single-message", {}, JSON.stringify(chatMessage));
         }
     }
 
@@ -118,15 +122,18 @@ const Chat = ({ navigation }) => {
 
     const onSend = () => {
         if (mess.trim() === '') return; // Prevent sending empty message
+        const id = uuidv4();
         const newMessage = {
-            _id: Math.random().toString(), // Generate unique ID for the message
+            _id: id, // Generate unique ID for the message
             text: mess.trim(),
             createdAt: new Date(),
             user: {
-                _id: 1,
+                _id: sender.id,
+                name: sender.userName,
+                avatar: sender.avt,
             },
         };
-        sendMessage()
+        sendMessage(id)
         setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
         setMess(''); // Clear the TextInput value after sending
     };
@@ -187,13 +194,14 @@ const Chat = ({ navigation }) => {
                         </View>
                     }
                     messages={messages}
-                    onSend={messages => onSend()}
+                    onSend={onSend}
                     user={{
-                        _id: 1,
+                        _id: sender.id,
+                        name: sender.userName,
+                        avatar: sender.avt
                     }}
                 />
             </Animated.View>
-
             <View style={{ height: height * 0.5 }}>
                 <EmojiSelector
                     style={{ width: width }}

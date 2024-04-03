@@ -17,6 +17,9 @@ import TabHome from '../afterLogin/tabHome/TabHome.js';
 import HomChat from '../afterLogin/listChat/HomeChat';
 import UserProfile from '../afterLogin/user/UserProfile.js';
 import ForgotPasswordStack from '../forgotPassword/ForgotPasswordStack.js';
+import ListChat from '../afterLogin/listChat/ListChat.js';
+import Chat from '../afterLogin/listChat/Chat.js';
+import OptionChat from '../afterLogin/listChat/OptionChat.js';
 const Stack = createStackNavigator()
 
 export default function Auth() {
@@ -55,6 +58,19 @@ export default function Auth() {
           }}
           />
           <Stack.Screen name="UserProfile" component={UserProfile} />
+          <Stack.Screen name="ListChat" component={ListChat} />
+          <Stack.Screen name="Chat" component={Chat} 
+        options={{
+          headerStyle: {
+            backgroundColor: 'lightblue',
+          },
+          headerTitleStyle: {
+            fontSize: 20,
+          }
+          // headerShown:false
+        }}
+      />
+      <Stack.Screen name="OptionChat" component={OptionChat} />
           {/* <Stack.Screen name="CreatePassword" component={CreatePassword} /> */}
           {/* <Stack.Screen name="User" component={User} /> */}
         </Stack.Navigator>

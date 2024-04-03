@@ -35,23 +35,12 @@ const HomeChat = ({ navigation, route }) => {
           headerShown: false
         }}
         ></Stack.Screen> */}
-        <Stack.Screen name="ListChat" initialParams={navigation} component={ListChat} 
+        <Stack.Screen name="ListChat" component={ListChat} 
         options={{
           headerShown: false
         }}
         />
-        <Stack.Screen name="Chat" component={Chat} 
-        options={{
-          headerStyle: {
-            backgroundColor: 'lightblue',
-          },
-          headerTitleStyle: {
-            fontSize: 20,
-          },
-          headerShown:false
-        }}
-      />
-      <Stack.Screen name="OptionChat" component={OptionChat} />
+        
       <Stack.Screen name="ScanQR" component={ScanQR} options={{ headerShown: false }} />
       {/* <Stack.Screen name="EditProfile" component={EditProfile} options={{ headerShown: false }} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />

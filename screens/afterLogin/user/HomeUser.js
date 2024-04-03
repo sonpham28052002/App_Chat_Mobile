@@ -6,7 +6,7 @@ import EditProfile from './EditProfile'
 import User from './User'
 import Login from '../../login/Login'
 import ChangePassword from './ChangePassword'
-
+import ButtonEditUserProfile from './ButtonEditUserProfile'
 const Stack = createStackNavigator()
 const HomeUser = () => {
   return (
@@ -14,14 +14,16 @@ const HomeUser = () => {
         headerShown: false
     }}>
         <Stack.Screen name="UserProfile" component={UserProfile} />
-        <Stack.Screen name="EditProfile" component={EditProfile} />
+          <Stack.Screen
+        name="EditProfile"
+        component={EditProfile}
+        options={({ navigation }) => ({
+          headerRight: () => <EditProfileHeaderRight navigation={navigation} />,
+        })}
+      />
         <Stack.Screen name="User" component={User} />
         <Stack.Screen name="ChangePassword" component={ChangePassword} />
-        {/* <Stack.Screen name="Login" component={Login}
-        options={{
-          headerShown: true
-        }}
-        /> */}
+        <Stack.Screen name="ButtonEditUserProfile" component={ButtonEditUserProfile} />
     </Stack.Navigator>
   )
 }

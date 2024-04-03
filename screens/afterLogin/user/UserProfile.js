@@ -5,6 +5,7 @@ import { Entypo, Feather, MaterialIcons, EvilIcons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { updateAvatar } from "../../../Redux/slice";
 import { CommonActions } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const UserProfile = ({ navigation }) => {
     const name = useSelector((state) => state.account.userName);
     const avt = useSelector((state) => state.account.avt);
@@ -19,31 +20,39 @@ const UserProfile = ({ navigation }) => {
         }
     }, [isFocused]);
 
-    const handleLogout = () => {
-        if (Platform.OS === 'web') {
-            if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                   navigation.navigate('Login')
-            }
-        } else {
-            Alert.alert(
-                'Xác nhận',
-                'Bạn có chắc chắn muốn đăng xuất?',
-                [
-                    {
-                        text: 'Hủy',
-                        style: 'cancel',
-                    },
-                    {
-                        text: 'Đăng xuất',
-                        onPress: () => {
-                           navigation.navigate('Login')
-                        },
-                    },
-                ],
-                { cancelable: false }
-            );
+ const handleLogout = async () => {
+    const logoutAsyncStorage = async () => {
+        try {
+            await AsyncStorage.setItem('isLoggedIn', 'false');
+            navigation.navigate('Login');
+        } catch (error) {
+            console.error('Lỗi khi lưu trạng thái đăng nhập:', error);
         }
+    };
+
+    if (Platform.OS === 'web') {
+        if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+            await logoutAsyncStorage();
+        }
+    } else {
+        Alert.alert(
+            'Xác nhận',
+            'Bạn có chắc chắn muốn đăng xuất?',
+            [
+                {
+                    text: 'Hủy',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Đăng xuất',
+                    onPress: logoutAsyncStorage,
+                },
+            ],
+            { cancelable: false }
+        );
     }
+};
+
 
     return (
         <SafeAreaView style={styles.safeArea}>

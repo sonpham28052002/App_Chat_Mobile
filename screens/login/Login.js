@@ -86,27 +86,27 @@ const Login = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
- useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
-        if (isLoggedIn === 'true') {
-          const account = await AsyncStorage.getItem('account');
-          if (account) {
-            console.log(account);
-            dispatch(save(account));
-          }
-           navigation.navigate("TabHome");
-        } else {
-          navigation.navigate("Login");
-        }
-      } catch (error) {
-        console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
-      }
-    };
+//  useEffect(() => {
+//     const checkLoginStatus = async () => {
+//       try {
+//         const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+//         if (isLoggedIn === 'true') {
+//           const account = await AsyncStorage.getItem('account');
+//           if (account) {
+//             console.log(account);
+//             dispatch(save(account));
+//           }
+//            navigation.navigate("TabHome");
+//         } else {
+//           navigation.navigate("Login");
+//         }
+//       } catch (error) {
+//         console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
+//       }
+//     };
 
-    checkLoginStatus();
-  }, []);
+//     checkLoginStatus();
+//   }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

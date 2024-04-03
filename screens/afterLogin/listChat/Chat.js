@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Dimensions, Animated, TouchableOpacity, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Dimensions, Animated, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
 import { TextInput } from 'react-native-paper';
 import { Entypo, FontAwesome, MaterialIcons } from '@expo/vector-icons';
@@ -22,7 +22,7 @@ const Chat = ({ navigation, route }) => {
     const [mess, setMess] = useState('');
     const [colorEmoji, setColorEmoji] = useState('black');
     const { width, height } = Dimensions.get('window');
-    const animate = useRef(new Animated.Value(height - 50)).current;
+    // const animate = useRef(new Animated.Value(height - 50)).current;
     // const [extend, setExtend] = useState(false);
     const [showEmoji, setShowEmoji] = useState(false);
 
@@ -133,8 +133,8 @@ const Chat = ({ navigation, route }) => {
     };
 
     const handleSendImage = () => {
-        // const id = uuidv4();
-        const id=new Date();
+        const id = uuidv4();
+        // const id=new Date();
 
         const newMessage = {
             _id: id,
@@ -161,9 +161,9 @@ const Chat = ({ navigation, route }) => {
         <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
             <KeyboardAvoidingView style={{flex: 1}}
                 keyboardVerticalOffset={50}
-                behavior={undefined}
+                behavior={Platform.OS == "ios"? "padding" : undefined}
             >
-            <Animated.View style={{ height: height - 80, backgroundColor: 'lightgray', marginBottom: 25 }}>
+            <View style={{ height: height - 80, backgroundColor: 'lightgray', marginBottom: 25 }}>
                 <GiftedChat
                     renderInputToolbar={(props) =>
                         <View style={{ flexDirection: 'row', width: width, backgroundColor: 'white', alignItems: 'center' }}>
@@ -225,7 +225,7 @@ const Chat = ({ navigation, route }) => {
                         avatar: sender.avt
                     }}
                 />
-            </Animated.View>
+            </View>
             </KeyboardAvoidingView>
             {/* <View style={{ height: height * 0.5 }}>
                 <EmojiSelector
@@ -240,7 +240,12 @@ const Chat = ({ navigation, route }) => {
                 />
             </View> */}
             {showEmoji && 
-                <EmojiPicker onEmojiSelected={(emoji) => console.log(emoji)}
+                <EmojiPicker onEmojiSelected={emoji => {
+                    if (mess !== '')
+                        setMess(mess.substring(0, position.start) + emoji.emoji + mess.substring(position.end))
+                    else
+                        setMess(emoji.emoji)
+                }}
                     open={showEmoji} onClose={() => setShowEmoji(false)}
                 />}
         </View>

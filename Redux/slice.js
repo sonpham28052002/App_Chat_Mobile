@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const accountSlice = createSlice({
-  name: 'manageAccount',
+  name: 'account',
   initialState: {
   },
   reducers: {

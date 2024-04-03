@@ -42,7 +42,7 @@ const Login = ({ navigation }) => {
           dispatch(save(userRes.data));
           found = true;
           await AsyncStorage.setItem('isLoggedIn', 'true');
-          await AsyncStorage.setItem('userData', JSON.stringify({account}));
+          await AsyncStorage.setItem('account', JSON.stringify({account}));
           navigation.navigate("TabHome", { id: userRes.data.id });
         }
       } else {

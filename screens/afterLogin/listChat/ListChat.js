@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useDispatch } from 'react-redux';
+import { save } from "../../../Redux/slice";
 const ListChat = ({ navigation, route }) => {
   const [account, setAccount] = useState(null);
-
+  const dispatch = useDispatch();
   useEffect(() => {
     const fetchAccount = async () => {
       try {
@@ -13,6 +14,7 @@ const ListChat = ({ navigation, route }) => {
         if (storedAccount !== null) {
           const parsedAccount = JSON.parse(storedAccount);
           setAccount(parsedAccount.account);
+          dispatch(save(parsedAccount.account));
         }
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu từ AsyncStorage:', error);

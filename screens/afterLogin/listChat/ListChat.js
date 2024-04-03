@@ -23,7 +23,7 @@ const ListChat = ({ navigation, route }) => {
       <View>
       <TouchableOpacity onPress={() => navigation.navigate("Chat", 
           id == 'jgfqCBTFdEgDmpHHXaNHdZV8B982'?
-          'N7B7os8xFOMceSxRSIzQlkwr3N43' : 'jgfqCBTFdEgDmpHHXaNHdZV8B982'
+          'RGpCgF0lR1aGVcttckhAbBHWcSp2' : 'jgfqCBTFdEgDmpHHXaNHdZV8B982'
           )}>
         <Text>Chat với Sơn Phạm</Text>
       </TouchableOpacity>

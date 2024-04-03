@@ -92,7 +92,11 @@ const Chat = ({ navigation, route }) => {
             if(mess && type === 'Text')
                 chatMessage.content = mess;
             else{
-                
+                const titleFile = uriImage.substring(uriImage.lastIndexOf("/") + 1);
+                chatMessage.size = 10;
+                chatMessage.titleFile = titleFile;
+                chatMessage.url = uriImage;
+                console.log("chatMes",chatMessage);
             }
             stompClient.current.send("/app/private-single-message", {}, JSON.stringify(chatMessage));
         }
@@ -129,7 +133,9 @@ const Chat = ({ navigation, route }) => {
     };
 
     const handleSendImage = () => {
-        const id = uuidv4();
+        // const id = uuidv4();
+        const id=new Date();
+
         const newMessage = {
             _id: id,
             image: uriImage,
@@ -140,7 +146,8 @@ const Chat = ({ navigation, route }) => {
                 avatar: sender.avt,
             },
         };
-        sendMessage(id, "PNG")
+        const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
+        sendMessage(id, fileType)
         setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
     };
 

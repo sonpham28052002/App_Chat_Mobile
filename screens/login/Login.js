@@ -12,7 +12,7 @@ import LoginController from "./LoginController";
 import Home from '../afterLogin/listChat/HomeChat'
 import InputPassword from "../../components/InputPassword";
 import { LinearGradient } from 'expo-linear-gradient'
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("0123456789Cc");
@@ -29,7 +29,6 @@ const Login = ({ navigation }) => {
     let found = false;
 
     try {
-      console.log(phoneNumberWithoutPlus);
       // Gọi API để kiểm tra tài khoản
       const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountPhoneAndPassword?phone=${phoneNumberWithoutPlus}&password=${password}`);
       if (accountRes.data) {
@@ -38,8 +37,12 @@ const Login = ({ navigation }) => {
         const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
         if (userRes.data) {
           // console.log(userRes.data);
+          const account=userRes.data
+          console.log("account",account);
           dispatch(save(userRes.data));
           found = true;
+          await AsyncStorage.setItem('isLoggedIn', 'true');
+          await AsyncStorage.setItem('userData', JSON.stringify({account}));
           navigation.navigate("TabHome", { id: userRes.data.id });
         }
       } else {
@@ -83,6 +86,27 @@ const Login = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
+ useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+        if (isLoggedIn === 'true') {
+          const account = await AsyncStorage.getItem('account');
+          if (account) {
+            console.log(account);
+            dispatch(save(account));
+          }
+           navigation.navigate("TabHome");
+        } else {
+          navigation.navigate("Login");
+        }
+      } catch (error) {
+        console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
+      }
+    };
+
+    checkLoginStatus();
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

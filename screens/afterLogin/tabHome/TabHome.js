@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeChat from '../listChat/HomeChat';
 import Contact from '../Contact';
 import HomeUser from '../user/HomeUser';
+import ContactHome from '../user/ContactHome'
 import { save } from '../../../Redux/slice';
 import axios from 'axios';
 
@@ -45,7 +46,7 @@ const TabHome = ({ route }) => {
       />
       <Tab.Screen
         name="Danh bạ"
-        component={Contact}
+        component={ContactHome}
         options={{
           tabBarIcon: ({ color }) => (
             <AntDesign name="contacts" size={24} color="#0A68FE" />

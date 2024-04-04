@@ -5,11 +5,37 @@ import { TextInput } from 'react-native-paper';
 // import store from '../../../Redux/Redux';
 import { useSelector } from 'react-redux';
 import { func } from 'prop-types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const ListChat = ({ navigation, route }) => {
-  const name = useSelector((state) => state.account.userName);
-  const avt = useSelector((state) => state.account.avt);
+  // const name = useSelector((state) => state.account.userName);
+  // const avt = useSelector((state) => state.account.avt);
   const { width } = Dimensions.get('window');
-  const id = useSelector((state) => state.account.id);
+  // const id = useSelector((state) => state.account.id);
+// import React, { useEffect, useState } from 'react';
+// import { View, Text, TouchableOpacity, Image } from 'react-native';
+// import { FontAwesome } from '@expo/vector-icons';
+
+// const ListChat = ({ navigation, route }) => {
+  const [account, setAccount] = useState(null);
+
+  useEffect(() => {
+    const fetchAccount = async () => {
+      try {
+        const storedAccount = await AsyncStorage.getItem('account');
+        if (storedAccount !== null) {
+          const parsedAccount = JSON.parse(storedAccount);
+          setAccount(parsedAccount.account);
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu từ AsyncStorage:', error);
+      }
+    };
+    fetchAccount();
+  }, []);
+
+  const name = account?.userName || "Unknown";
+  const avt = account?.avt || "Unknown";
+  const id = account?.id || "Unknown";
 
   const obj = useSelector((state) => state.account);
   console.log(obj);

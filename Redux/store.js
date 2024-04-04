@@ -4,6 +4,7 @@ import accountReducer from './slice';
 const store = configureStore({
   reducer: {
     account: accountReducer,
+    // conversation: conversationSl,
   },
 });
 

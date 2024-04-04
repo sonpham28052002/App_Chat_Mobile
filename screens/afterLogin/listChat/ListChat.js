@@ -6,6 +6,8 @@ import { TextInput } from 'react-native-paper';
 import { useSelector } from 'react-redux';
 import { func } from 'prop-types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
+import { save } from "../../../Redux/slice";
 const ListChat = ({ navigation, route }) => {
   // const name = useSelector((state) => state.account.userName);
   // const avt = useSelector((state) => state.account.avt);
@@ -17,7 +19,7 @@ const ListChat = ({ navigation, route }) => {
 
 // const ListChat = ({ navigation, route }) => {
   const [account, setAccount] = useState(null);
-
+  const dispatch = useDispatch();
   useEffect(() => {
     const fetchAccount = async () => {
       try {
@@ -25,6 +27,7 @@ const ListChat = ({ navigation, route }) => {
         if (storedAccount !== null) {
           const parsedAccount = JSON.parse(storedAccount);
           setAccount(parsedAccount.account);
+          dispatch(save(parsedAccount.account));
         }
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu từ AsyncStorage:', error);

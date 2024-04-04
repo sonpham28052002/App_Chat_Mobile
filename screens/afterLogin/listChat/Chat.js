@@ -59,10 +59,11 @@ const Chat = ({ navigation, route }) => {
     function onMessageReceived(payload) {
         const message = JSON.parse(payload.body);
         console.log(message);
-        if(message.sender.id === sender.id) return;
+        if(message.sender.id === sender.id || message.sender.id !== route.params) return;
+        let date = new Date(message.senderDate);
         const newMessage = {
             _id: message.id,
-            createdAt: message.senderDate,
+            createdAt: date.setUTCHours(date.getUTCHours() + 7),
             user: {
                 _id: route.params,
                 name: sender.userName,

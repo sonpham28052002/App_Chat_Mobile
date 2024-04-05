@@ -60,9 +60,9 @@ export default function Auth() {
           <Stack.Screen name="UserProfile" component={UserProfile} />
           <Stack.Screen name="ListChat" component={ListChat} />
           <Stack.Screen name="Chat" component={Chat} 
-        options={{
+          options={{
           headerStyle: {
-            backgroundColor: 'lightblue',
+            backgroundColor: 'cyan',
           },
           headerTitleStyle: {
             fontSize: 20,

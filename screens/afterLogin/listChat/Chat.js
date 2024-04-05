@@ -44,7 +44,7 @@ const [fileSelected, setFileSelected] = useState(false);
                     {/* <Entypo name="device-camera-video" size={35} color="white" /> */}
                     <FontAwesome name="search" size={35} color="white" />
                     <TouchableOpacity style={{ width: 35 }}
-                        onPress={() => navigation.navigate('OptionChat')}>
+                        onPress={() => navigation.navigate('OptionChat', route.params)}>
                         <Entypo name="menu" size={40} color="white" />
                     </TouchableOpacity>
                 </View>

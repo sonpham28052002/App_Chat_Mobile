@@ -11,10 +11,10 @@ import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
 import 'react-native-get-random-values';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { WebView } from 'react-native-webview';
+
 import { Foundation } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
-// import { VideoMessage } from '../../../components/VideoMessage';
+import  VideoMessage  from '../../../components/VideoMesssage';
 import {Video} from 'expo-av'
 const { v4: uuidv4 } = require('uuid');
 
@@ -237,55 +237,56 @@ const Chat = ({ navigation, route }) => {
 //         </View>
 //     );
 // };
-const VideoMessage = ({ videoUri, messageId }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-const [key, setKey] = useState(0);
-  const handlePress = () => {
-    Alert.alert(
-      "Video",
-      "Bạn có muốn xem video này không?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        { text: "OK", onPress: () => setIsPlaying(true) }
-      ],
-      { cancelable: false }
-    );
-  };
+// const VideoMessage = ({ videoUri, messageId }) => {
+//   const [isPlaying, setIsPlaying] = useState(false);
+//   const [key, setKey] = useState(0);
+//   const handlePress = () => {
+//     Alert.alert(
+//       "Video",
+//       "Bạn có muốn xem video này không?",
+//       [
+//         {
+//           text: "Cancel",
+//           style: "cancel"
+//         },
+//         { text: "OK", onPress: () => setIsPlaying(true) }
+//       ],
+//       { cancelable: false }
+//     );
+//   };
 
-  const handleStop = () => {
-    console.log('dừng video');
-    setIsPlaying(false);
-    setKey(prevKey => prevKey + 1);
-  };
+//   const handleStop = () => {
+//     console.log('dừng video');
+//     setIsPlaying(false);
+//     setKey(prevKey => prevKey + 1);
+//   };
 
-  useEffect(() => {
-    if (isPlaying) {
-    }
-  }, [isPlaying]);
+//   useEffect(() => {
+//     if (isPlaying) {
+//     }
+//   }, [isPlaying]);
 
-  return (
-   <TouchableOpacity onPress={handlePress} style={{ flex: 1 }}>
-    <View style={{marginLeft:'85%',marginBottom:10}}>
-      <TouchableOpacity onPress={handlePress}>
-        <Foundation name="play-video" size={70} color="#1E90FF" />
-        <Text style={{ color: '#111111', fontSize: 10 }}>{new Date(videoUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
-      </TouchableOpacity>
-    </View>
-    {isPlaying && (
-      <View style={{ flex: 1 }}>
-        <WebView
-            onEnd={handleStop}
-          style={{ flex: 1 }}
-          source={{ uri: videoUri.video }}
-        />
-      </View>
-    )}
-  </TouchableOpacity>
-);
-};
+//   return (
+//    <TouchableOpacity onPress={handlePress} style={{ flex: 1 }}>
+//     <View style={{marginLeft:'85%',marginBottom:10}}>
+//       <TouchableOpacity onPress={handlePress}>
+//         <Foundation name="play-video" size={70} color="#1E90FF" />
+//         <Text style={{ color: '#111111', fontSize: 10 }}>{new Date(videoUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
+//       </TouchableOpacity>
+//     </View>
+//     {isPlaying && (
+//       <View style={{ flex: 1 }}>
+//         <WebView
+//         key={key}
+//          onEnd={handleStop}
+//           style={{ flex: 1 }}
+//           source={{ uri: videoUri.video }}
+//         />
+//       </View>
+//     )}
+//   </TouchableOpacity>
+// );
+// };
 const getFileExtension = (uri) => {
     return uri.substring(uri.lastIndexOf(".") + 1);
 };

@@ -1,10 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
-import accountReducer from './slice';
+import accountReducer, { messageReducer } from './slice';
 
 const store = configureStore({
   reducer: {
     account: accountReducer,
-    // conversation: conversationSl,
+    message: messageReducer,
   },
 });
 

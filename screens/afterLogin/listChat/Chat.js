@@ -8,23 +8,22 @@ import EmojiPicker from 'rn-emoji-keyboard'
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { save } from '../../../Redux/slice';
+import { save, saveReceiverId, saveMess, addMess, retreiveMess } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
 import 'react-native-get-random-values';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { Foundation } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
 import VideoMessage from '../../../components/VideoMesssage';
-import { Video } from 'expo-av'
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const sender = useSelector((state) => state.account);
-    const [messages, setMessages] = useState([]);
+    // const [messages, setMessages] = useState([]);
+    const messages = useSelector((state) => state.message.messages);
+    const receiverId = useSelector((state) => state.message.receiverId);
     var stompClient = useRef(null);
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
@@ -35,6 +34,7 @@ const Chat = ({ navigation, route }) => {
     const [colorEmoji, setColorEmoji] = useState('black');
     const { width, height } = Dimensions.get('window');
     const [showEmoji, setShowEmoji] = useState(false);
+
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
@@ -62,8 +62,11 @@ const Chat = ({ navigation, route }) => {
         const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
-
-        getMessage();
+        
+        if(receiverId !== route.params.id){
+            dispatch(saveReceiverId(route.params.id));
+            getMessage();
+        }
     }, []);
 
     const [messLoad, setMessLoad] = useState([]);
@@ -96,12 +99,20 @@ const Chat = ({ navigation, route }) => {
                     avatar: message.sender.id == sender.id ? sender.avt : route.params.avt,
                 }
             }
-            if (message.content)
+            if(message.messageType === 'RETRIEVE')
+                newMess.text = "Tin nhắn đã bị thu hồi!";
+            else if (message.content)
                 newMess.text = message.content
             else if (message.messageType == 'PNG'
                 || message.messageType == 'JPG'
                 || message.messageType == 'JPEG')
-                newMess.image = message.url
+                {
+                    newMess.image = message.url
+                    newMess.extraData = {
+                    size: message.size,
+                    titleFile: message.titleFile
+                }
+                }
             else if (message.messageType == 'PDF'
                 || message.messageType == 'DOC'
                 || message.messageType == 'DOCX'
@@ -113,33 +124,64 @@ const Chat = ({ navigation, route }) => {
                 || message.messageType == 'ZIP')
                 newMess.file = message.url
             else if (message.messageType == 'AUDIO' || message.messageType == 'VIDEO')
-                newMess.video = message.url
+                {
+                    newMess.video = message.url
+                    newMess.extraData = {
+                        size: message.size,
+                        titleFile: message.titleFile
+                    }
+                }
             return newMess;
         });
         setMessLoad(messages);
     }
+
     const loadMessage = () => {
-        messLoad.forEach(function (newMessage) {
-            setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-        });
+        dispatch(saveMess(messLoad.reverse()));
     }
 
     function onConnected() {
         stompClient.current.subscribe('/user/' + sender.id + '/singleChat', onMessageReceived)
+        stompClient.current.subscribe('/user/' + sender.id + '/retrieveMessage', onRetrieveMessage)
+    }
+
+    function onRetrieveMessage(payload) {
+        let message = JSON.parse(payload.body)
+        if (message.messageType === 'RETRIEVE') {
+            console.log(messages);
+            const index = [...messages].findIndex((item) => item._id === message.id)
+            console.log("Đã nhận tin nhắn kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
+            console.log('================================', index);
+            if(index === -1) getMessage();
+            if (index !== -1) {
+                let date = new Date(message.senderDate);
+                dispatch(retreiveMess({index: index, mess: {
+                    _id: message.id,
+                    text: "Tin nhắn đã bị thu hồi!",
+                    createdAt: date.setUTCHours(date.getUTCHours() + 7),
+                    user: {
+                        _id: sender.id,
+                        name: sender.userName,
+                        avatar: sender.avt,
+                    }
+                }}));
+            }
+            hideModal();
+            updateMess();
+        }
     }
 
     function onMessageReceived(payload) {
         const message = JSON.parse(payload.body);
         updateMess();
-        if (message.sender.id === sender.id || message.sender.id !== route.params.id) return;
         let date = new Date(message.senderDate);
-        const newMessage = {
+        let newMessage = {
             _id: message.id,
             createdAt: date.setUTCHours(date.getUTCHours() + 7),
             user: {
-                _id: route.params.id,
-                name: route.params.userName,
-                avatar: route.params.avt,
+                _id: message.sender.id === sender.id ? sender.id : route.params.id,
+                name: message.sender.id === sender.id ? sender.userName : route.params.userName,
+                avatar: message.sender.id === sender.id ? sender.avt : route.params.avt,
             }
         };
         if (message.content)
@@ -150,7 +192,8 @@ const Chat = ({ navigation, route }) => {
             newMessage.file = message.file;
         else if (message.video)
             newMessage.video = message.video;
-        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        dispatch(addMess(newMessage));
     }
 
     function onError(error) {
@@ -201,15 +244,16 @@ const Chat = ({ navigation, route }) => {
                 const newMessage = {
                     _id: id,
                     text: mess.trim(),
-                    createdAt: new Date(),
+                    createdAt: new Date()+"",
                     user: {
                         _id: sender.id,
                         name: sender.userName,
                         avatar: sender.avt,
-                    },
+                    }
                 };
+                dispatch(addMess(newMessage));
                 sendMessage(id, 'Text');
-                setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+                // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
                 setMess(''); // Clear the TextInput value after sending
             } else if (uriImage) {
                 handleSendImage();
@@ -241,16 +285,21 @@ const Chat = ({ navigation, route }) => {
         const newMessage = {
             _id: id,
             image: uriImage,
-            createdAt: new Date(),
+            createdAt: new Date() + "",
             user: {
                 _id: sender.id,
                 name: sender.userName,
                 avatar: sender.avt,
             },
+            extraData:{
+                size: 10,
+                titleFile: uriImage.substring(uriImage.lastIndexOf("/") + 1)
+            }
         };
         const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
         sendMessage(id, "Image");
-        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        dispatch(addMess(newMessage));
     };
 
     const handleSendVideo = () => {
@@ -259,16 +308,21 @@ const Chat = ({ navigation, route }) => {
             const newMessage = {
                 _id: id,
                 video: uriVideo,
-                createdAt: new Date(),
+                createdAt: new Date() + "",
                 user: {
                     _id: sender.id,
                     name: sender.userName,
                     avatar: sender.avt,
                 },
+                extraData:{
+                    size: 10,
+                    titleFile: uriVideo.substring(uriVideo.lastIndexOf("/") + 1)
+                }
             };
             const fileType = uriVideo.substring(uriVideo.lastIndexOf(".") + 1);
             sendMessage(id, "Video");
-            setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+            // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+            dispatch(addMess(newMessage));
         }
     };
 
@@ -277,21 +331,26 @@ const Chat = ({ navigation, route }) => {
             const id = uuidv4();
             const newMessage = {
                 _id: id,
-                text: 'Mở file',
                 file: uriFile,
-                createdAt: new Date(),
+                createdAt: new Date() + "",
                 user: {
                     _id: sender.id,
                     name: sender.userName,
                     avatar: sender.avt,
                 },
+                extraData:{
+                    size: 10,
+                    titleFile: uriFile.substring(uriFile.lastIndexOf("/") + 1)
+                }
             };
             sendMessage(id, 'File');
-            setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+            // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+            dispatch(addMess(newMessage));
         } else {
             Alert.alert("Chọn file cần gửi.");
         }
     };
+
     // const VideoMessage = ({ videoUri }) => {
     //     console.log("Video URI 2: ", videoUri);
     //     return (
@@ -355,6 +414,7 @@ const Chat = ({ navigation, route }) => {
     //   </TouchableOpacity>
     // );
     // };
+    
     const getFileExtension = (uri) => {
         return uri.substring(uri.lastIndexOf(".") + 1);
     };
@@ -447,7 +507,6 @@ const Chat = ({ navigation, route }) => {
                 <Message {...messageProps} />
             );
         } else if (currentMessage.video) {
-            console.log("Video URI 1: ", currentMessage.video);
             return <VideoMessage videoUri={currentMessage} />;
         }
         return null;
@@ -464,8 +523,51 @@ const Chat = ({ navigation, route }) => {
                         <Modal visible={visible} onDismiss={hideModal}
                             contentContainerStyle={{ backgroundColor: 'white', padding: 20, width: width * 0.8, marginHorizontal: width * 0.1 }}
                         >
-                            {/* <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text> */}
-                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
+                            {messTarget &&
+                                <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text>
+                            }
+                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
+                                onPress={()=>{
+                                    if (stompClient.current) {
+                                        let chatMessage = {
+                                            id: messTarget._id,
+                                            senderDate: new Date(messTarget.createdAt)
+                                        };
+                                        if(messTarget.user._id === sender.id){
+                                            chatMessage.sender = { id: sender.id },
+                                            chatMessage.receiver = { id: route.params.id }
+                                        } else {
+                                            chatMessage.receiver = { id: sender.id },
+                                            chatMessage.sender = { id: route.params.id }
+                                        }
+                                        if (messTarget.text) {
+                                            chatMessage.content = messTarget.text
+                                            chatMessage.messageType = "Text"
+                                        }
+                                        // else if (messTarget.image) {
+                                        //     const titleFile = messTarget.image.substring(messTarget.image.lastIndexOf("/") + 1);
+                                        //     chatMessage.size = 10;
+                                        //     chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
+                                        //     chatMessage.titleFile = titleFile;
+                                        //     chatMessage.url = uriImage;
+                                        // } else if (type === 'File') {
+                                        //     const titleFile = uriFile.substring(uriFile.lastIndexOf("/") + 1);
+                                        //     chatMessage.size = 10;
+                                        //     chatMessage.messageType = getFileExtension(uriFile).toUpperCase();
+                                        //     chatMessage.titleFile = titleFile;
+                                        //     chatMessage.url = uriFile;
+                                        // }
+                                        // else if (type === 'Video') {
+                                        //     const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
+                                        //     chatMessage.size = 10;
+                                        //     chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
+                                        //     chatMessage.titleFile = titleFile;
+                                        //     chatMessage.url = uriVideo;
+                                        // }
+                                        stompClient.current.send("/app/retrieve-message", {}, JSON.stringify(chatMessage));
+                                    }
+                                }}
+                            >
                                 <FontAwesome6 name="arrows-rotate" size={40} color="red" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
                             </TouchableOpacity>
@@ -522,7 +624,7 @@ const Chat = ({ navigation, route }) => {
                                 </View>
                             }
                             messages={messages}
-                            onSend={handleSend}
+                            // onSend={handleSend}
                             user={{
                                 _id: sender.id,
                                 name: sender.userName,

@@ -99,6 +99,7 @@ const ListChat = ({ navigation, route }) => {
                   <Text style={{ fontSize: 20 }} numberOfLines={1}>{item.user.userName}</Text>
                   {item.lastMessage.sender.id == obj.id?
                     <Text style={{ fontSize: 14, color: 'grey'}} numberOfLines={1}>{
+                      item.lastMessage.messageType == 'RETRIEVE'? 'Bạn đã thu hồi một tin nhắn' :
                       item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG'?
                         'Bạn: [Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
                         || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
@@ -109,6 +110,7 @@ const ListChat = ({ navigation, route }) => {
                   : <Text style={{ fontSize: 14, color: item.lastMessage.seen? 'grey':'black',
                     fontWeight: item.lastMessage.seen? 'normal':'bold'}} numberOfLines={1}>
                       {
+                        item.lastMessage.messageType == 'RETRIEVE'? 'Đã thu hồi một tin nhắn' :
                       item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG'?
                         '[Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
                         || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'

@@ -14,10 +14,11 @@ import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
 import 'react-native-get-random-values';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import AudioRecorder from '../../../components/AudioRecorder';
 import { Foundation } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import VideoMessage from '../../../components/VideoMesssage';
+import AudioMessage from '../../../components/AudioMessage';
 import { Video } from 'expo-av'
 const { v4: uuidv4 } = require('uuid');
 
@@ -35,6 +36,7 @@ const Chat = ({ navigation, route }) => {
     const [colorEmoji, setColorEmoji] = useState('black');
     const { width, height } = Dimensions.get('window');
     const [showEmoji, setShowEmoji] = useState(false);
+    const [audio, setAudio] = useState(null);
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
@@ -187,6 +189,12 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriVideo;
+            } else if (type === 'Audio') {
+                const titleFile = audio.substring(audio.lastIndexOf("/") + 1);
+                chatMessage.size = 10;
+                chatMessage.messageType = getFileExtension(audio)=='m4a'? 'AUDIO':'VIDEO';
+                chatMessage.titleFile = titleFile;
+                chatMessage.url = audio;
             }
             stompClient.current.send("/app/private-single-message", {}, JSON.stringify(chatMessage));
         }
@@ -220,6 +228,10 @@ const Chat = ({ navigation, route }) => {
             } else if (uriVideo) {
                 handleSendVideo();
                 setUriVideo(null);
+            }else if (audio) {
+                console.log(audio);
+                hadleSendAudio();
+                setAudio(null);
             }
         }
     };
@@ -235,7 +247,10 @@ const Chat = ({ navigation, route }) => {
     const handleFileSelect = (uri) => {
         setUriFile(uri);
     };
-
+   const handleAudioSelect = (uri) => {
+        setAudio(uri);
+        console.log("Audio",uri);
+    };
     const handleSendImage = () => {
         const id = uuidv4();
         const newMessage = {
@@ -250,6 +265,22 @@ const Chat = ({ navigation, route }) => {
         };
         const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
         sendMessage(id, "Image");
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+    };
+ const hadleSendAudio = () => {
+        const id = uuidv4();
+        const newMessage = {
+            _id: id,
+            audio: audio,
+            createdAt: new Date(),
+            user: {
+                _id: sender.id,
+                name: sender.userName,
+                avatar: sender.avt,
+            },
+        };
+        const fileType = audio.substring(audio.lastIndexOf(".") + 1);
+        sendMessage(id, "Audio");
         setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
     };
 
@@ -292,69 +323,6 @@ const Chat = ({ navigation, route }) => {
             Alert.alert("Chọn file cần gửi.");
         }
     };
-    // const VideoMessage = ({ videoUri }) => {
-    //     console.log("Video URI 2: ", videoUri);
-    //     return (
-    //         <View style={{ flex: 1 }}>
-    //             <Video
-    //                 source={{ uri: videoUri }}
-    //                 style={{ flex: 1 }}
-    //                 useNativeControls
-    //                 resizeMode="contain"
-    //             />
-    //         </View>
-    //     );
-    // };
-    // const VideoMessage = ({ videoUri, messageId }) => {
-    //   const [isPlaying, setIsPlaying] = useState(false);
-    //   const [key, setKey] = useState(0);
-    //   const handlePress = () => {
-    //     Alert.alert(
-    //       "Video",
-    //       "Bạn có muốn xem video này không?",
-    //       [
-    //         {
-    //           text: "Cancel",
-    //           style: "cancel"
-    //         },
-    //         { text: "OK", onPress: () => setIsPlaying(true) }
-    //       ],
-    //       { cancelable: false }
-    //     );
-    //   };
-
-    //   const handleStop = () => {
-    //     console.log('dừng video');
-    //     setIsPlaying(false);
-    //     setKey(prevKey => prevKey + 1);
-    //   };
-
-    //   useEffect(() => {
-    //     if (isPlaying) {
-    //     }
-    //   }, [isPlaying]);
-
-    //   return (
-    //    <TouchableOpacity onPress={handlePress} style={{ flex: 1 }}>
-    //     <View style={{marginLeft:'85%',marginBottom:10}}>
-    //       <TouchableOpacity onPress={handlePress}>
-    //         <Foundation name="play-video" size={70} color="#1E90FF" />
-    //         <Text style={{ color: '#111111', fontSize: 10 }}>{new Date(videoUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
-    //       </TouchableOpacity>
-    //     </View>
-    //     {isPlaying && (
-    //       <View style={{ flex: 1 }}>
-    //         <WebView
-    //         key={key}
-    //          onEnd={handleStop}
-    //           style={{ flex: 1 }}
-    //           source={{ uri: videoUri.video }}
-    //         />
-    //       </View>
-    //     )}
-    //   </TouchableOpacity>
-    // );
-    // };
     const getFileExtension = (uri) => {
         return uri.substring(uri.lastIndexOf(".") + 1);
     };
@@ -434,25 +402,25 @@ const Chat = ({ navigation, route }) => {
 
     const [messTarget, setMessTarget] = useState();
 
-    const renderMessage = (messageProps) => {
-        const { currentMessage } = messageProps;
-        if (currentMessage.file) {
-            return <FileMessage currentMessage={currentMessage} />;
-        } else if (currentMessage.text) {
-            return (
-                <Message {...messageProps} />
-            );
-        } else if (currentMessage.image) {
-            return (
-                <Message {...messageProps} />
-            );
-        } else if (currentMessage.video) {
-            console.log("Video URI 1: ", currentMessage.video);
-            return <VideoMessage videoUri={currentMessage} />;
-        }
-        return null;
-    };
-
+  const renderMessage = (messageProps) => {
+    const { currentMessage } = messageProps;
+    if (currentMessage.file) {
+        return <FileMessage key={currentMessage._id} currentMessage={currentMessage} />;
+    } else if (currentMessage.text) {
+        return (
+            <Message key={currentMessage._id} {...messageProps} />
+        );
+    } else if (currentMessage.image) {
+        return (
+            <Message key={currentMessage._id} {...messageProps} />
+        );
+    } else if (currentMessage.video) {
+        return <VideoMessage key={currentMessage._id} videoUri={currentMessage} />;
+    } else if (currentMessage.audio) {
+        return <AudioMessage key={currentMessage._id} audioUri={currentMessage} />;
+    }
+    return null;
+};
     return (
         <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
             <KeyboardAvoidingView style={{ flex: 1 }}
@@ -509,6 +477,7 @@ const Chat = ({ navigation, route }) => {
                                         </View>
                                         <View style={{ flexDirection: 'row', width: 85, justifyContent: 'space-between' }}>
                                             {/* <Entypo name="dots-three-horizontal" size={35} color="black" /> */}
+                                               <AudioRecorder onSelectAudio={handleAudioSelect}/>
                                             <FilePickerComponent onSelectFile={handleFileSelect} />
                                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                                         </View>
@@ -533,7 +502,7 @@ const Chat = ({ navigation, route }) => {
                                 console.log(message);
                                 setMessTarget(message);
                             }}
-                            renderMessage={renderMessage}
+                         renderMessage={(messageProps) => renderMessage(messageProps)}
                         />
                     </View>
                 </PaperProvider>

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 import { TextInput } from 'react-native-paper';
 import { useSelector } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { save } from "../../../Redux/slice";
 const ListChat = ({ navigation, route }) => {
@@ -12,26 +12,29 @@ const ListChat = ({ navigation, route }) => {
   const { width } = Dimensions.get('window');
   // const id = useSelector((state) => state.account.id);
   const [account, setAccount] = useState(null);
+  const name = useSelector((state) => state.account.name);
+    const avt = useSelector((state) => state.account.avt);
+      const id = useSelector((state) => state.account.id);
   const dispatch = useDispatch();
-  useEffect(() => {
-    const fetchAccount = async () => {
-      try {
-        const storedAccount = await AsyncStorage.getItem('account');
-        if (storedAccount !== null) {
-          const parsedAccount = JSON.parse(storedAccount);
-          setAccount(parsedAccount.account);
-          dispatch(save(parsedAccount.account));
-        }
-      } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu từ AsyncStorage:', error);
-      }
-    };
-    fetchAccount();
-  }, []);
+  // useEffect(() => {
+  //   const fetchAccount = async () => {
+  //     try {
+  //       const storedAccount = await AsyncStorage.getItem('account');
+  //       if (storedAccount !== null) {
+  //         const parsedAccount = JSON.parse(storedAccount);
+  //         setAccount(parsedAccount.account);
+  //         dispatch(save(parsedAccount.account));
+  //       }
+  //     } catch (error) {
+  //       console.error('Lỗi khi lấy dữ liệu từ AsyncStorage:', error);
+  //     }
+  //   };
+  //   fetchAccount();
+  // }, []);
 
-  const name = account?.userName || "Unknown";
-  const avt = account?.avt || "Unknown";
-  const id = account?.id || "Unknown";
+  // const name = account?.userName || "Unknown";
+  // const avt = account?.avt || "Unknown";
+  // const id = account?.id || "Unknown";
 
   let obj = useSelector((state) => state.account);
   let data = useSelector((state) => state.account.conversation);

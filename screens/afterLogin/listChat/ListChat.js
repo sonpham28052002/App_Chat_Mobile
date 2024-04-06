@@ -103,7 +103,9 @@ const ListChat = ({ navigation, route }) => {
                         'Bạn: [Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
                         || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
                         || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP'?
-                        'Bạn: ' + item.lastMessage.titleFile : 'Bạn: ' + item.lastMessage.content}</Text>
+                        'Bạn: ' + item.lastMessage.titleFile : 
+                        item.lastMessage.messageType == 'AUDIO' || item.lastMessage.messageType == 'VIDEO'?
+                        'Bạn: [Video]' : 'Bạn: ' + item.lastMessage.content}</Text>
                   : <Text style={{ fontSize: 14, color: item.lastMessage.seen? 'grey':'black',
                     fontWeight: item.lastMessage.seen? 'normal':'bold'}} numberOfLines={1}>
                       {
@@ -111,7 +113,9 @@ const ListChat = ({ navigation, route }) => {
                         '[Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
                         || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
                         || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP'?
-                        item.lastMessage.titleFile : item.lastMessage.content}</Text>
+                        item.lastMessage.titleFile :
+                        item.lastMessage.messageType == 'AUDIO' || item.lastMessage.messageType == 'VIDEO'?
+                        '[Video]' : item.lastMessage.content}</Text>
                   }
                 </View>
                 <View style={{ width: 70, marginRight: 10, justifyContent: 'center', alignItems: 'center' }}>

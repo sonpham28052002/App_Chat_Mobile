@@ -14,24 +14,30 @@ import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
 import 'react-native-get-random-values';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import { Foundation } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
+import VideoMessage from '../../../components/VideoMesssage';
+import { Video } from 'expo-av'
 const { v4: uuidv4 } = require('uuid');
+
 const Chat = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const sender = useSelector((state) => state.account);
-    const [messages, setMessages] = useState([])
+    const [messages, setMessages] = useState([]);
     var stompClient = useRef(null);
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
+    const [uriVideo, setUriVideo] = useState(null);
     const textInputRef = useRef(null);
     const [position, setPosition] = useState({ start: 0, end: 0 });
     const [mess, setMess] = useState('');
     const [colorEmoji, setColorEmoji] = useState('black');
     const { width, height } = Dimensions.get('window');
-    // const animate = useRef(new Animated.Value(height - 50)).current;
-    // const [extend, setExtend] = useState(false);
     const [showEmoji, setShowEmoji] = useState(false);
-    const [fileSelected, setFileSelected] = useState(false);
-
+    //    const [messagesVideo, setMessagesVideo] = useState([]);
+    //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
+    //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
     useEffect(() => {
         navigation.setOptions({
             title: route.params.userName,
@@ -44,10 +50,9 @@ const Chat = ({ navigation, route }) => {
                     justifyContent: 'space-between',
                     alignItems: 'center'
                 }}>
-                    {/* <Entypo name="device-camera-video" size={35} color="white" /> */}
                     <FontAwesome name="search" size={35} color="white" />
                     <TouchableOpacity style={{ width: 35 }}
-                        onPress={() => navigation.navigate('OptionChat')}>
+                        onPress={() => navigation.navigate('OptionChat', route.params)}>
                         <Entypo name="menu" size={40} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -91,22 +96,24 @@ const Chat = ({ navigation, route }) => {
                     avatar: message.sender.id == sender.id ? sender.avt : route.params.avt,
                 }
             }
-            if(message.content)
+            if (message.content)
                 newMess.text = message.content
-            else if(message.messageType == 'PNG' 
-            || message.messageType == 'JPG' 
-            || message.messageType == 'JPEG')
+            else if (message.messageType == 'PNG'
+                || message.messageType == 'JPG'
+                || message.messageType == 'JPEG')
                 newMess.image = message.url
-            else if(message.messageType == 'PDF' 
-            || message.messageType == 'DOC' 
-            || message.messageType == 'DOCX' 
-            || message.messageType == 'XLS' 
-            || message.messageType == 'XLSX' 
-            || message.messageType == 'PPT' 
-            || message.messageType == 'PPTX'
-            || message.messageType == 'RAR'
-            || message.messageType == 'ZIP')
+            else if (message.messageType == 'PDF'
+                || message.messageType == 'DOC'
+                || message.messageType == 'DOCX'
+                || message.messageType == 'XLS'
+                || message.messageType == 'XLSX'
+                || message.messageType == 'PPT'
+                || message.messageType == 'PPTX'
+                || message.messageType == 'RAR'
+                || message.messageType == 'ZIP')
                 newMess.file = message.url
+            else if (message.messageType == 'AUDIO' || message.messageType == 'VIDEO')
+                newMess.video = message.url
             return newMess;
         });
         setMessLoad(messages);
@@ -141,6 +148,8 @@ const Chat = ({ navigation, route }) => {
             newMessage.image = message.url;
         else if (message.file)
             newMessage.file = message.file;
+        else if (message.video)
+            newMessage.video = message.video;
         setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
     }
 
@@ -155,7 +164,7 @@ const Chat = ({ navigation, route }) => {
                 sender: { id: sender.id },
                 receiver: { id: route.params.id }
             };
-            if (mess && type === 'Text'){
+            if (mess && type === 'Text') {
                 chatMessage.content = mess
                 chatMessage.messageType = type
             }
@@ -172,14 +181,20 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriFile;
             }
-            console.log("Chat message: ", chatMessage);
+            else if (type === 'Video') {
+                const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
+                chatMessage.size = 10;
+                chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
+                chatMessage.titleFile = titleFile;
+                chatMessage.url = uriVideo;
+            }
             stompClient.current.send("/app/private-single-message", {}, JSON.stringify(chatMessage));
         }
     }
 
     const handleSend = () => {
-        if (mess.trim() === '' && !uriImage && !uriFile) {
-            Alert.alert("Chưa gửi tin nhắn hoặc chọn ảnh hoặc file");
+        if (mess.trim() === '' && !uriImage && !uriFile && !uriVideo) {
+            Alert.alert("Chưa gửi tin nhắn hoặc chọn ảnh, video hoặc file");
         } else {
             if (mess.trim() !== '') {
                 const id = uuidv4();
@@ -202,17 +217,25 @@ const Chat = ({ navigation, route }) => {
             } else if (uriFile) {
                 handleSendFile();
                 setUriFile(null);
+            } else if (uriVideo) {
+                handleSendVideo();
+                setUriVideo(null);
             }
         }
     };
 
-    const handleImageSelect = (uri) => {
-        setUriImage(uri);
+
+    const handleImageSelect = (uri, type) => {
+        if (type === "image") {
+            setUriImage(uri);
+        } else {
+            setUriVideo(uri);
+        }
     };
     const handleFileSelect = (uri) => {
         setUriFile(uri);
     };
-    //Gửi hình ảnh
+
     const handleSendImage = () => {
         const id = uuidv4();
         const newMessage = {
@@ -226,10 +249,112 @@ const Chat = ({ navigation, route }) => {
             },
         };
         const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
-        sendMessage(id, "Image")
+        sendMessage(id, "Image");
         setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
     };
 
+    const handleSendVideo = () => {
+        const id = uuidv4();
+        if (uriVideo) {
+            const newMessage = {
+                _id: id,
+                video: uriVideo,
+                createdAt: new Date(),
+                user: {
+                    _id: sender.id,
+                    name: sender.userName,
+                    avatar: sender.avt,
+                },
+            };
+            const fileType = uriVideo.substring(uriVideo.lastIndexOf(".") + 1);
+            sendMessage(id, "Video");
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        }
+    };
+
+    const handleSendFile = () => {
+        if (uriFile) {
+            const id = uuidv4();
+            const newMessage = {
+                _id: id,
+                text: 'Mở file',
+                file: uriFile,
+                createdAt: new Date(),
+                user: {
+                    _id: sender.id,
+                    name: sender.userName,
+                    avatar: sender.avt,
+                },
+            };
+            sendMessage(id, 'File');
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        } else {
+            Alert.alert("Chọn file cần gửi.");
+        }
+    };
+    // const VideoMessage = ({ videoUri }) => {
+    //     console.log("Video URI 2: ", videoUri);
+    //     return (
+    //         <View style={{ flex: 1 }}>
+    //             <Video
+    //                 source={{ uri: videoUri }}
+    //                 style={{ flex: 1 }}
+    //                 useNativeControls
+    //                 resizeMode="contain"
+    //             />
+    //         </View>
+    //     );
+    // };
+    // const VideoMessage = ({ videoUri, messageId }) => {
+    //   const [isPlaying, setIsPlaying] = useState(false);
+    //   const [key, setKey] = useState(0);
+    //   const handlePress = () => {
+    //     Alert.alert(
+    //       "Video",
+    //       "Bạn có muốn xem video này không?",
+    //       [
+    //         {
+    //           text: "Cancel",
+    //           style: "cancel"
+    //         },
+    //         { text: "OK", onPress: () => setIsPlaying(true) }
+    //       ],
+    //       { cancelable: false }
+    //     );
+    //   };
+
+    //   const handleStop = () => {
+    //     console.log('dừng video');
+    //     setIsPlaying(false);
+    //     setKey(prevKey => prevKey + 1);
+    //   };
+
+    //   useEffect(() => {
+    //     if (isPlaying) {
+    //     }
+    //   }, [isPlaying]);
+
+    //   return (
+    //    <TouchableOpacity onPress={handlePress} style={{ flex: 1 }}>
+    //     <View style={{marginLeft:'85%',marginBottom:10}}>
+    //       <TouchableOpacity onPress={handlePress}>
+    //         <Foundation name="play-video" size={70} color="#1E90FF" />
+    //         <Text style={{ color: '#111111', fontSize: 10 }}>{new Date(videoUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
+    //       </TouchableOpacity>
+    //     </View>
+    //     {isPlaying && (
+    //       <View style={{ flex: 1 }}>
+    //         <WebView
+    //         key={key}
+    //          onEnd={handleStop}
+    //           style={{ flex: 1 }}
+    //           source={{ uri: videoUri.video }}
+    //         />
+    //       </View>
+    //     )}
+    //   </TouchableOpacity>
+    // );
+    // };
     const getFileExtension = (uri) => {
         return uri.substring(uri.lastIndexOf(".") + 1);
     };
@@ -258,78 +383,49 @@ const Chat = ({ navigation, route }) => {
                 iconName = 'file-powerpoint';
                 colorIcon = '#D34C2C';
                 break;
+            case 'mov':
+            case 'mp4':
+            case 'mp3':
+                iconName = 'file-video';
+                break;
             default:
                 iconName = 'file';
                 colorIcon = '#111111';
         }
 
         return (
-            <View style={[styles.fileMessageContainer, {marginLeft: currentMessage.user._id!==sender.id? 53:width-252,
-                backgroundColor: currentMessage.user._id!==sender.id?'white':'#1E90FF',
+            <View style={[styles.fileMessageContainer, {
+                marginLeft: currentMessage.user._id !== sender.id ? 53 : width - 252,
+                backgroundColor: currentMessage.user._id !== sender.id ? 'white' : '#1E90FF',
                 borderTopLeftRadius: 20, borderTopRightRadius: 20,
-                borderBottomLeftRadius: currentMessage.user._id!==sender.id?0:20,
-                borderBottomRightRadius: currentMessage.user._id!==sender.id?20:0,
+                borderBottomLeftRadius: currentMessage.user._id !== sender.id ? 0 : 20,
+                borderBottomRightRadius: currentMessage.user._id !== sender.id ? 20 : 0,
                 width: width - 150
             }]}>
-                <View style={{flexDirection: 'row', width: width - 220, justifyContent: 'space-between', alignItems: 'center'}}>
-                <TouchableOpacity onPress={() => Linking.openURL(currentMessage.file)}
-                    onLongPress={() => showModal()}
+                <View style={{ flexDirection: 'row', width: width - 220, justifyContent: 'space-between', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => Linking.openURL(currentMessage.file)}
+                        onLongPress={() => showModal()}
                     >
-                    <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
-                </TouchableOpacity>
+                        <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
+                    </TouchableOpacity>
                     <Text numberOfLines={2}
-                        style={{ color: currentMessage.user._id!==sender.id?'black':'white',}}
+                        style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
                     >{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text>
                 </View>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
-                <Text style={{ color: 'grey', fontSize: 11, marginLeft: 10,
-                    color: currentMessage.user._id!==sender.id?'grey':'white',
-                    textAlign: currentMessage.user._id!==sender.id?'left':'right'
-            }}>{new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
+                <Text style={{
+                    color: 'grey', fontSize: 11, marginLeft: 10,
+                    color: currentMessage.user._id !== sender.id ? 'grey' : 'white',
+                    textAlign: currentMessage.user._id !== sender.id ? 'left' : 'right'
+                }}>{new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
             </View>
         );
     };
-    //Gửi file
-    const handleSendFile = () => {
-        if (uriFile) {
-            const id = uuidv4();
-            const newMessage = {
-                _id: id,
-                file: uriFile,
-                createdAt: new Date(),
-                user: {
-                    _id: sender.id,
-                    name: sender.userName,
-                    avatar: sender.avt,
-                },
-            };
-            sendMessage(id, 'File');
-            setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-            setFileSelected(true);
-        } else {
-            Alert.alert("Chọn file cần gửi.");
-        }
-    };
+
     const handleFocusText = () => {
         if (textInputRef.current) {
             textInputRef.current.focus();
         }
-    };
-    const renderMessage = (messageProps) => {
-        const { currentMessage } = messageProps;
-        if (currentMessage.file) {
-            return <FileMessage currentMessage={currentMessage} />;
-            //  <Message {...messageProps} />;
-        } else if (currentMessage.text) {
-            return (
-                <Message {...messageProps} />
-            );
-        } else if (currentMessage.image) {
-            return (
-                <Message {...messageProps} />
-            );
-        }
-        return null;
     };
 
     const [visible, setVisible] = React.useState(false);
@@ -338,6 +434,25 @@ const Chat = ({ navigation, route }) => {
 
     const [messTarget, setMessTarget] = useState();
 
+    const renderMessage = (messageProps) => {
+        const { currentMessage } = messageProps;
+        if (currentMessage.file) {
+            return <FileMessage currentMessage={currentMessage} />;
+        } else if (currentMessage.text) {
+            return (
+                <Message {...messageProps} />
+            );
+        } else if (currentMessage.image) {
+            return (
+                <Message {...messageProps} />
+            );
+        } else if (currentMessage.video) {
+            console.log("Video URI 1: ", currentMessage.video);
+            return <VideoMessage videoUri={currentMessage} />;
+        }
+        return null;
+    };
+
     return (
         <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
             <KeyboardAvoidingView style={{ flex: 1 }}
@@ -345,24 +460,25 @@ const Chat = ({ navigation, route }) => {
                 behavior={Platform.OS == "ios" ? "padding" : undefined}
             >
                 <PaperProvider>
-                    <Portal style={{justifyContent: 'center', alignItems: 'center'}}>
+                    <Portal style={{ justifyContent: 'center', alignItems: 'center' }}>
                         <Modal visible={visible} onDismiss={hideModal}
                             contentContainerStyle={{ backgroundColor: 'white', padding: 20, width: width * 0.8, marginHorizontal: width * 0.1 }}
                         >
                             {/* <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text> */}
-                            <TouchableOpacity style={{width: '100%', flexDirection: 'row', alignItems: 'center'}}>
+                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
                                 <FontAwesome6 name="arrows-rotate" size={40} color="red" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{width: '100%', flexDirection: 'row', alignItems: 'center',
+                            <TouchableOpacity style={{
+                                width: '100%', flexDirection: 'row', alignItems: 'center',
                                 marginVertical: 10
-                        }}>
+                            }}>
                                 <Ionicons name="arrow-undo" size={40} color="black" />
-                                <Text style={{ fontSize: 20, marginLeft: 5  }}>Chuyển tiếp tin nhắn</Text>
+                                <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{width: '100%', flexDirection: 'row', alignItems: 'center'}}>
-                            <MaterialIcons name="delete" size={40} color="red" />
-                                <Text style={{ fontSize: 20, marginLeft: 5  }}>Xoá tin nhắn</Text>
+                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
+                                <MaterialIcons name="delete" size={40} color="red" />
+                                <Text style={{ fontSize: 20, marginLeft: 5 }}>Xoá tin nhắn</Text>
                             </TouchableOpacity>
                         </Modal>
                     </Portal>
@@ -434,6 +550,7 @@ const Chat = ({ navigation, route }) => {
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     fileMessageContainer: {
         // alignItems: 'center',
@@ -452,5 +569,6 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     }
 });
+
 
 export default Chat;

@@ -247,7 +247,7 @@ const Chat = ({ navigation, route }) => {
     }
 
     const handleSend = () => {
-        if (mess.trim() === '' && !uriImage && !uriFile && !uriVideo) {
+        if (mess.trim() === '' && !uriImage && !uriFile && !uriVideo && !audio) {
             Alert.alert("Chưa gửi tin nhắn hoặc chọn ảnh, video hoặc file");
         } else {
             if (mess.trim() !== '') {
@@ -327,7 +327,7 @@ const Chat = ({ navigation, route }) => {
         const newMessage = {
             _id: id,
             audio: audio,
-            createdAt: new Date(),
+            createdAt: new Date() + "",
             user: {
                 _id: sender.id,
                 name: sender.userName,
@@ -336,7 +336,7 @@ const Chat = ({ navigation, route }) => {
         };
         const fileType = audio.substring(audio.lastIndexOf(".") + 1);
         sendMessage(id, "Audio");
-        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        dispatch(addMess(newMessage));
     };
 
     const handleSendVideo = () => {
@@ -442,7 +442,7 @@ const Chat = ({ navigation, route }) => {
                     </TouchableOpacity>
                     <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text>
+                    >{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1).split('%')[0]}</Text>
                 </View>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
                       <Text style={{
@@ -486,6 +486,7 @@ const Chat = ({ navigation, route }) => {
     } else if (currentMessage.video) {
         return <VideoMessage key={currentMessage._id} videoUri={currentMessage} />;
     } else if (currentMessage.audio) {
+        console.log("Audio ne");
         return <AudioMessage key={currentMessage._id} audioUri={currentMessage} />;
     }
     return null;

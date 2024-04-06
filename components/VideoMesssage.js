@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import { View, TouchableOpacity, Text, Dimensions } from 'react-native';
 import { Foundation } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 
-const VideoMessage = ({ videoUri }) => {
+const VideoMessage = ({ videoUri, sender }) => {
   const [isFullScreen, setIsFullScreen] = useState(false);
    const [isPlay, SetIsPlay] = useState(false);
   const handleToggleFullScreen = () => {
    SetIsPlay(true)
   };
 
+  const { width } = Dimensions.get('window');
+
   return (
-    <View style={{marginLeft:'50%'}}>
+    <View style={{ width: width - 170, justifyContent: 'center', 
+      alignItems: 'center', padding: 10,
+      backgroundColor: !sender? 'white':'#1E90FF',
+      marginLeft: !sender? 53 : width - 232, 
+      borderTopLeftRadius: 20, borderTopRightRadius: 20,
+      borderBottomRightRadius: !sender? 20:0,
+      borderBottomLeftRadius: !sender? 0:20,
+      }}>
       <TouchableOpacity onPress={handleToggleFullScreen}>
         <View style={{ width: 200, height: 150 }}>
             <WebView

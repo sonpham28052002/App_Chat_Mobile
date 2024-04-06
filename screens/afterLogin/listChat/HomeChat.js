@@ -6,6 +6,7 @@ import OptionChat from './OptionChat';
 import ScanQR from './ScanQR';
 import TabHome from '../tabHome/TabHome';
 import { useDispatch } from 'react-redux';
+// import CreateMessager from './CreateMessager';
 
 const Stack = createStackNavigator();
 
@@ -28,6 +29,7 @@ const HomeChat = ({ navigation, route }) => {
       {/* <Stack.Screen name="EditProfile" component={EditProfile} options={{ headerShown: false }} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen name="UserProfile" component={UserProfile} /> */}
+      {/* <Stack.Screen name="CreateMessager" component={CreateMessager} options={{ headerShown: false }} /> */}
     </Stack.Navigator>
   );
 };

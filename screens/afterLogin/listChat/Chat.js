@@ -507,7 +507,7 @@ const Chat = ({ navigation, route }) => {
                 <Message {...messageProps} />
             );
         } else if (currentMessage.video) {
-            return <VideoMessage videoUri={currentMessage} />;
+            return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == sender.id?true:false}/>;
         }
         return null;
     };

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView, Platform } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 import { TextInput } from 'react-native-paper';
@@ -56,6 +56,7 @@ const ListChat = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      { Platform.OS == "android" && <View style={{height: 30}}/>}
       <View style={{
         backgroundColor: 'cyan',
         height: 50, flexDirection: 'row',
@@ -75,7 +76,9 @@ const ListChat = ({ navigation, route }) => {
           <FontAwesome name="qrcode" size={35} color="white" />
         </TouchableOpacity>
         <View style={{ marginRight: 10}}>
-        <AntDesign name="adduser" size={35} color="white" />
+        <TouchableOpacity onPress={() => navigation.navigate('CreateMessager')}>
+          <AntDesign name="adduser" size={35} color="white" />
+        </TouchableOpacity>
         </View>
       </View>
       <View>

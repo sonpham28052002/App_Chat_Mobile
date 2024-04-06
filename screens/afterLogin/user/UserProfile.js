@@ -5,7 +5,7 @@ import { Entypo, Feather, MaterialIcons, EvilIcons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { updateAvatar } from "../../../Redux/slice";
 import { CommonActions } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 const UserProfile = ({ navigation }) => {
     const name = useSelector((state) => state.account.userName);
     const avt = useSelector((state) => state.account.avt);
@@ -23,7 +23,7 @@ const UserProfile = ({ navigation }) => {
  const handleLogout = async () => {
     const logoutAsyncStorage = async () => {
         try {
-            await AsyncStorage.setItem('isLoggedIn', 'false');
+            // await AsyncStorage.setItem('isLoggedIn', 'false');
             navigation.navigate('Login');
         } catch (error) {
             console.error('Lỗi khi lưu trạng thái đăng nhập:', error);

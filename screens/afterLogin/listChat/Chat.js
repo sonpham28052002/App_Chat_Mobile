@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Button, View, StyleSheet, Dimensions, Animated, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text, Linking, Image } from 'react-native';
+import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text, Linking } from 'react-native';
 import { GiftedChat, Message } from 'react-native-gifted-chat';
-import { TextInput } from 'react-native-paper';
-import { Entypo, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { TextInput, Modal, Portal, PaperProvider } from 'react-native-paper';
+import { Entypo, FontAwesome, MaterialIcons, FontAwesome6, Ionicons } from '@expo/vector-icons';
+// import EmojiSelector, { Categories } from "react-native-emoji-selector";
 import EmojiPicker from 'rn-emoji-keyboard'
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { save } from '../../../Redux/slice';
+import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
 import 'react-native-get-random-values';
@@ -14,12 +17,12 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 import { Foundation } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
-import  VideoMessage  from '../../../components/VideoMesssage';
-import {Video} from 'expo-av'
+import VideoMessage from '../../../components/VideoMesssage';
+import { Video } from 'expo-av'
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {
-    console.log('Receive:', route.params);
+    const dispatch = useDispatch();
     const sender = useSelector((state) => state.account);
     const [messages, setMessages] = useState([]);
     var stompClient = useRef(null);
@@ -32,11 +35,12 @@ const Chat = ({ navigation, route }) => {
     const [colorEmoji, setColorEmoji] = useState('black');
     const { width, height } = Dimensions.get('window');
     const [showEmoji, setShowEmoji] = useState(false);
-//    const [messagesVideo, setMessagesVideo] = useState([]);
-//     const [isVideoPlayed, setIsVideoPlayed] = useState({});
-//     const [currentVideoUri, setCurrentVideoUri] = useState(null);
+    //    const [messagesVideo, setMessagesVideo] = useState([]);
+    //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
+    //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
     useEffect(() => {
         navigation.setOptions({
+            title: route.params.userName,
             headerRight: () => (
                 <View style={{
                     width: 120,
@@ -48,7 +52,7 @@ const Chat = ({ navigation, route }) => {
                 }}>
                     <FontAwesome name="search" size={35} color="white" />
                     <TouchableOpacity style={{ width: 35 }}
-                        onPress={() => navigation.navigate('OptionChat')}>
+                        onPress={() => navigation.navigate('OptionChat', route.params)}>
                         <Entypo name="menu" size={40} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -58,7 +62,67 @@ const Chat = ({ navigation, route }) => {
         const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
+
+        getMessage();
     }, []);
+
+    const [messLoad, setMessLoad] = useState([]);
+
+    useEffect(() => {
+        loadMessage();
+    }, [messLoad]);
+
+    const updateMess = async () => {
+        const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${sender.id}`)
+        try {
+            if (result.data) {
+                dispatch(save(result.data));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getMessage = async () => {
+        const response = await axios.get(`https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`);
+        const messages = response.data.slice(-20).map(message => {
+            let date = new Date(message.senderDate);
+            let newMess = {
+                _id: message.id,
+                createdAt: date.setUTCHours(date.getUTCHours() + 7),
+                user: {
+                    _id: message.sender.id,
+                    name: message.sender.id == sender.id ? sender.userName : route.params.userName,
+                    avatar: message.sender.id == sender.id ? sender.avt : route.params.avt,
+                }
+            }
+            if (message.content)
+                newMess.text = message.content
+            else if (message.messageType == 'PNG'
+                || message.messageType == 'JPG'
+                || message.messageType == 'JPEG')
+                newMess.image = message.url
+            else if (message.messageType == 'PDF'
+                || message.messageType == 'DOC'
+                || message.messageType == 'DOCX'
+                || message.messageType == 'XLS'
+                || message.messageType == 'XLSX'
+                || message.messageType == 'PPT'
+                || message.messageType == 'PPTX'
+                || message.messageType == 'RAR'
+                || message.messageType == 'ZIP')
+                newMess.file = message.url
+            else if (message.messageType == 'AUDIO' || message.messageType == 'VIDEO')
+                newMess.video = message.url
+            return newMess;
+        });
+        setMessLoad(messages);
+    }
+    const loadMessage = () => {
+        messLoad.forEach(function (newMessage) {
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        });
+    }
 
     function onConnected() {
         stompClient.current.subscribe('/user/' + sender.id + '/singleChat', onMessageReceived)
@@ -66,16 +130,16 @@ const Chat = ({ navigation, route }) => {
 
     function onMessageReceived(payload) {
         const message = JSON.parse(payload.body);
-        console.log(message);
-        if (message.sender.id === sender.id || message.sender.id !== route.params) return;
+        updateMess();
+        if (message.sender.id === sender.id || message.sender.id !== route.params.id) return;
         let date = new Date(message.senderDate);
         const newMessage = {
             _id: message.id,
             createdAt: date.setUTCHours(date.getUTCHours() + 7),
             user: {
-                _id: route.params,
-                name: sender.userName,
-                avatar: sender.avt,
+                _id: route.params.id,
+                name: route.params.userName,
+                avatar: route.params.avt,
             }
         };
         if (message.content)
@@ -97,26 +161,30 @@ const Chat = ({ navigation, route }) => {
         if (stompClient.current) {
             var chatMessage = {
                 id: id,
-                messageType: type,
                 sender: { id: sender.id },
-                receiver: { id: route.params },
+                receiver: { id: route.params.id }
             };
-            if (mess && type === 'Text')
-                chatMessage.content = mess;
+            if (mess && type === 'Text') {
+                chatMessage.content = mess
+                chatMessage.messageType = type
+            }
             else if (type === 'Image') {
                 const titleFile = uriImage.substring(uriImage.lastIndexOf("/") + 1);
                 chatMessage.size = 10;
+                chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriImage;
             } else if (type === 'File') {
                 const titleFile = uriFile.substring(uriFile.lastIndexOf("/") + 1);
                 chatMessage.size = 10;
+                chatMessage.messageType = getFileExtension(uriFile).toUpperCase();
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriFile;
             }
             else if (type === 'Video') {
                 const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
                 chatMessage.size = 10;
+                chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriVideo;
             }
@@ -181,7 +249,7 @@ const Chat = ({ navigation, route }) => {
             },
         };
         const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
-        sendMessage(id, fileType);
+        sendMessage(id, "Image");
         setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
     };
 
@@ -199,7 +267,7 @@ const Chat = ({ navigation, route }) => {
                 },
             };
             const fileType = uriVideo.substring(uriVideo.lastIndexOf(".") + 1);
-            sendMessage(id, fileType);
+            sendMessage(id, "Video");
             setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
         }
     };
@@ -224,111 +292,148 @@ const Chat = ({ navigation, route }) => {
             Alert.alert("Chọn file cần gửi.");
         }
     };
-// const VideoMessage = ({ videoUri }) => {
-//     console.log("Video URI 2: ", videoUri);
-//     return (
-//         <View style={{ flex: 1 }}>
-//             <Video
-//                 source={{ uri: videoUri }}
-//                 style={{ flex: 1 }}
-//                 useNativeControls
-//                 resizeMode="contain"
-//             />
-//         </View>
-//     );
-// };
-// const VideoMessage = ({ videoUri, messageId }) => {
-//   const [isPlaying, setIsPlaying] = useState(false);
-//   const [key, setKey] = useState(0);
-//   const handlePress = () => {
-//     Alert.alert(
-//       "Video",
-//       "Bạn có muốn xem video này không?",
-//       [
-//         {
-//           text: "Cancel",
-//           style: "cancel"
-//         },
-//         { text: "OK", onPress: () => setIsPlaying(true) }
-//       ],
-//       { cancelable: false }
-//     );
-//   };
+    // const VideoMessage = ({ videoUri }) => {
+    //     console.log("Video URI 2: ", videoUri);
+    //     return (
+    //         <View style={{ flex: 1 }}>
+    //             <Video
+    //                 source={{ uri: videoUri }}
+    //                 style={{ flex: 1 }}
+    //                 useNativeControls
+    //                 resizeMode="contain"
+    //             />
+    //         </View>
+    //     );
+    // };
+    // const VideoMessage = ({ videoUri, messageId }) => {
+    //   const [isPlaying, setIsPlaying] = useState(false);
+    //   const [key, setKey] = useState(0);
+    //   const handlePress = () => {
+    //     Alert.alert(
+    //       "Video",
+    //       "Bạn có muốn xem video này không?",
+    //       [
+    //         {
+    //           text: "Cancel",
+    //           style: "cancel"
+    //         },
+    //         { text: "OK", onPress: () => setIsPlaying(true) }
+    //       ],
+    //       { cancelable: false }
+    //     );
+    //   };
 
-//   const handleStop = () => {
-//     console.log('dừng video');
-//     setIsPlaying(false);
-//     setKey(prevKey => prevKey + 1);
-//   };
+    //   const handleStop = () => {
+    //     console.log('dừng video');
+    //     setIsPlaying(false);
+    //     setKey(prevKey => prevKey + 1);
+    //   };
 
-//   useEffect(() => {
-//     if (isPlaying) {
-//     }
-//   }, [isPlaying]);
+    //   useEffect(() => {
+    //     if (isPlaying) {
+    //     }
+    //   }, [isPlaying]);
 
-//   return (
-//    <TouchableOpacity onPress={handlePress} style={{ flex: 1 }}>
-//     <View style={{marginLeft:'85%',marginBottom:10}}>
-//       <TouchableOpacity onPress={handlePress}>
-//         <Foundation name="play-video" size={70} color="#1E90FF" />
-//         <Text style={{ color: '#111111', fontSize: 10 }}>{new Date(videoUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
-//       </TouchableOpacity>
-//     </View>
-//     {isPlaying && (
-//       <View style={{ flex: 1 }}>
-//         <WebView
-//         key={key}
-//          onEnd={handleStop}
-//           style={{ flex: 1 }}
-//           source={{ uri: videoUri.video }}
-//         />
-//       </View>
-//     )}
-//   </TouchableOpacity>
-// );
-// };
-const getFileExtension = (uri) => {
-    return uri.substring(uri.lastIndexOf(".") + 1);
-};
+    //   return (
+    //    <TouchableOpacity onPress={handlePress} style={{ flex: 1 }}>
+    //     <View style={{marginLeft:'85%',marginBottom:10}}>
+    //       <TouchableOpacity onPress={handlePress}>
+    //         <Foundation name="play-video" size={70} color="#1E90FF" />
+    //         <Text style={{ color: '#111111', fontSize: 10 }}>{new Date(videoUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
+    //       </TouchableOpacity>
+    //     </View>
+    //     {isPlaying && (
+    //       <View style={{ flex: 1 }}>
+    //         <WebView
+    //         key={key}
+    //          onEnd={handleStop}
+    //           style={{ flex: 1 }}
+    //           source={{ uri: videoUri.video }}
+    //         />
+    //       </View>
+    //     )}
+    //   </TouchableOpacity>
+    // );
+    // };
+    const getFileExtension = (uri) => {
+        return uri.substring(uri.lastIndexOf(".") + 1);
+    };
 
-const FileMessage = ({ currentMessage }) => {
-    const fileExtension = getFileExtension(currentMessage.file);
-    let iconName;
+    const FileMessage = ({ currentMessage }) => {
+        const fileExtension = getFileExtension(currentMessage.file);
+        let iconName;
+        let colorIcon;
+        switch (fileExtension) {
+            case 'pdf':
+                iconName = 'file-pdf-box';
+                colorIcon = '#F28585';
+                break;
+            case 'doc':
+            case 'docx':
+                iconName = 'file-word';
+                colorIcon = 'blue';
+                break;
+            case 'xls':
+            case 'xlsx':
+                iconName = 'file-excel';
+                colorIcon = '#0A7641';
+                break;
+            case 'ppt':
+            case 'pptx':
+                iconName = 'file-powerpoint';
+                colorIcon = '#D34C2C';
+                break;
+            case 'mov':
+            case 'mp4':
+            case 'mp3':
+                iconName = 'file-video';
+                break;
+            default:
+                iconName = 'file';
+                colorIcon = '#111111';
+        }
 
-    switch (fileExtension) {
-        case 'pdf':
-            iconName = 'file-pdf-box';
-            break;
-        case 'doc':
-        case 'docx':
-            iconName = 'file-word';
-            break;
-        case 'xls':
-        case 'xlsx':
-            iconName = 'file-excel';
-            break;
-        case 'ppt':
-        case 'pptx':
-            iconName = 'file-powerpoint';
-            break;
-        case 'mov':
-        case 'mp4':
-        case 'mp3':
-            iconName = 'file-video';
-            break;
-        default:
-            iconName = 'file';
-    }
+        return (
+            <View style={[styles.fileMessageContainer, {
+                marginLeft: currentMessage.user._id !== sender.id ? 53 : width - 252,
+                backgroundColor: currentMessage.user._id !== sender.id ? 'white' : '#1E90FF',
+                borderTopLeftRadius: 20, borderTopRightRadius: 20,
+                borderBottomLeftRadius: currentMessage.user._id !== sender.id ? 0 : 20,
+                borderBottomRightRadius: currentMessage.user._id !== sender.id ? 20 : 0,
+                width: width - 150
+            }]}>
+                <View style={{ flexDirection: 'row', width: width - 220, justifyContent: 'space-between', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => Linking.openURL(currentMessage.file)}
+                        onLongPress={() => showModal()}
+                    >
+                        <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
+                    </TouchableOpacity>
+                    <Text numberOfLines={2}
+                        style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
+                    >{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text>
+                </View>
+                {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
+                <Text style={{
+                    color: 'grey', fontSize: 11, marginLeft: 10,
+                    color: currentMessage.user._id !== sender.id ? 'grey' : 'white',
+                    textAlign: currentMessage.user._id !== sender.id ? 'left' : 'right'
+                }}>{new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
+            </View>
+        );
+    };
 
-    return (
-        <View style={styles.fileMessageContainer}>
-            <TouchableOpacity onPress={() => Linking.openURL(currentMessage.file)}>
-                <MaterialCommunityIcons name={iconName} size={50} color="#1E90FF" />
-            </TouchableOpacity>
-            <Text style={{ color: '#111111', fontSize: 10 }}>{new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
-        </View>
-    );
-};
+    const handleFocusText = () => {
+        if (textInputRef.current) {
+            textInputRef.current.focus();
+        }
+    };
+
+    const [visible, setVisible] = React.useState(false);
+    const showModal = () => setVisible(true);
+    const hideModal = () => setVisible(false);
+
+    const [messTarget, setMessTarget] = useState();
+
     const renderMessage = (messageProps) => {
         const { currentMessage } = messageProps;
         if (currentMessage.file) {
@@ -354,53 +459,84 @@ const FileMessage = ({ currentMessage }) => {
                 keyboardVerticalOffset={50}
                 behavior={Platform.OS == "ios" ? "padding" : undefined}
             >
-                <View style={{ height: height - 110, backgroundColor: 'lightgray', marginBottom: 25 }}>
-                    <GiftedChat
-                        renderInputToolbar={(props) =>
-                            <View style={{ flexDirection: 'row', width: width, backgroundColor: 'white', alignItems: 'center' }}>
-                                <View style={{ flexDirection: 'row', paddingHorizontal: 10, width: width - 45, height: 80, justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            setShowEmoji(!showEmoji);
-                                            handleFocusText();
-                                        }}
-                                    >
-                                        <Entypo name="emoji-happy" size={35} color={colorEmoji} />
-                                    </TouchableOpacity>
-                                    <View style={{ marginHorizontal: 10, width: width - 200 }}>
-                                        <TextInput placeholder="Tin nhắn" style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
-                                            value={mess}
-                                            onChangeText={text => {
-                                                setMess(text);
+                <PaperProvider>
+                    <Portal style={{ justifyContent: 'center', alignItems: 'center' }}>
+                        <Modal visible={visible} onDismiss={hideModal}
+                            contentContainerStyle={{ backgroundColor: 'white', padding: 20, width: width * 0.8, marginHorizontal: width * 0.1 }}
+                        >
+                            {/* <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text> */}
+                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
+                                <FontAwesome6 name="arrows-rotate" size={40} color="red" />
+                                <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={{
+                                width: '100%', flexDirection: 'row', alignItems: 'center',
+                                marginVertical: 10
+                            }}>
+                                <Ionicons name="arrow-undo" size={40} color="black" />
+                                <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
+                                <MaterialIcons name="delete" size={40} color="red" />
+                                <Text style={{ fontSize: 20, marginLeft: 5 }}>Xoá tin nhắn</Text>
+                            </TouchableOpacity>
+                        </Modal>
+                    </Portal>
+                    <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
+                        <GiftedChat
+                            renderInputToolbar={(props) =>
+                                <View style={{ flexDirection: 'row', width: width, backgroundColor: 'white', alignItems: 'center' }}>
+                                    <View style={{ flexDirection: 'row', paddingHorizontal: 10, width: width - 45, height: 80, justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                setShowEmoji(!showEmoji);
+                                                handleFocusText();
                                             }}
-                                            selection={position}
-                                            ref={textInputRef}
-                                            onSelectionChange={event => setPosition(event.nativeEvent.selection)}
-                                        />
+                                        >
+                                            <Entypo name="emoji-happy" size={35} color={colorEmoji} />
+
+                                        </TouchableOpacity>
+                                        <View style={{ marginHorizontal: 10, width: width - 200 }}>
+                                            <TextInput placeholder="Tin nhắn" style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
+                                                value={mess}
+                                                onChangeText={text => {
+                                                    setMess(text);
+                                                }}
+                                                selection={position}
+                                                ref={textInputRef}
+                                                onSelectionChange={event => setPosition(event.nativeEvent.selection)}
+                                            />
+                                        </View>
+                                        <View style={{ flexDirection: 'row', width: 85, justifyContent: 'space-between' }}>
+                                            {/* <Entypo name="dots-three-horizontal" size={35} color="black" /> */}
+                                            <FilePickerComponent onSelectFile={handleFileSelect} />
+                                            <ImagePickerComponent onSelectImage={handleImageSelect} />
+                                        </View>
                                     </View>
-                                    <View style={{ flexDirection: 'row', width: 85, justifyContent: 'space-between' }}>
-                                        <FilePickerComponent onSelectFile={handleFileSelect} />
-                                        <ImagePickerComponent onSelectImage={handleImageSelect} />
-                                    </View>
+                                    <TouchableOpacity
+                                        onPress={handleSend}
+                                        style={{ width: 45, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                        <MaterialIcons name="send" size={35} color="cyan" />
+                                    </TouchableOpacity>
                                 </View>
-                                <TouchableOpacity
-                                    onPress={handleSend}
-                                    style={{ width: 45, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' }}
-                                >
-                                    <MaterialIcons name="send" size={35} color="cyan" />
-                                </TouchableOpacity>
-                            </View>
-                        }
-                        messages={messages}
-                        onSend={handleSend}
-                        user={{
-                            _id: sender.id,
-                            name: sender.userName,
-                            avatar: sender.avt
-                        }}
-                        renderMessage={renderMessage}
-                    />
-                </View>
+                            }
+                            messages={messages}
+                            onSend={handleSend}
+                            user={{
+                                _id: sender.id,
+                                name: sender.userName,
+                                avatar: sender.avt
+                            }}
+                            onLongPress={(context, message) => {
+                                showModal();
+                                console.log(message);
+                                setMessTarget(message);
+                            }}
+                            renderMessage={renderMessage}
+                        />
+                    </View>
+                </PaperProvider>
             </KeyboardAvoidingView>
             {showEmoji &&
                 <EmojiPicker onEmojiSelected={emoji => {
@@ -417,18 +553,21 @@ const FileMessage = ({ currentMessage }) => {
 
 const styles = StyleSheet.create({
     fileMessageContainer: {
-        alignItems: 'center',
-        alignContent: 'flex-end',
-        justifyContent: 'flex-end',
+        // alignItems: 'center',
+        // alignContent: 'flex-end',
+        // justifyContent: 'flex-end',
         borderRadius: 5,
-        margin: 5,
-        width: '30%',
-        marginLeft: '75%',
+        paddingRight: 10,
+        paddingVertical: 10,
+        paddingLeft: 5,
+        // margin: 5,
+        marginBottom: 5,
+        //backgroundColor: '#1E90FF',
     },
     fileMessageText: {
         fontSize: 16,
         marginBottom: 10,
-    },
+    }
 });
 
 

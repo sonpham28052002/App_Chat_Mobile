@@ -12,7 +12,7 @@ import LoginController from "./LoginController";
 import Home from '../afterLogin/listChat/HomeChat'
 import InputPassword from "../../components/InputPassword";
 import { LinearGradient } from 'expo-linear-gradient'
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("0123456789Cc");
@@ -38,10 +38,10 @@ const Login = ({ navigation }) => {
           const account=userRes.data
           dispatch(save(userRes.data));
           found = true;
-          await AsyncStorage.setItem('isLoggedIn', 'true');
-          await AsyncStorage.setItem('account', JSON.stringify({account}));
-          console.log("Dữ liệu đã lưu vào AsyncStorage:", 
-          await AsyncStorage.getItem('account'));
+          // await AsyncStorage.setItem('isLoggedIn', 'true');
+          // await AsyncStorage.setItem('account', JSON.stringify({account}));
+          // console.log("Dữ liệu đã lưu vào AsyncStorage:", 
+          // await AsyncStorage.getItem('account'));
           navigation.navigate("TabHome", { id: userRes.data.id });
         }
       } else {
@@ -85,30 +85,30 @@ const Login = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
- useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
-       if (isLoggedIn === 'true') {
-  const accountString = await AsyncStorage.getItem('account');
-  if (accountString) {
-    const account = JSON.parse(accountString);
-    dispatch(save(account));
-    navigation.navigate("TabHome");
-  } else {
-    navigation.navigate("Login");
-  }
-} else {
-  navigation.navigate("Login");
-}
+//  useEffect(() => {
+//     const checkLoginStatus = async () => {
+//       try {
+//         const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+//        if (isLoggedIn === 'true') {
+//   const accountString = await AsyncStorage.getItem('account');
+//   if (accountString) {
+//     const account = JSON.parse(accountString);
+//     dispatch(save(account));
+//     navigation.navigate("TabHome");
+//   } else {
+//     navigation.navigate("Login");
+//   }
+// } else {
+//   navigation.navigate("Login");
+// }
 
-      } catch (error) {
-        console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
-      }
-    };
+//       } catch (error) {
+//         console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
+//       }
+//     };
 
-    checkLoginStatus();
-  }, []);
+//     checkLoginStatus();
+//   }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

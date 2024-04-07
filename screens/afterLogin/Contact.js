@@ -11,6 +11,7 @@ export default function ContactScreen({ navigation }) {
         type="ionicon"
         title="Tìm kiếm bạn bè"
         backgroundColor="#006AF5"
+        handlePress={() => navigation.navigate('CreateMessager')}
       />
       <ContactAction
         name="group"

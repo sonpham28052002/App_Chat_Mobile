@@ -5,6 +5,7 @@ import Chat from './Chat';
 import OptionChat from './OptionChat';
 import ScanQR from './ScanQR';
 import TabHome from '../tabHome/TabHome';
+import CreateMessager from '../listChat/CreateMessager'
 import { useDispatch } from 'react-redux';
 // import CreateMessager from './CreateMessager';
 
@@ -24,7 +25,11 @@ const HomeChat = ({ navigation, route }) => {
           headerShown: false
         }}
         />
-        
+          <Stack.Screen name="CreateMessager" component={CreateMessager} 
+        options={{
+          headerShown: false
+        }}
+        />
       <Stack.Screen name="ScanQR" component={ScanQR} options={{ headerShown: false }} />
       {/* <Stack.Screen name="EditProfile" component={EditProfile} options={{ headerShown: false }} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />

@@ -4,9 +4,11 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import { SimpleLineIcons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system'; 
 
 const ImagePickerComponent = ({ onSelectImage }) => {
     const [isVideo, setIsVideo] = useState(false);
+
     const selectImage = async (isAvatar) => {
         let result;
         if (Platform.OS === 'web' && isAvatar) {
@@ -38,25 +40,11 @@ const ImagePickerComponent = ({ onSelectImage }) => {
                     aspect: [16, 9],
                     quality: 0.5,
                 });
-        //       try {
-        //     const result = await DocumentPicker.getDocumentAsync({ type: "video/*" });
-        //     console.log("Result:", result);
-        //     if (result.assets[0].uri) {
-        //         uploadMedia(result.assets[0].uri, result.assets[0].uri);
-        //     } else {
-        //         console.log("Không có video được chọn");
-        //     }
-        // } catch (error) {
-        //     console.error("Lỗi khi chọn video từ tệp:", error);
-        // }
             }
         }
 
-        console.log("Result:", result);
-            if (result && result.assets && result.assets.length > 0 && result.assets[0].uri) {
-             uploadMedia(result.assets[0].uri, result.assets[0].mimeType,result.assets[0].type)
-             console.log("Type", result.assets[0].type);
-        
+        if (result && result.assets && result.assets.length > 0 && result.assets[0].uri) {
+            uploadMedia(result.assets[0].uri, result.assets[0].mimeType, result.assets[0].type);
         } else {
             console.log("Không có hình ảnh hoặc video được chọn");
         }
@@ -64,7 +52,7 @@ const ImagePickerComponent = ({ onSelectImage }) => {
 
     const handleSelectOption = () => {
         if (Platform.OS === 'web') {
-            selectImage(true); 
+            selectImage(true);
         } else {
             Alert.alert(
                 "Chọn media",
@@ -82,7 +70,7 @@ const ImagePickerComponent = ({ onSelectImage }) => {
                         text: "Chọn video từ thư viện",
                         onPress: () => {
                             selectImage(false);
-                            setIsVideo(true); 
+                            setIsVideo(true);
                         }
                     },
                     {
@@ -95,9 +83,16 @@ const ImagePickerComponent = ({ onSelectImage }) => {
         }
     };
 
-    const uploadMedia = async (uri,mimeType,type) => {
+    const uploadMedia = async (uri, mimeType, type) => {
         try {
             let filename = uri.split('/').pop();
+            let fileInfo = await FileSystem.getInfoAsync(uri);
+            let fileSize = fileInfo.size / (1024 * 1024);
+            if (fileSize > 10) {
+                Alert.alert('Thông báo', 'Kích thước tệp quá lớn. Vui lòng chọn một tệp có kích thước nhỏ hơn 10MB.');
+                return;
+            }
+
             const formData = new FormData();
             formData.append('file', {
                 uri: uri,
@@ -105,15 +100,14 @@ const ImagePickerComponent = ({ onSelectImage }) => {
                 name: filename,
             });
             formData.append('name', filename);
-            console.log("FormData", formData);
+
             const response = await axios.post('https://deploybackend-production.up.railway.app/azure/changeImage', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            console.log(response.data);
-            onSelectImage(response.data,type);
-            console.log(type);
+
+            onSelectImage(response.data, type);
         } catch (error) {
             console.error('Lỗi upload media', error);
         }
@@ -127,4 +121,3 @@ const ImagePickerComponent = ({ onSelectImage }) => {
 };
 
 export default ImagePickerComponent;
- 

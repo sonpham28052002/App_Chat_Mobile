@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform, Alert, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system'; 
 import axios from 'axios';
 
 const FilePickerComponent = ({ onSelectFile }) => {
@@ -46,7 +47,12 @@ const FilePickerComponent = ({ onSelectFile }) => {
             if(name==null){
             name= uri.split('/').pop();
             }
-          
+            let fileInfo = await FileSystem.getInfoAsync(uri);
+            let fileSize = fileInfo.size / (1024 * 1024);
+            if (fileSize > 10) {
+                Alert.alert('Thông báo', 'Kích thước tệp quá lớn. Vui lòng chọn một tệp có kích thước nhỏ hơn 10MB.');
+                return;
+            }
             const formData = new FormData();
             formData.append('file', {
                 uri: uri,

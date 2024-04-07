@@ -3,7 +3,6 @@ import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, KeyboardAvoiding
 import { GiftedChat, Message } from 'react-native-gifted-chat';
 import { TextInput, Modal, Portal, PaperProvider } from 'react-native-paper';
 import { Entypo, FontAwesome, MaterialIcons, FontAwesome6, Ionicons } from '@expo/vector-icons';
-// import EmojiSelector, { Categories } from "react-native-emoji-selector";
 import EmojiPicker from 'rn-emoji-keyboard'
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
@@ -15,11 +14,9 @@ import FilePickerComponent from '../../../components/FilePickerComponent';
 import 'react-native-get-random-values';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AudioRecorder from '../../../components/AudioRecorder';
-import { Foundation } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
 import VideoMessage from '../../../components/VideoMesssage';
 import AudioMessage from '../../../components/AudioMessage';
-import { Video } from 'expo-av'
+import Menu, { MenuItem } from 'react-native-material-menu';
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {
@@ -43,6 +40,17 @@ const Chat = ({ navigation, route }) => {
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
+
+    const menuRef = useRef(null);
+
+    const showMenu = () => {
+      menuRef.current.show();
+    };
+  
+    const hideMenu = () => {
+      menuRef.current.hide();
+    };
+
     useEffect(() => {
         navigation.setOptions({
             title: route.params.userName,
@@ -122,9 +130,11 @@ const Chat = ({ navigation, route }) => {
                 || message.messageType == 'RAR'
                 || message.messageType == 'ZIP')
                 newMess.file = message.url
-            else if (message.messageType == 'AUDIO' || message.messageType == 'VIDEO')
+            else if (message.messageType == 'VIDEO')
                     newMess.video = message.url
-            return newMess;
+            else if (message.messageType == 'AUDIO')
+                newMess.audio = message.url
+                    return newMess;
         });
         setMessLoad(messages);
     }
@@ -216,8 +226,9 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriImage;
             } else if (type === 'File') {
-                const titleFile = uriFile.substring(uriFile.lastIndexOf("/") + 1);
-                chatMessage.size = 10;
+                const uri = uriFile.substring(uriFile.lastIndexOf("/") + 1);
+                const titleFile = uri.substring(uri.indexOf("_") + 1);
+                chatMessage.size = size;
                 chatMessage.messageType = getFileExtension(uriFile).toUpperCase();
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriFile;
@@ -231,7 +242,7 @@ const Chat = ({ navigation, route }) => {
             } else if (type === 'Audio') {
                 const titleFile = audio.substring(audio.lastIndexOf("/") + 1);
                 chatMessage.size = 10;
-                chatMessage.messageType = getFileExtension(audio)=='m4a'? 'AUDIO':'VIDEO';
+                chatMessage.messageType = "AUDIO";
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = audio;
             }
@@ -283,16 +294,17 @@ const Chat = ({ navigation, route }) => {
         } else {
             setUriVideo(uri);
         }
+        hideModal2();
     };
-    const handleFileSelect = (uri,size) => {
+    const handleFileSelect = (uri, size) => {
         setUriFile(uri);
-        const fileSize = parseInt((size / 1024).toFixed(2)); 
-        setSize(fileSize)
-        console.log(fileSize);
+        setSize((parseInt(size) / 1024).toFixed(2))
+        hideModal2();
+        // console.log(fileSize);
     };
    const handleAudioSelect = (uri) => {
         setAudio(uri);
-        console.log("Audio",uri);
+        hideModal2();
     };
     const handleSendImage = () => {
         const id = uuidv4();
@@ -369,7 +381,7 @@ const Chat = ({ navigation, route }) => {
         }
     };
     const getFileExtension = (uri) => {
-        return uri.substring(uri.lastIndexOf(".") + 1, uri.indexOf("%"));
+        return uri.substring(uri.lastIndexOf(".") + 1);
     };
 
     const FileMessage = ({ currentMessage }) => {
@@ -405,7 +417,8 @@ const Chat = ({ navigation, route }) => {
                 iconName = 'file';
                 colorIcon = '#111111';
         }
-        console.log("===============================", currentMessage);
+        const uri = currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)
+        const titleFile = uri.substring(uri.indexOf("_") + 1);
         return (
             <View style={[styles.fileMessageContainer, {
                 marginLeft: currentMessage.user._id !== sender.id ? 53 : width - 252,
@@ -415,21 +428,25 @@ const Chat = ({ navigation, route }) => {
                 borderBottomRightRadius: currentMessage.user._id !== sender.id ? 20 : 0,
                 width: width - 150
             }]}>
-                <View style={{ flexDirection: 'row', width: width - 220, justifyContent: 'space-between', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={() => Linking.openURL(currentMessage.file)}
-                        onLongPress={() => showModal()}
-                    >
+                <TouchableOpacity style={{ flexDirection: 'row', width: width - 220, justifyContent: 'space-between', alignItems: 'center' }}
+                    onLongPress={() => {
+                        showModal()
+                        setMessTarget(currentMessage)
+                    }}
+                >
+                    <TouchableOpacity onPress={() => Linking.openURL(currentMessage.file)}>
                         <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
                     </TouchableOpacity>
                     <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1).split('%')[0]}</Text>
-                </View>
+                    >{titleFile}</Text>
+                </TouchableOpacity>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
-                      <Text style={{ fontSize: 11, marginLeft: 10,
+                {/* <Text style={{
+                    fontSize: 11, marginLeft: 10,
                     color: currentMessage.user._id !== sender.id ? 'grey' : 'white',
                     textAlign: currentMessage.user._id !== sender.id ? 'left' : 'right'
-                }}>{size}KB</Text>
+                }}>{parseInt((currentMessage.file.substring(currentMessage.file.lastIndexOf("_")+1) / 1024).toFixed(2))}KB</Text> */}
                 <Text style={{
                     color: 'grey', fontSize: 11, marginLeft: 10,
                     color: currentMessage.user._id !== sender.id ? 'grey' : 'white',
@@ -449,12 +466,16 @@ const Chat = ({ navigation, route }) => {
     const showModal = () => setVisible(true);
     const hideModal = () => setVisible(false);
 
+    const [visible2, setVisible2] = React.useState(false);
+    const showModal2 = () => setVisible2(true);
+    const hideModal2 = () => setVisible2(false);
+
     const [messTarget, setMessTarget] = useState();
 
     const renderMessage = (messageProps) => {
         const { currentMessage } = messageProps;
         if (currentMessage.file) {
-            return <FileMessage currentMessage={currentMessage} />;
+            return <FileMessage {...messageProps} currentMessage={currentMessage} />;
         } else if (currentMessage.text) {
             return (
                 <Message {...messageProps} />
@@ -464,9 +485,19 @@ const Chat = ({ navigation, route }) => {
                 <Message {...messageProps} />
             );
         } else if (currentMessage.video) {
-            return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == sender.id?true:false}/>;
+            return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == sender.id?true:false} 
+                onLongPress={(message) => {
+                    showModal();
+                    setMessTarget(message);
+                }}
+            />;
         }else if (currentMessage.audio) {
-            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} />;
+            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} sender={currentMessage.user._id == sender.id?true:false} 
+                onLongPress={(message) => {
+                    showModal();
+                    setMessTarget(message);
+                }}
+            />;
         }
         return null;
     };
@@ -558,6 +589,18 @@ const Chat = ({ navigation, route }) => {
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Xoá tin nhắn</Text>
                             </TouchableOpacity>
                         </Modal>
+                        <Modal visible={visible2} onDismiss={hideModal2}
+                            contentContainerStyle={{ 
+                                backgroundColor: 'white', 
+                                padding: 20,
+                                height: 120,
+                                width: 270,
+                                marginLeft: width - 270,
+                                marginTop: height - 375
+                                }}>
+                            <FilePickerComponent onSelectFile={handleFileSelect} />
+                            <ImagePickerComponent onSelectImage={handleImageSelect} />
+                        </Modal>
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChat
@@ -571,9 +614,8 @@ const Chat = ({ navigation, route }) => {
                                             }}
                                         >
                                             <Entypo name="emoji-happy" size={35} color={colorEmoji} />
-
                                         </TouchableOpacity>
-                                        <View style={{ marginHorizontal: 10, width: width - 200 }}>
+                                        <View style={{ marginHorizontal: 10, width: width - 180 }}>
                                             <TextInput placeholder="Tin nhắn" style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
                                                 value={mess}
                                                 onChangeText={text => {
@@ -584,12 +626,12 @@ const Chat = ({ navigation, route }) => {
                                                 onSelectionChange={event => setPosition(event.nativeEvent.selection)}
                                             />
                                         </View>
-                                        <View style={{ flexDirection: 'row', width: 85, justifyContent: 'space-between' }}>
-                                            {/* /* <Entypo name="dots-three-horizontal" size={35} color="black" /> */}
-                                               <AudioRecorder onSelectAudio={handleAudioSelect}/>
-                                            <FilePickerComponent onSelectFile={handleFileSelect} />
-                                            <ImagePickerComponent onSelectImage={handleImageSelect} />
-                                        </View>
+                                        <TouchableOpacity style={{ flexDirection: 'row', width: 75, justifyContent: 'space-between' }}
+                                            onPress={showModal2}
+                                        >
+                                            <Entypo name="dots-three-horizontal" size={35} color="black" />
+                                            <AudioRecorder onSelectAudio={handleAudioSelect} />
+                                        </TouchableOpacity>
                                     </View>
                                     <TouchableOpacity
                                         onPress={handleSend}
@@ -624,7 +666,8 @@ const Chat = ({ navigation, route }) => {
                         setMess(emoji.emoji)
                 }}
                     open={showEmoji} onClose={() => setShowEmoji(false)}
-                />}
+                />
+            }
         </View>
     );
 }

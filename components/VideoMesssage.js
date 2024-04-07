@@ -3,7 +3,7 @@ import { Foundation } from '@expo/vector-icons';
 import { View, Text, TouchableOpacity, StyleSheet ,ActivityIndicator, Dimensions} from 'react-native';
 import { WebView } from 'react-native-webview';
 
-const VideoMessage = React.memo(({ videoUri, sender }) => {
+const VideoMessage = React.memo(({ videoUri, sender, onLongPress }) => {
   const [playVideo, setPlayVideo] = useState(false);
  const [uri,setUri]=useState("")
   const [key,setKey]=useState(videoUri._id)
@@ -15,15 +15,17 @@ const VideoMessage = React.memo(({ videoUri, sender }) => {
   const { width } = Dimensions.get('window');
 
   return (
-    <View style={{ width: width - 170, justifyContent: 'center', 
+    <TouchableOpacity style={{ width: width - 170, justifyContent: 'center', 
       alignItems: 'center', padding: 10,
       backgroundColor: !sender? 'white':'#1E90FF',
       marginLeft: !sender? 53 : width - 232, 
       borderTopLeftRadius: 20, borderTopRightRadius: 20,
       borderBottomRightRadius: !sender? 20:0,
       borderBottomLeftRadius: !sender? 0:20,
-      mariginBottom: 10
-      }}>
+      marginBottom: 10
+      }}
+      onLongPress={() => onLongPress(videoUri)}
+      >
       <View style={{ width: 200, height: 150 }}>
         <WebView
         key={key}
@@ -51,7 +53,7 @@ const VideoMessage = React.memo(({ videoUri, sender }) => {
           })}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 });
 

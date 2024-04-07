@@ -1,21 +1,21 @@
 import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView, Platform } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 import { TextInput } from 'react-native-paper';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { save } from '../../../Redux/slice';
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
+import axios from 'axios';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch } from 'react-redux';
-import { save } from "../../../Redux/slice";
-const ListChat = ({ navigation, route }) => {
+const ListChat = ({ navigation }) => {
   // const name = useSelector((state) => state.account.userName);
   // const avt = useSelector((state) => state.account.avt);
   const { width } = Dimensions.get('window');
-  // const id = useSelector((state) => state.account.id);
-  const [account, setAccount] = useState(null);
-  const name = useSelector((state) => state.account.name);
-    const avt = useSelector((state) => state.account.avt);
-      const id = useSelector((state) => state.account.id);
+  var stompClient = useRef(null);
   const dispatch = useDispatch();
+  const id = useSelector((state) => state.account.id);
+  // const [account, setAccount] = useState(null);
   // useEffect(() => {
   //   const fetchAccount = async () => {
   //     try {
@@ -36,9 +36,35 @@ const ListChat = ({ navigation, route }) => {
   // const avt = account?.avt || "Unknown";
   // const id = account?.id || "Unknown";
 
+  useEffect(() => {
+    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+        stompClient.current = Stomp.over(socket);
+        stompClient.current.connect({}, onConnected, onError);
+  },[])
+
+  const onConnected = () => {
+    stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+    // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
+    // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
+  }
+
+  const onReceiveFromSocket = async (payload) => {
+      const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
+      try {
+          if (result.data) {
+              dispatch(save(result.data));
+          }
+      } catch (error) {
+          console.log(error);
+      }
+  }
+
+  const onError = (error) => {
+    console.log('Could not connect to WebSocket server. Please refresh and try again!');
+  }
+
   let obj = useSelector((state) => state.account);
   let data = useSelector((state) => state.account.conversation);
-  console.log('================================\n',data);
 
   const calcTime = (time) => {
     const date = new Date(time)
@@ -111,7 +137,7 @@ const ListChat = ({ navigation, route }) => {
                         || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
                         || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP'?
                         'Bạn: ' + item.lastMessage.titleFile : 
-                        item.lastMessage.messageType == 'AUDIO' || item.lastMessage.messageType == 'VIDEO'?
+                        item.lastMessage.messageType == 'AUDIO'? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO'?
                         'Bạn: [Video]' : 'Bạn: ' + item.lastMessage.content}</Text>
                   : <Text style={{ fontSize: 14, color: item.lastMessage.seen? 'grey':'black',
                     fontWeight: item.lastMessage.seen? 'normal':'bold'}} numberOfLines={1}>
@@ -122,7 +148,7 @@ const ListChat = ({ navigation, route }) => {
                         || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
                         || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP'?
                         item.lastMessage.titleFile :
-                        item.lastMessage.messageType == 'AUDIO' || item.lastMessage.messageType == 'VIDEO'?
+                        item.lastMessage.messageType == 'AUDIO'? '[Audio]' : item.lastMessage.messageType == 'VIDEO'?
                         '[Video]' : item.lastMessage.content}</Text>
                   }
                 </View>

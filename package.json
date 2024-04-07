@@ -60,6 +60,7 @@
     "react-native-gifted-chat": "^2.4.0",
     "react-native-ios-qr-code-scanner": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
+    "react-native-material-menu": "^2.0.0",
     "react-native-modal-datetime-picker": "^17.1.0",
     "react-native-modern-datepicker": "^1.0.0-beta.91",
     "react-native-otp-entry": "^1.6.0",

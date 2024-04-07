@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import Contact from '../Contact'
 import ContactAction from '../ContactAction'
 import User from '../user/User'
+import CreateMessager from '../listChat/CreateMessager'
 const Stack = createStackNavigator()
 const ContactHome = () => {
   return (
@@ -13,6 +14,7 @@ const ContactHome = () => {
         <Stack.Screen name="Contact" component={Contact} />
           <Stack.Screen name="ContactAction" component={ContactAction} />
         <Stack.Screen name="User" component={User} />
+          <Stack.Screen name="CreateMessager" component={CreateMessager} />
     </Stack.Navigator>
   )
 }

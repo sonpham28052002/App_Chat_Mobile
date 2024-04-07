@@ -37,10 +37,15 @@ const messSlice = createSlice({
       let messages2 = [...state.messages];
       messages2[action.payload.index] = action.payload.mess;
       state.messages = messages2;
+    },
+    deleteMess: (state, action) => {
+      let messages3 = [...state.messages];
+      messages3 = messages3.filter(mess => mess._id !== action.payload);
+      state.messages = messages3;
     }
   }
 });
 export const { save, updateAvatar, updateLastMessage } = accountSlice.actions;
-export const { saveReceiverId, saveMess, addMess, retreiveMess } = messSlice.actions;
+export const { saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } = messSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;

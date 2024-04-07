@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet ,ActivityIndicator} from 'react-native';
+import { Foundation } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet ,ActivityIndicator, Dimensions} from 'react-native';
 import { WebView } from 'react-native-webview';
 
-const VideoMessage = React.memo(({ videoUri }) => {
+const VideoMessage = React.memo(({ videoUri, sender }) => {
   const [playVideo, setPlayVideo] = useState(false);
  const [uri,setUri]=useState("")
   const [key,setKey]=useState(videoUri._id)
@@ -11,8 +12,18 @@ const VideoMessage = React.memo(({ videoUri }) => {
     setUri(videoUri.video)
   }
 
+  const { width } = Dimensions.get('window');
+
   return (
-    <View style={{marginLeft:'50%'}}>
+    <View style={{ width: width - 170, justifyContent: 'center', 
+      alignItems: 'center', padding: 10,
+      backgroundColor: !sender? 'white':'#1E90FF',
+      marginLeft: !sender? 53 : width - 232, 
+      borderTopLeftRadius: 20, borderTopRightRadius: 20,
+      borderBottomRightRadius: !sender? 20:0,
+      borderBottomLeftRadius: !sender? 0:20,
+      mariginBottom: 10
+      }}>
       <View style={{ width: 200, height: 150 }}>
         <WebView
         key={key}
@@ -29,7 +40,10 @@ const VideoMessage = React.memo(({ videoUri }) => {
             <Text>Play video</Text>
           </TouchableOpacity>
         )}
-        <Text style={{ color: '#111111', fontSize: 10 }}>
+        <Text style={{ fontSize: 11, marginLeft: 10,
+        color: !sender? 'black' : 'white',
+        textAlign: !sender? 'left' : 'right'
+        }}>
           {new Date(videoUri.createdAt).toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: 'numeric',

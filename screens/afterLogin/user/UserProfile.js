@@ -56,6 +56,7 @@ const UserProfile = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
+            { Platform.OS == "android" && <View style={{height: 30}}/>}
             <ScrollView style={styles.scrollView}>
                 <View style={styles.searchContainer}>
                     <EvilIcons name="search" size={40} color="white" />

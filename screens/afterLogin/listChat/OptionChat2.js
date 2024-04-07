@@ -28,6 +28,7 @@ import { icon } from "@fortawesome/fontawesome-svg-core";
 import { Button } from "react-native-web";
 import { useSelector, useDispatch } from "react-redux";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { ro } from "rn-emoji-keyboard";
 const Tab = createMaterialTopTabNavigator();
 function Anh({ route }) {
   const account = useSelector((state) => state.account);
@@ -35,7 +36,7 @@ function Anh({ route }) {
   async function getImageFileLink() {
     try {
       const res = await axios.get(
-        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.account.id}&idReceiver=${route.params.id}`
+        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.account.id}`
 
       );
       if (res.data) {
@@ -137,7 +138,7 @@ function File({route}) {
   async function getFileFileLink() {
     try {
       const res = await axios.get(
-        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.account.id}&idReceiver=${route.params.id}`
+        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.account.id}`
       );
       if (res.data) {
         const sortedData = res.data.sort(
@@ -223,15 +224,15 @@ function File({route}) {
     return fileName;
   };
   // get user by id
-  async function getNameUserById(id) {
+   function getNameUserById(id) {
     try {
-      const res = await axios.get(
-        `https://deploybackend-production.up.railway.app/users/getInfoUserById?id=${id}`
-      );
-      if (res) {
-        console.log("res", res.data);
+      if(id===route.params.account.id){
+        return route.params.account.name.toString();
       }
-      // return res.data;
+      else{
+       return account.userName
+      }
+
     } catch (error) {
       console.log("get user by id error", error);
     }
@@ -242,7 +243,7 @@ function File({route}) {
       <TouchableOpacity style={styles.fileItem}>
         <Text style={styles.fileName}>{truncateFileName(item.titleFile)}{item.messageType}</Text>
         <Text style={styles.fileDetails}>Size: {item.size} KB</Text>
-        <Text style={styles.fileDetails}></Text> 
+        <Text style={styles.fileDetails}>{getNameUserById(item.sender.id)}</Text> 
         <TouchableOpacity style={styles.fileOptionsButton}>
           <Text style={styles.fileOptionsButtonText}>...</Text>
 
@@ -268,11 +269,11 @@ const OptionChat3 = ({ navigation, route }) => {
     <Tab.Navigator>
       {/* <Tab.Screen name="Anh" component={() => <Anh route={route} />} /> */}
       <Tab.Screen name="Ảnh"
-      initialParams={{ id: route.params.id }}
+      initialParams={{ account: route.params.account }}
       component={Anh} />
 
       <Tab.Screen name="File" component={File} 
-         initialParams={{ id: route.params.id }}
+         initialParams={{ account: route.params.account}}
       />
     </Tab.Navigator>
   );

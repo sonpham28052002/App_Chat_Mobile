@@ -24,14 +24,17 @@ import {
   FontAwesome5,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+
 import axios from "axios";
 import { icon } from "@fortawesome/fontawesome-svg-core";
 import { Button } from "react-native-web";
 import { useSelector, useDispatch } from "react-redux";
+import { ro } from "rn-emoji-keyboard";
 
 const OptionChat = ({ navigation, route }) => {
   const [showModal, setShowModal] = useState(false);
   const account = useSelector((state) => state.account);
+  console.log("aaa", route.params);
   useEffect(() => {
     getImageFileLink();
   }, []);
@@ -42,7 +45,7 @@ const OptionChat = ({ navigation, route }) => {
   async function getImageFileLink() {
     try {
       const res = await axios.get(
-        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.account.id}&idReceiver=${route.params.id}`
+        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.id}`
       );
 
       if (res.data) {
@@ -223,7 +226,8 @@ const OptionChat = ({ navigation, route }) => {
         >
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate("OptionChat2", { id: route.params.id });
+              // truyền dữ liệu qua màn hình OptionChat2 là account của người đang chat với user hiện tại
+              navigation.navigate("OptionChat2", {account: route.params});
             }}
             activeOpacity={0.7}
             style={[styles.item, { height: 140 }]}

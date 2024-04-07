@@ -71,7 +71,7 @@ export default function Auth() {
           // headerShown:false
         }}
       />
-      <Stack.Screen name="OptionChat"  component={OptionChat2} />
+      <Stack.Screen name="OptionChat"  component={OptionChat} />
       <Stack.Screen
         name="OptionChat2"
         component={OptionChat2}

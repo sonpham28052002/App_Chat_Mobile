@@ -20,6 +20,7 @@ import ForgotPasswordStack from '../forgotPassword/ForgotPasswordStack.js';
 import ListChat from '../afterLogin/listChat/ListChat.js';
 import Chat from '../afterLogin/listChat/Chat.js';
 import OptionChat from '../afterLogin/listChat/OptionChat.js';
+import OptionChat2 from '../afterLogin/listChat/OptionChat2.js';
 const Stack = createStackNavigator()
 
 export default function Auth() {
@@ -70,7 +71,19 @@ export default function Auth() {
           // headerShown:false
         }}
       />
-      <Stack.Screen name="OptionChat" component={OptionChat} />
+      <Stack.Screen name="OptionChat"  component={OptionChat} />
+      <Stack.Screen
+        name="OptionChat2"
+        component={OptionChat2}
+        options={{
+          headerShown: true,
+          title: "Ảnh,file,link đã gửi",
+          headerStyle: {
+            backgroundColor: "#00aaff",
+          },
+          headerTintColor: "white",
+        }}
+      />
           {/* <Stack.Screen name="CreatePassword" component={CreatePassword} /> */}
           {/* <Stack.Screen name="User" component={User} /> */}
         </Stack.Navigator>

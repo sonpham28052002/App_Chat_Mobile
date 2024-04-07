@@ -51,7 +51,7 @@ const FilePickerComponent = ({ onSelectFile }) => {
             formData.append('file', {
                 uri: uri,
                 type: 'application/octet-stream',
-                name: name,
+                name: name+' '+new Date(),
             });
             formData.append('name', name);
             const response = await axios.post(

@@ -8,14 +8,18 @@ import EmojiPicker from 'rn-emoji-keyboard'
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { save, saveReceiverId, saveMess, addMess, retreiveMess } from '../../../Redux/slice';
+import { save, saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
 import 'react-native-get-random-values';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import AudioRecorder from '../../../components/AudioRecorder';
+import { Foundation } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import VideoMessage from '../../../components/VideoMesssage';
+import AudioMessage from '../../../components/AudioMessage';
+import { Video } from 'expo-av'
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {
@@ -34,7 +38,8 @@ const Chat = ({ navigation, route }) => {
     const [colorEmoji, setColorEmoji] = useState('black');
     const { width, height } = Dimensions.get('window');
     const [showEmoji, setShowEmoji] = useState(false);
-
+    const [audio, setAudio] = useState(null);
+    const [size,setSize] = useState(0);
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
@@ -106,13 +111,7 @@ const Chat = ({ navigation, route }) => {
             else if (message.messageType == 'PNG'
                 || message.messageType == 'JPG'
                 || message.messageType == 'JPEG')
-                {
                     newMess.image = message.url
-                    newMess.extraData = {
-                    size: message.size,
-                    titleFile: message.titleFile
-                }
-                }
             else if (message.messageType == 'PDF'
                 || message.messageType == 'DOC'
                 || message.messageType == 'DOCX'
@@ -124,13 +123,7 @@ const Chat = ({ navigation, route }) => {
                 || message.messageType == 'ZIP')
                 newMess.file = message.url
             else if (message.messageType == 'AUDIO' || message.messageType == 'VIDEO')
-                {
                     newMess.video = message.url
-                    newMess.extraData = {
-                        size: message.size,
-                        titleFile: message.titleFile
-                    }
-                }
             return newMess;
         });
         setMessLoad(messages);
@@ -143,6 +136,13 @@ const Chat = ({ navigation, route }) => {
     function onConnected() {
         stompClient.current.subscribe('/user/' + sender.id + '/singleChat', onMessageReceived)
         stompClient.current.subscribe('/user/' + sender.id + '/retrieveMessage', onRetrieveMessage)
+        stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
+    }
+
+    function onDeleteResult(payload) {
+        let message = JSON.parse(payload.body)
+        dispatch(deleteMess(message.id));
+        hideModal();
     }
 
     function onRetrieveMessage(payload) {
@@ -150,8 +150,6 @@ const Chat = ({ navigation, route }) => {
         if (message.messageType === 'RETRIEVE') {
             console.log(messages);
             const index = [...messages].findIndex((item) => item._id === message.id)
-            console.log("Đã nhận tin nhắn kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
-            console.log('================================', index);
             if(index === -1) getMessage();
             if (index !== -1) {
                 let date = new Date(message.senderDate);
@@ -189,7 +187,7 @@ const Chat = ({ navigation, route }) => {
         else if (message.url)
             newMessage.image = message.url;
         else if (message.file)
-            newMessage.file = message.file;
+                newMessage.file = message.file;
         else if (message.video)
             newMessage.video = message.video;
         // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
@@ -230,6 +228,12 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriVideo;
+            } else if (type === 'Audio') {
+                const titleFile = audio.substring(audio.lastIndexOf("/") + 1);
+                chatMessage.size = 10;
+                chatMessage.messageType = getFileExtension(audio)=='m4a'? 'AUDIO':'VIDEO';
+                chatMessage.titleFile = titleFile;
+                chatMessage.url = audio;
             }
             stompClient.current.send("/app/private-single-message", {}, JSON.stringify(chatMessage));
         }
@@ -264,6 +268,10 @@ const Chat = ({ navigation, route }) => {
             } else if (uriVideo) {
                 handleSendVideo();
                 setUriVideo(null);
+            }else if (audio) {
+                console.log(audio);
+                hadleSendAudio();
+                setAudio(null);
             }
         }
     };
@@ -276,10 +284,16 @@ const Chat = ({ navigation, route }) => {
             setUriVideo(uri);
         }
     };
-    const handleFileSelect = (uri) => {
+    const handleFileSelect = (uri,size) => {
         setUriFile(uri);
+        const fileSize = parseInt((size / 1024).toFixed(2)); 
+        setSize(fileSize)
+        console.log(fileSize);
     };
-
+   const handleAudioSelect = (uri) => {
+        setAudio(uri);
+        console.log("Audio",uri);
+    };
     const handleSendImage = () => {
         const id = uuidv4();
         const newMessage = {
@@ -290,16 +304,28 @@ const Chat = ({ navigation, route }) => {
                 _id: sender.id,
                 name: sender.userName,
                 avatar: sender.avt,
-            },
-            extraData:{
-                size: 10,
-                titleFile: uriImage.substring(uriImage.lastIndexOf("/") + 1)
             }
         };
         const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
         sendMessage(id, "Image");
         // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
         dispatch(addMess(newMessage));
+    };
+ const hadleSendAudio = () => {
+        const id = uuidv4();
+        const newMessage = {
+            _id: id,
+            audio: audio,
+            createdAt: new Date(),
+            user: {
+                _id: sender.id,
+                name: sender.userName,
+                avatar: sender.avt,
+            },
+        };
+        const fileType = audio.substring(audio.lastIndexOf(".") + 1);
+        sendMessage(id, "Audio");
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
     };
 
     const handleSendVideo = () => {
@@ -313,10 +339,6 @@ const Chat = ({ navigation, route }) => {
                     _id: sender.id,
                     name: sender.userName,
                     avatar: sender.avt,
-                },
-                extraData:{
-                    size: 10,
-                    titleFile: uriVideo.substring(uriVideo.lastIndexOf("/") + 1)
                 }
             };
             const fileType = uriVideo.substring(uriVideo.lastIndexOf(".") + 1);
@@ -337,10 +359,6 @@ const Chat = ({ navigation, route }) => {
                     _id: sender.id,
                     name: sender.userName,
                     avatar: sender.avt,
-                },
-                extraData:{
-                    size: 10,
-                    titleFile: uriFile.substring(uriFile.lastIndexOf("/") + 1)
                 }
             };
             sendMessage(id, 'File');
@@ -350,71 +368,6 @@ const Chat = ({ navigation, route }) => {
             Alert.alert("Chọn file cần gửi.");
         }
     };
-
-    // const VideoMessage = ({ videoUri }) => {
-    //     console.log("Video URI 2: ", videoUri);
-    //     return (
-    //         <View style={{ flex: 1 }}>
-    //             <Video
-    //                 source={{ uri: videoUri }}
-    //                 style={{ flex: 1 }}
-    //                 useNativeControls
-    //                 resizeMode="contain"
-    //             />
-    //         </View>
-    //     );
-    // };
-    // const VideoMessage = ({ videoUri, messageId }) => {
-    //   const [isPlaying, setIsPlaying] = useState(false);
-    //   const [key, setKey] = useState(0);
-    //   const handlePress = () => {
-    //     Alert.alert(
-    //       "Video",
-    //       "Bạn có muốn xem video này không?",
-    //       [
-    //         {
-    //           text: "Cancel",
-    //           style: "cancel"
-    //         },
-    //         { text: "OK", onPress: () => setIsPlaying(true) }
-    //       ],
-    //       { cancelable: false }
-    //     );
-    //   };
-
-    //   const handleStop = () => {
-    //     console.log('dừng video');
-    //     setIsPlaying(false);
-    //     setKey(prevKey => prevKey + 1);
-    //   };
-
-    //   useEffect(() => {
-    //     if (isPlaying) {
-    //     }
-    //   }, [isPlaying]);
-
-    //   return (
-    //    <TouchableOpacity onPress={handlePress} style={{ flex: 1 }}>
-    //     <View style={{marginLeft:'85%',marginBottom:10}}>
-    //       <TouchableOpacity onPress={handlePress}>
-    //         <Foundation name="play-video" size={70} color="#1E90FF" />
-    //         <Text style={{ color: '#111111', fontSize: 10 }}>{new Date(videoUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
-    //       </TouchableOpacity>
-    //     </View>
-    //     {isPlaying && (
-    //       <View style={{ flex: 1 }}>
-    //         <WebView
-    //         key={key}
-    //          onEnd={handleStop}
-    //           style={{ flex: 1 }}
-    //           source={{ uri: videoUri.video }}
-    //         />
-    //       </View>
-    //     )}
-    //   </TouchableOpacity>
-    // );
-    // };
-    
     const getFileExtension = (uri) => {
         return uri.substring(uri.lastIndexOf(".") + 1);
     };
@@ -452,7 +405,7 @@ const Chat = ({ navigation, route }) => {
                 iconName = 'file';
                 colorIcon = '#111111';
         }
-
+        console.log("===============================", currentMessage);
         return (
             <View style={[styles.fileMessageContainer, {
                 marginLeft: currentMessage.user._id !== sender.id ? 53 : width - 252,
@@ -468,11 +421,15 @@ const Chat = ({ navigation, route }) => {
                     >
                         <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
                     </TouchableOpacity>
-                    <Text numberOfLines={2}
+                    {/* <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text>
+                    >{currentMessage.extraData.titleFile}</Text> */}
                 </View>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
+                      <Text style={{ fontSize: 11, marginLeft: 10,
+                    color: currentMessage.user._id !== sender.id ? 'grey' : 'white',
+                    textAlign: currentMessage.user._id !== sender.id ? 'left' : 'right'
+                }}>{size}KB</Text>
                 <Text style={{
                     color: 'grey', fontSize: 11, marginLeft: 10,
                     color: currentMessage.user._id !== sender.id ? 'grey' : 'white',
@@ -508,9 +465,50 @@ const Chat = ({ navigation, route }) => {
             );
         } else if (currentMessage.video) {
             return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == sender.id?true:false}/>;
+        }else if (currentMessage.audio) {
+            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} />;
         }
         return null;
     };
+
+    function convertMessageGiftedChatToMessage(giftedMessage) {
+        let chatMessage = {
+            id: giftedMessage._id,
+            senderDate: new Date(giftedMessage.createdAt)
+        };
+        if(giftedMessage.user._id === sender.id){
+            chatMessage.sender = { id: sender.id },
+            chatMessage.receiver = { id: route.params.id }
+        } else {
+            chatMessage.receiver = { id: sender.id },
+            chatMessage.sender = { id: route.params.id }
+        }
+        if (giftedMessage.text) {
+            chatMessage.content = giftedMessage.text
+            chatMessage.messageType = "Text"
+        }
+        // else if (messTarget.image) {
+        //     const titleFile = messTarget.image.substring(messTarget.image.lastIndexOf("/") + 1);
+        //     chatMessage.size = 10;
+        //     chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
+        //     chatMessage.titleFile = titleFile;
+        //     chatMessage.url = uriImage;
+        // } else if (type === 'File') {
+        //     const titleFile = uriFile.substring(uriFile.lastIndexOf("/") + 1);
+        //     chatMessage.size = 10;
+        //     chatMessage.messageType = getFileExtension(uriFile).toUpperCase();
+        //     chatMessage.titleFile = titleFile;
+        //     chatMessage.url = uriFile;
+        // }
+        // else if (type === 'Video') {
+        //     const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
+        //     chatMessage.size = 10;
+        //     chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
+        //     chatMessage.titleFile = titleFile;
+        //     chatMessage.url = uriVideo;
+        // }
+        return chatMessage;
+    }
 
     return (
         <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
@@ -529,42 +527,8 @@ const Chat = ({ navigation, route }) => {
                             <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
                                 onPress={()=>{
                                     if (stompClient.current) {
-                                        let chatMessage = {
-                                            id: messTarget._id,
-                                            senderDate: new Date(messTarget.createdAt)
-                                        };
-                                        if(messTarget.user._id === sender.id){
-                                            chatMessage.sender = { id: sender.id },
-                                            chatMessage.receiver = { id: route.params.id }
-                                        } else {
-                                            chatMessage.receiver = { id: sender.id },
-                                            chatMessage.sender = { id: route.params.id }
-                                        }
-                                        if (messTarget.text) {
-                                            chatMessage.content = messTarget.text
-                                            chatMessage.messageType = "Text"
-                                        }
-                                        // else if (messTarget.image) {
-                                        //     const titleFile = messTarget.image.substring(messTarget.image.lastIndexOf("/") + 1);
-                                        //     chatMessage.size = 10;
-                                        //     chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
-                                        //     chatMessage.titleFile = titleFile;
-                                        //     chatMessage.url = uriImage;
-                                        // } else if (type === 'File') {
-                                        //     const titleFile = uriFile.substring(uriFile.lastIndexOf("/") + 1);
-                                        //     chatMessage.size = 10;
-                                        //     chatMessage.messageType = getFileExtension(uriFile).toUpperCase();
-                                        //     chatMessage.titleFile = titleFile;
-                                        //     chatMessage.url = uriFile;
-                                        // }
-                                        // else if (type === 'Video') {
-                                        //     const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
-                                        //     chatMessage.size = 10;
-                                        //     chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
-                                        //     chatMessage.titleFile = titleFile;
-                                        //     chatMessage.url = uriVideo;
-                                        // }
-                                        stompClient.current.send("/app/retrieve-message", {}, JSON.stringify(chatMessage));
+                                        stompClient.current.send("/app/retrieve-message", {}, 
+                                            JSON.stringify(convertMessageGiftedChatToMessage(messTarget)));
                                     }
                                 }}
                             >
@@ -578,7 +542,18 @@ const Chat = ({ navigation, route }) => {
                                 <Ionicons name="arrow-undo" size={40} color="black" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
+                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
+                                onPress={()=>{
+                                    if (stompClient.current) {
+                                        let deleteMessage = convertMessageGiftedChatToMessage(messTarget)
+                                        delete deleteMessage.senderDate
+                                        let idGroup = ""
+                                        let ownerId = sender.id
+                                        stompClient.current.send("/app/delete-message", {},
+                                            JSON.stringify({...deleteMessage, idGroup, ownerId}));
+                                    }
+                                }}
+                            >
                                 <MaterialIcons name="delete" size={40} color="red" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Xoá tin nhắn</Text>
                             </TouchableOpacity>
@@ -611,6 +586,7 @@ const Chat = ({ navigation, route }) => {
                                         </View>
                                         <View style={{ flexDirection: 'row', width: 85, justifyContent: 'space-between' }}>
                                             {/* <Entypo name="dots-three-horizontal" size={35} color="black" /> */}
+                                               <AudioRecorder onSelectAudio={handleAudioSelect}/>
                                             <FilePickerComponent onSelectFile={handleFileSelect} />
                                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                                         </View>
@@ -635,7 +611,7 @@ const Chat = ({ navigation, route }) => {
                                 console.log(message);
                                 setMessTarget(message);
                             }}
-                            renderMessage={renderMessage}
+                         renderMessage={(messageProps) => renderMessage(messageProps)}
                         />
                     </View>
                 </PaperProvider>

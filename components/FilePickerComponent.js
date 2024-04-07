@@ -8,9 +8,9 @@ const FilePickerComponent = ({ onSelectFile }) => {
     const selectFile = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({ type: "*/*" });
-            console.log(result);
+            console.log("result",result);
             if (result && result.assets && result.assets.length > 0 && result.assets[0].uri) {
-          uploadFile(result.assets[0].uri);
+          uploadFile(result.assets[0].uri,result.assets[0].name,result.assets[0].size);
           console.log("Uri",result.assets[0].uri);
         }
             
@@ -41,16 +41,19 @@ const FilePickerComponent = ({ onSelectFile }) => {
         }
     };
 
-    const uploadFile = async (uri) => {
+    const uploadFile = async (uri,name,size) => {
         try {
-            let filename = uri.split('/').pop();
+            if(name==null){
+            name= uri.split('/').pop();
+            }
+          
             const formData = new FormData();
             formData.append('file', {
                 uri: uri,
                 type: 'application/octet-stream',
-                name: filename,
+                name: name,
             });
-            formData.append('name', filename);
+            formData.append('name', name);
             const response = await axios.post(
                 'https://deploybackend-production.up.railway.app/azure/changeImage',
                 formData,
@@ -60,7 +63,7 @@ const FilePickerComponent = ({ onSelectFile }) => {
                     },
                 }
             );
-            onSelectFile(response.data);
+            onSelectFile(response.data,size);
             console.log(response.data);
         } catch (error) {
             console.error('Lỗi upload file:', error);

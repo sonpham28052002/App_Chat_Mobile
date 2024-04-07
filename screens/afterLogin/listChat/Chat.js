@@ -240,7 +240,7 @@ const Chat = ({ navigation, route }) => {
     }
 
     const handleSend = () => {
-        if (mess.trim() === '' && !uriImage && !uriFile && !uriVideo) {
+        if (mess.trim() === '' && !uriImage && !uriFile && !uriVideo && !audio) {
             Alert.alert("Chưa gửi tin nhắn hoặc chọn ảnh, video hoặc file");
         } else {
             if (mess.trim() !== '') {
@@ -316,7 +316,7 @@ const Chat = ({ navigation, route }) => {
         const newMessage = {
             _id: id,
             audio: audio,
-            createdAt: new Date(),
+            createdAt: new Date() + "",
             user: {
                 _id: sender.id,
                 name: sender.userName,
@@ -325,7 +325,7 @@ const Chat = ({ navigation, route }) => {
         };
         const fileType = audio.substring(audio.lastIndexOf(".") + 1);
         sendMessage(id, "Audio");
-        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        dispatch(addMess(newMessage));
     };
 
     const handleSendVideo = () => {
@@ -369,7 +369,7 @@ const Chat = ({ navigation, route }) => {
         }
     };
     const getFileExtension = (uri) => {
-        return uri.substring(uri.lastIndexOf(".") + 1);
+        return uri.substring(uri.lastIndexOf(".") + 1, uri.indexOf("%"));
     };
 
     const FileMessage = ({ currentMessage }) => {
@@ -421,9 +421,9 @@ const Chat = ({ navigation, route }) => {
                     >
                         <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
                     </TouchableOpacity>
-                    {/* <Text numberOfLines={2}
+                    <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{currentMessage.extraData.titleFile}</Text> */}
+                    >{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1).split('%')[0]}</Text>
                 </View>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
                       <Text style={{ fontSize: 11, marginLeft: 10,
@@ -585,7 +585,7 @@ const Chat = ({ navigation, route }) => {
                                             />
                                         </View>
                                         <View style={{ flexDirection: 'row', width: 85, justifyContent: 'space-between' }}>
-                                            {/* <Entypo name="dots-three-horizontal" size={35} color="black" /> */}
+                                            {/* /* <Entypo name="dots-three-horizontal" size={35} color="black" /> */}
                                                <AudioRecorder onSelectAudio={handleAudioSelect}/>
                                             <FilePickerComponent onSelectFile={handleFileSelect} />
                                             <ImagePickerComponent onSelectImage={handleImageSelect} />

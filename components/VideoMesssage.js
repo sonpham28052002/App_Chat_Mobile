@@ -22,6 +22,7 @@ const VideoMessage = React.memo(({ videoUri, sender }) => {
       borderTopLeftRadius: 20, borderTopRightRadius: 20,
       borderBottomRightRadius: !sender? 20:0,
       borderBottomLeftRadius: !sender? 0:20,
+      mariginBottom: 10
       }}>
       <View style={{ width: 200, height: 150 }}>
         <WebView

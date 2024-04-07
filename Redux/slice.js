@@ -12,7 +12,7 @@ const accountSlice = createSlice({
     updateAvatar: (state, action) => {
       console.log("updateAvatar:", action.payload)
       Object.assign(state, action.payload);
-    }
+    },
   },
 });
 
@@ -45,7 +45,22 @@ const messSlice = createSlice({
     }
   }
 });
+const chatSlice = createSlice({
+  name: 'chat',
+  initialState: {
+    conversations: [],
+  },
+  reducers: {
+    deleteConversation: (state, action) => {
+      state.conversations = state.conversations.filter(
+        conversation => conversation.lastMessage.id !== action.payload
+      );
+    },
+  },
+});
+
 export const { save, updateAvatar, updateLastMessage } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } = messSlice.actions;
+export const { deleteConversation } = chatSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;

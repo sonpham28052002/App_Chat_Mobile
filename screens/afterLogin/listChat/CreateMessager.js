@@ -55,45 +55,52 @@ const CreateMessager = ({ navigation }) => {
         }
     };
 
-    const handleAddUser = async () => {
-        if (data.length > 0) {
-            const newConversation = {
-                updateLast: new Date().toISOString(),
-                conversationType: 'single',
-                user: {
-                    id: newUser.id,
-                    userName: newUser.userName,
-                    avt: newUser.avt
-                },
-                lastMessage: {
-                    id: uuidv4(),
-                    sender: {
-                        id: newUser.id,
-                    },
-                    // content:"Hãy nhắn tin để hiểu nhau hơn"
-                }
-            };
+ const handleAddUser = async () => {
+    if (data.length > 0) {
+        console.log("id", newUser.id);
+       const existingConversation = currentUser.conversation && currentUser.conversation.find(conv => conv.user && conv.user.id === newUser.id);
 
-            const updatedConversations = [...currentUser.conversation, newConversation];
-
-            const updatedUser = {
-                ...currentUser,
-                conversation: updatedConversations
-            };
-
-            try {
-                const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
-                dispatch(save(updatedUser));
-                navigation.navigate('ListChat');
-                console.log('thêm thành công');
-            } catch (error) {
-                console.log(error);
-                setError('Đã xảy ra lỗi khi thêm người dùng vào cuộc trò chuyện.');
-            }
-        } else {
-            setError('Vui lòng tìm kiếm và chọn một người dùng trước khi thêm.');
+        if (existingConversation) {
+            setError('Người dùng đã tồn tại trong danh sách cuộc trò chuyện.');
+            return;
         }
+        const newConversation = {
+            updateLast: new Date().toISOString(),
+            conversationType: 'single',
+            user: {
+                id: newUser.id,
+                userName: newUser.userName,
+                avt: newUser.avt
+            },
+            lastMessage: {
+                id: uuidv4(),
+                sender: {
+                    id: newUser.id,
+                },
+                // content:"Hãy nhắn tin để hiểu nhau hơn"
+            }
+        };
+
+        const updatedConversations = [...(currentUser.conversation || []), newConversation];
+
+        const updatedUser = {
+            ...currentUser,
+            conversation: updatedConversations
+        };
+
+        try {
+            const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
+            dispatch(save(updatedUser));
+            navigation.navigate('Chat',{userName:newUser.userName});
+            console.log('thêm thành công');
+        } catch (error) {
+            console.log(error);
+            setError('Đã xảy ra lỗi khi thêm người dùng vào cuộc trò chuyện.');
+        }
+    } else {
+        setError('Vui lòng tìm kiếm và chọn một người dùng trước khi thêm.');
     }
+}
 
     return (
         <SafeAreaView>

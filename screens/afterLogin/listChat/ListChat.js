@@ -1,33 +1,55 @@
 import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView, Platform } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 import { TextInput } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { save } from "../../../Redux/slice";
+import { save } from '../../../Redux/slice';
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
 import axios from 'axios';
-
-const ListChat = ({ navigation, route }) => {
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+const ListChat = ({ navigation }) => {
+  // const name = useSelector((state) => state.account.userName);
+  // const avt = useSelector((state) => state.account.avt);
   const { width } = Dimensions.get('window');
+  var stompClient = useRef(null);
   const dispatch = useDispatch();
+  const id = useSelector((state) => state.account.id);
+  // const [account, setAccount] = useState(null);
+  // useEffect(() => {
+  //   const fetchAccount = async () => {
+  //     try {
+  //       const storedAccount = await AsyncStorage.getItem('account');
+  //       if (storedAccount !== null) {
+  //         const parsedAccount = JSON.parse(storedAccount);
+  //         setAccount(parsedAccount.account);
+  //         dispatch(save(parsedAccount.account));
+  //       }
+  //     } catch (error) {
+  //       console.error('Lỗi khi lấy dữ liệu từ AsyncStorage:', error);
+  //     }
+  //   };
+  //   fetchAccount();
+  // }, []);
+
   const currentUser = useSelector((state) => state.account);
   const [conversations, setConversations] = useState(currentUser.conversation);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [deleteMode, setDeleteMode] = useState(false); 
+  const [deleteMode, setDeleteMode] = useState(false);
 
   // Xóa cuộc trò chuyện
   const deleteConversation = async (userId) => {
     try {
       const updatedConversations = conversations.filter(conversation => {
         if (conversation.user && conversation.user.id !== userId) {
-          return true; 
+          return true;
         } else if (conversation.conversationType === 'group') {
-          return false; 
+          return false;
         }
-        return false; 
+        return false;
       });
       setConversations(updatedConversations);
-      setDeleteMode(false); 
-
+      setDeleteMode(false);
       const updatedUser = { ...currentUser, conversation: updatedConversations };
       const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
 
@@ -39,6 +61,36 @@ const ListChat = ({ navigation, route }) => {
       console.error('Lỗi khi cập nhật người dùng', error);
     }
   };
+
+  useEffect(() => {
+    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+    stompClient.current = Stomp.over(socket);
+    stompClient.current.connect({}, onConnected, onError);
+  }, [])
+
+  const onConnected = () => {
+    stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+    // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
+    // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
+  }
+
+  const onReceiveFromSocket = async (payload) => {
+    const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
+    try {
+      if (result.data) {
+        dispatch(save(result.data));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const onError = (error) => {
+    console.log('Could not connect to WebSocket server. Please refresh and try again!');
+  }
+
+  let obj = useSelector((state) => state.account);
+  let data = useSelector((state) => state.account.conversation);
 
   const calcTime = (time) => {
     const date = new Date(time);
@@ -86,7 +138,7 @@ const ListChat = ({ navigation, route }) => {
       </View>
       <View>
         <FlatList
-          data={conversations}
+          data={currentUser.conversation}
           renderItem={({ item }) => (
             item.user &&
             <TouchableOpacity
@@ -94,10 +146,10 @@ const ListChat = ({ navigation, route }) => {
                 height: 70, flexDirection: 'row', alignItems: 'center',
                 flex: 1
               }}
-              onPress={() => navigation.navigate("Chat", item.user)} 
-              onLongPress={() => { 
+              onPress={() => navigation.navigate("Chat", item.user)}
+              onLongPress={() => {
                 setSelectedItem(item);
-                setDeleteMode(true); 
+                setDeleteMode(true);
               }}
             >
               <View style={{ width: 65, paddingHorizontal: 7, justifyContent: 'center', alignItems: 'center' }}>
@@ -115,18 +167,30 @@ const ListChat = ({ navigation, route }) => {
                       <AntDesign name="delete" size={24} color="red" />
                     </TouchableOpacity>
                   }
-                  <Text style={{ fontSize: 14, color: item.lastMessage.sender.id === currentUser.id ? 'grey' : item.lastMessage.seen ? 'grey' : 'black', fontWeight: item.lastMessage.sender.id === currentUser.id ? 'normal' : item.lastMessage.seen ? 'normal' : 'bold' }} numberOfLines={1}>
-                    {
-                      item.lastMessage.messageType === 'RETRIEVE' ? 'Đã thu hồi một tin nhắn' :
-                        item.lastMessage.messageType === 'PNG' || item.lastMessage.messageType === 'JPG' || item.lastMessage.messageType === 'JPEG' ?
-                          '[Hình ảnh]' : item.lastMessage.messageType === 'PDF' || item.lastMessage.messageType === 'DOC' || item.lastMessage.messageType === 'DOCX'
-                          || item.lastMessage.messageType === 'XLS' || item.lastMessage.messageType === 'XLSX' || item.lastMessage.messageType === 'PPT'
-                          || item.lastMessage.messageType === 'PPTX' || item.lastMessage.messageType === 'RAR' || item.lastMessage.messageType === 'ZIP' ?
-                          item.lastMessage.titleFile :
-                          item.lastMessage.messageType === 'AUDIO' || item.lastMessage.messageType === 'VIDEO' ?
-                            '[Video]' : item.lastMessage.content
-                    }
-                  </Text>
+                  {item.lastMessage.sender.id == obj.id ?
+                    <Text style={{ fontSize: 14, color: 'grey' }} numberOfLines={1}>{
+                      item.lastMessage.messageType == 'RETRIEVE' ? 'Bạn đã thu hồi một tin nhắn' :
+                        item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
+                          'Bạn: [Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
+                            || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
+                            || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
+                            'Bạn: ' + item.lastMessage.titleFile :
+                            item.lastMessage.messageType == 'AUDIO' ? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO' ?
+                              'Bạn: [Video]' : 'Bạn: ' + item.lastMessage.content}</Text>
+                    : <Text style={{
+                      fontSize: 14, color: item.lastMessage.seen ? 'grey' : 'black',
+                      fontWeight: item.lastMessage.seen ? 'normal' : 'bold'
+                    }} numberOfLines={1}>
+                      {
+                        item.lastMessage.messageType == 'RETRIEVE' ? 'Đã thu hồi một tin nhắn' :
+                          item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
+                            '[Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
+                              || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
+                              || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
+                              item.lastMessage.titleFile :
+                              item.lastMessage.messageType == 'AUDIO' ? '[Audio]' : item.lastMessage.messageType == 'VIDEO' ?
+                                '[Video]' : item.lastMessage.content}</Text>
+                  }
                 </View>
                 <View style={{ width: 70, marginRight: 10, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ fontSize: 12, color: 'grey' }} numberOfLines={1}>{calcTime(item.lastMessage.senderDate)}</Text>

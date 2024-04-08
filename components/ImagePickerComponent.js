@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, Alert, TouchableOpacity } from 'react-native';
+import { Platform, Alert, TouchableOpacity, Text } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
@@ -120,8 +120,9 @@ const ImagePickerComponent = ({ onSelectImage }) => {
     };
 
     return (
-        <TouchableOpacity onPress={handleSelectOption} style={{ height: 50, width: 50 }}>
+        <TouchableOpacity onPress={handleSelectOption} style={{ height: 50, flexDirection: 'row', alignItems: 'center' }}>
             <SimpleLineIcons name="picture" size={35} color="black" />
+            <Text style={{ fontSize: 20, marginLeft: 10 }}>Chọn ảnh/video</Text>
         </TouchableOpacity>
     );
 };

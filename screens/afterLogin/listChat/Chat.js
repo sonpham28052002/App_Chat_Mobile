@@ -73,7 +73,6 @@ const Chat = ({ navigation, route }) => {
             getMessage();
         }
     }, []);
-
     const [messLoad, setMessLoad] = useState([]);
 
     useEffect(() => {

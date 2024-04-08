@@ -36,7 +36,7 @@ const Chat = ({ navigation, route }) => {
     const { width, height } = Dimensions.get('window');
     const [showEmoji, setShowEmoji] = useState(false);
     const [audio, setAudio] = useState(null);
-    const [size,setSize] = useState(0);
+    const [size, setSize] = useState(0);
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
@@ -65,8 +65,8 @@ const Chat = ({ navigation, route }) => {
         const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
-        
-        if(receiverId !== route.params.id){
+
+        if (receiverId !== route.params.id) {
             dispatch(saveReceiverId(route.params.id));
             getMessage();
         }
@@ -102,14 +102,14 @@ const Chat = ({ navigation, route }) => {
                     avatar: message.sender.id == sender.id ? sender.avt : route.params.avt,
                 }
             }
-            if(message.messageType === 'RETRIEVE')
+            if (message.messageType === 'RETRIEVE')
                 newMess.text = "Tin nhắn đã bị thu hồi!";
             else if (message.content)
                 newMess.text = message.content
             else if (message.messageType == 'PNG'
                 || message.messageType == 'JPG'
                 || message.messageType == 'JPEG')
-                    newMess.image = message.url
+                newMess.image = message.url
             else if (message.messageType == 'PDF'
                 || message.messageType == 'DOC'
                 || message.messageType == 'DOCX'
@@ -121,10 +121,10 @@ const Chat = ({ navigation, route }) => {
                 || message.messageType == 'ZIP')
                 newMess.file = message.url
             else if (message.messageType == 'VIDEO')
-                    newMess.video = message.url
+                newMess.video = message.url
             else if (message.messageType == 'AUDIO')
                 newMess.audio = message.url
-                    return newMess;
+            return newMess;
         });
         setMessLoad(messages);
     }
@@ -149,19 +149,21 @@ const Chat = ({ navigation, route }) => {
         let message = JSON.parse(payload.body)
         if (message.messageType === 'RETRIEVE') {
             const index = [...messages].findIndex((item) => item._id === message.id)
-            if(index === -1) getMessage();
+            if (index === -1) getMessage();
             if (index !== -1) {
                 let date = new Date(message.senderDate);
-                dispatch(retreiveMess({index: index, mess: {
-                    _id: message.id,
-                    text: "Tin nhắn đã bị thu hồi!",
-                    createdAt: date.setUTCHours(date.getUTCHours() + 7),
-                    user: {
-                        _id: sender.id,
-                        name: sender.userName,
-                        avatar: sender.avt,
+                dispatch(retreiveMess({
+                    index: index, mess: {
+                        _id: message.id,
+                        text: "Tin nhắn đã bị thu hồi!",
+                        createdAt: date.setUTCHours(date.getUTCHours() + 7),
+                        user: {
+                            _id: sender.id,
+                            name: sender.userName,
+                            avatar: sender.avt,
+                        }
                     }
-                }}));
+                }));
             }
             hideModal();
             updateMess();
@@ -186,7 +188,7 @@ const Chat = ({ navigation, route }) => {
         else if (message.url)
             newMessage.image = message.url;
         else if (message.file)
-                newMessage.file = message.file;
+            newMessage.file = message.file;
         else if (message.video)
             newMessage.video = message.video;
         // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
@@ -225,7 +227,7 @@ const Chat = ({ navigation, route }) => {
             else if (type === 'Video') {
                 const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
                 chatMessage.size = 10;
-                chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
+                chatMessage.messageType = getFileExtension(uriVideo) == 'mp3' ? 'AUDIO' : 'VIDEO';
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriVideo;
             } else if (type === 'Audio') {
@@ -239,13 +241,13 @@ const Chat = ({ navigation, route }) => {
         }
     }
 
-const fowardMessage = (data) => {
- let dataSend = data.filter(item => item.checked);
- let dataMessage = convertMessageGiftedChatToMessage(messTarget);
- let listMessage = dataSend.map(item => ({...dataMessage, receiver: {id: item.id}}));
- stompClient.current.send("/app/forward-message", {}, JSON.stringify(listMessage));
- hideModalMessageFoward();
-}
+    const fowardMessage = (data) => {
+        let dataSend = data.filter(item => item.checked);
+        let dataMessage = convertMessageGiftedChatToMessage(messTarget);
+        let listMessage = dataSend.map(item => ({ ...dataMessage, receiver: { id: item.id } }));
+        stompClient.current.send("/app/forward-message", {}, JSON.stringify(listMessage));
+        hideModalMessageFoward();
+    }
 
     const handleSend = () => {
         if (mess.trim() === '' && !uriImage && !uriFile && !uriVideo && !audio) {
@@ -256,7 +258,7 @@ const fowardMessage = (data) => {
                 const newMessage = {
                     _id: id,
                     text: mess.trim(),
-                    createdAt: new Date()+"",
+                    createdAt: new Date() + "",
                     user: {
                         _id: sender.id,
                         name: sender.userName,
@@ -276,7 +278,7 @@ const fowardMessage = (data) => {
             } else if (uriVideo) {
                 handleSendVideo();
                 setUriVideo(null);
-            }else if (audio) {
+            } else if (audio) {
                 console.log(audio);
                 hadleSendAudio();
                 setAudio(null);
@@ -297,7 +299,7 @@ const fowardMessage = (data) => {
         setSize((parseInt(size) / 1024).toFixed(2))
         hideModal2();
     };
-   const handleAudioSelect = (uri) => {
+    const handleAudioSelect = (uri) => {
         setAudio(uri);
         hideModal2();
     };
@@ -318,7 +320,7 @@ const fowardMessage = (data) => {
         // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
         dispatch(addMess(newMessage));
     };
- const hadleSendAudio = () => {
+    const hadleSendAudio = () => {
         const id = uuidv4();
         const newMessage = {
             _id: id,
@@ -484,14 +486,14 @@ const fowardMessage = (data) => {
                 <Message {...messageProps} />
             );
         } else if (currentMessage.video) {
-            return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == sender.id?true:false} 
+            return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == sender.id ? true : false}
                 onLongPress={(message) => {
                     showModal();
                     setMessTarget(message);
                 }}
             />;
-        }else if (currentMessage.audio) {
-            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} sender={currentMessage.user._id == sender.id?true:false} 
+        } else if (currentMessage.audio) {
+            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} sender={currentMessage.user._id == sender.id ? true : false}
                 onLongPress={(message) => {
                     showModal();
                     setMessTarget(message);
@@ -506,12 +508,12 @@ const fowardMessage = (data) => {
             id: giftedMessage._id,
             senderDate: new Date(giftedMessage.createdAt)
         };
-        if(giftedMessage.user._id === sender.id){
+        if (giftedMessage.user._id === sender.id) {
             chatMessage.sender = { id: sender.id },
-            chatMessage.receiver = { id: route.params.id }
+                chatMessage.receiver = { id: route.params.id }
         } else {
             chatMessage.receiver = { id: sender.id },
-            chatMessage.sender = { id: route.params.id }
+                chatMessage.sender = { id: route.params.id }
         }
         if (giftedMessage.text) {
             chatMessage.content = giftedMessage.text
@@ -554,22 +556,23 @@ const fowardMessage = (data) => {
                             {messTarget &&
                                 <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text>
                             }
-                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
-                                onPress={()=>{
+                            { messTarget && messTarget.user._id == sender.id &&
+                             <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
+                                onPress={() => {
                                     if (stompClient.current) {
-                                        stompClient.current.send("/app/retrieve-message", {}, 
+                                        stompClient.current.send("/app/retrieve-message", {},
                                             JSON.stringify(convertMessageGiftedChatToMessage(messTarget)));
                                     }
                                 }}
                             >
                                 <FontAwesome6 name="arrows-rotate" size={40} color="red" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity>}
                             <TouchableOpacity style={{
                                 width: '100%', flexDirection: 'row', alignItems: 'center',
                                 marginVertical: 10
                             }}
-                                onPress={()=>{
+                                onPress={() => {
                                     hideModal();
                                     showModalMessageFoward();
                                 }}
@@ -578,14 +581,14 @@ const fowardMessage = (data) => {
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
-                                onPress={()=>{
+                                onPress={() => {
                                     if (stompClient.current) {
                                         let deleteMessage = convertMessageGiftedChatToMessage(messTarget)
                                         delete deleteMessage.senderDate
                                         let idGroup = ""
                                         let ownerId = sender.id
                                         stompClient.current.send("/app/delete-message", {},
-                                            JSON.stringify({...deleteMessage, idGroup, ownerId}));
+                                            JSON.stringify({ ...deleteMessage, idGroup, ownerId }));
                                     }
                                 }}
                             >
@@ -594,14 +597,14 @@ const fowardMessage = (data) => {
                             </TouchableOpacity>
                         </Modal>
                         <Modal visible={visible2} onDismiss={hideModal2}
-                            contentContainerStyle={{ 
-                                backgroundColor: 'white', 
+                            contentContainerStyle={{
+                                backgroundColor: 'white',
                                 padding: 20,
                                 height: 120,
                                 width: 270,
                                 marginLeft: width - 270,
                                 marginTop: height - 375
-                                }}>
+                            }}>
                             <FilePickerComponent onSelectFile={handleFileSelect} />
                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                         </Modal>
@@ -658,7 +661,7 @@ const fowardMessage = (data) => {
                                 console.log(message);
                                 setMessTarget(message);
                             }}
-                         renderMessage={(messageProps) => renderMessage(messageProps)}
+                            renderMessage={(messageProps) => renderMessage(messageProps)}
                         />
                     </View>
                 </PaperProvider>

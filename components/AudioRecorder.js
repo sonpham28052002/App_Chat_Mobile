@@ -62,7 +62,7 @@ const AudioRecorder = ({ onSelectAudio }) => {
             const formData = new FormData();
             formData.append('file', {
                 uri: uri,
-                type: 'audio/m4a',
+                type: 'audio/mp3',
                 name: filename,
             });
             formData.append('name', filename);

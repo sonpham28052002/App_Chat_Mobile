@@ -56,6 +56,7 @@ const ImagePickerComponent = ({ onSelectImage }) => {
             if (result && result.assets && result.assets.length > 0 && result.assets[0].uri) {
              uploadMedia(result.assets[0].uri, result.assets[0].mimeType,result.assets[0].type)
              console.log("Type", result.assets[0].type);
+        
         } else {
             console.log("Không có hình ảnh hoặc video được chọn");
         }

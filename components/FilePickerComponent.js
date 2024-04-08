@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Alert, TouchableOpacity } from 'react-native';
+import { Platform, Alert, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system'; 
@@ -57,11 +57,11 @@ const FilePickerComponent = ({ onSelectFile }) => {
             formData.append('file', {
                 uri: uri,
                 type: 'application/octet-stream',
-                name: name+' '+new Date(),
+                name: name
             });
             formData.append('name', name);
             const response = await axios.post(
-                'https://deploybackend-production.up.railway.app/azure/changeImage',
+                'https://deploybackend-production.up.railway.app/azure/upload',
                 formData,
                 {
                     headers: {
@@ -69,7 +69,7 @@ const FilePickerComponent = ({ onSelectFile }) => {
                     },
                 }
             );
-            onSelectFile(response.data,size);
+            onSelectFile(response.data, size);
             console.log(response.data);
         } catch (error) {
             console.error('Lỗi upload file:', error);
@@ -77,8 +77,9 @@ const FilePickerComponent = ({ onSelectFile }) => {
     };
 
     return (
-        <TouchableOpacity onPress={handleSelectOption} style={{ height: 50, width: 50 }}>
+        <TouchableOpacity onPress={handleSelectOption} style={{ height: 50, flexDirection: 'row', alignItems:'center' }}>
             <Ionicons name="document-attach-outline" size={35} color="black" />
+            <Text style={{ fontSize: 20, marginLeft: 10 }}>Chọn tệp</Text>
         </TouchableOpacity>
     );
 };

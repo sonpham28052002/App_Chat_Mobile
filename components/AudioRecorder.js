@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, Alert, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import axios from 'axios';

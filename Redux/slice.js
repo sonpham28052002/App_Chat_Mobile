@@ -6,11 +6,9 @@ const accountSlice = createSlice({
   },
   reducers: {
     save: (state, action) => {
-      console.log("save:", action.payload)
       Object.assign(state, action.payload);
     },
     updateAvatar: (state, action) => {
-      console.log("updateAvatar:", action.payload)
       Object.assign(state, action.payload);
     },
   },
@@ -27,7 +25,7 @@ const messSlice = createSlice({
       state.id = action.payload;
     },
     saveMess: (state, action) => {
-      state.messages = action.payload;
+      state.messages = [...action.payload];
     },
     addMess: (state, action) => {
       if(state.messages.findIndex(mess => mess._id === action.payload._id) === -1)

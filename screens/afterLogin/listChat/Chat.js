@@ -16,7 +16,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AudioRecorder from '../../../components/AudioRecorder';
 import VideoMessage from '../../../components/VideoMesssage';
 import AudioMessage from '../../../components/AudioMessage';
-import Menu, { MenuItem } from 'react-native-material-menu';
+import MessageForward from './components/MessageForward';
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {
@@ -40,16 +40,6 @@ const Chat = ({ navigation, route }) => {
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
-
-    const menuRef = useRef(null);
-
-    const showMenu = () => {
-      menuRef.current.show();
-    };
-  
-    const hideMenu = () => {
-      menuRef.current.hide();
-    };
 
     useEffect(() => {
         navigation.setOptions({
@@ -158,7 +148,6 @@ const Chat = ({ navigation, route }) => {
     function onRetrieveMessage(payload) {
         let message = JSON.parse(payload.body)
         if (message.messageType === 'RETRIEVE') {
-            console.log(messages);
             const index = [...messages].findIndex((item) => item._id === message.id)
             if(index === -1) getMessage();
             if (index !== -1) {
@@ -250,6 +239,14 @@ const Chat = ({ navigation, route }) => {
         }
     }
 
+const fowardMessage = (data) => {
+ let dataSend = data.filter(item => item.checked);
+ let dataMessage = convertMessageGiftedChatToMessage(messTarget);
+ let listMessage = dataSend.map(item => ({...dataMessage, receiver: {id: item.id}}));
+ stompClient.current.send("/app/forward-message", {}, JSON.stringify(listMessage));
+ hideModalMessageFoward();
+}
+
     const handleSend = () => {
         if (mess.trim() === '' && !uriImage && !uriFile && !uriVideo && !audio) {
             Alert.alert("Chưa gửi tin nhắn hoặc chọn ảnh, video hoặc file");
@@ -287,7 +284,6 @@ const Chat = ({ navigation, route }) => {
         }
     };
 
-
     const handleImageSelect = (uri, type) => {
         if (type === "image") {
             setUriImage(uri);
@@ -300,7 +296,6 @@ const Chat = ({ navigation, route }) => {
         setUriFile(uri);
         setSize((parseInt(size) / 1024).toFixed(2))
         hideModal2();
-        // console.log(fileSize);
     };
    const handleAudioSelect = (uri) => {
         setAudio(uri);
@@ -462,13 +457,17 @@ const Chat = ({ navigation, route }) => {
         }
     };
 
-    const [visible, setVisible] = React.useState(false);
+    const [visible, setVisible] = useState(false);
     const showModal = () => setVisible(true);
     const hideModal = () => setVisible(false);
 
-    const [visible2, setVisible2] = React.useState(false);
+    const [visible2, setVisible2] = useState(false);
     const showModal2 = () => setVisible2(true);
     const hideModal2 = () => setVisible2(false);
+
+    const [visibleMessageFoward, setVisibleMessageFoward] = useState(false);
+    const showModalMessageFoward = () => setVisibleMessageFoward(true);
+    const hideModalMessageFoward = () => setVisibleMessageFoward(false);
 
     const [messTarget, setMessTarget] = useState();
 
@@ -569,7 +568,12 @@ const Chat = ({ navigation, route }) => {
                             <TouchableOpacity style={{
                                 width: '100%', flexDirection: 'row', alignItems: 'center',
                                 marginVertical: 10
-                            }}>
+                            }}
+                                onPress={()=>{
+                                    hideModal();
+                                    showModalMessageFoward();
+                                }}
+                            >
                                 <Ionicons name="arrow-undo" size={40} color="black" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
                             </TouchableOpacity>
@@ -601,6 +605,7 @@ const Chat = ({ navigation, route }) => {
                             <FilePickerComponent onSelectFile={handleFileSelect} />
                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                         </Modal>
+                        <MessageForward visible={visibleMessageFoward} onDismiss={hideModalMessageFoward} senderId={sender.id} onSend={fowardMessage} />
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChat

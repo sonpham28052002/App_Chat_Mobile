@@ -57,8 +57,6 @@ const MessageForward = ({ visible, onDismiss, senderId, onSend }) => {
                                 onPress={() => {
                                     setData(data.map(i => i.id === item.id ? { ...i, checked: !i.checked } : i))
                                 }}
-                                checkedIcon="dot-circle-o"
-                                uncheckedIcon="circle-o"
                             />
                             <Image source={{ uri: item.avt }} style={{ width: 50, height: 50 }} />
                             <Text style={{ fontSize: 20, marginHorizontal: 10 }}>{item.userName}</Text>

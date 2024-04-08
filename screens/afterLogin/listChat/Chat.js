@@ -91,7 +91,9 @@ const Chat = ({ navigation, route }) => {
 
     const getMessage = async () => {
         const response = await axios.get(`https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`);
-        const messages = response.data.slice(-20).map(message => {
+        let messages = []
+        if(response.data.length <= 20) messages = [...response.data]
+        messages = response.data.slice(-20).map(message => {
             let date = new Date(message.senderDate);
             let newMess = {
                 _id: message.id,
@@ -154,7 +156,7 @@ const Chat = ({ navigation, route }) => {
                 let date = new Date(message.senderDate);
                 dispatch(retreiveMess({
                     index: index, mess: {
-                        _id: message.id,
+                        _id: message.sender.id,
                         text: "Tin nhắn đã bị thu hồi!",
                         createdAt: date.setUTCHours(date.getUTCHours() + 7),
                         user: {
@@ -568,7 +570,8 @@ const Chat = ({ navigation, route }) => {
                                 <FontAwesome6 name="arrows-rotate" size={40} color="red" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
                             </TouchableOpacity>}
-                            <TouchableOpacity style={{
+                            { messTarget && messTarget.user._id == sender.id &&
+                                <TouchableOpacity style={{
                                 width: '100%', flexDirection: 'row', alignItems: 'center',
                                 marginVertical: 10
                             }}
@@ -579,7 +582,7 @@ const Chat = ({ navigation, route }) => {
                             >
                                 <Ionicons name="arrow-undo" size={40} color="black" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity>}
                             <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
                                 onPress={() => {
                                     if (stompClient.current) {

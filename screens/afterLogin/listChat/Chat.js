@@ -36,7 +36,7 @@ const Chat = ({ navigation, route }) => {
     const { width, height } = Dimensions.get('window');
     const [showEmoji, setShowEmoji] = useState(false);
     const [audio, setAudio] = useState(null);
-    const [size, setSize] = useState(0);
+    // const [size, setSize] = useState(0);
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
@@ -213,17 +213,20 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.messageType = type
             }
             else if (type === 'Image') {
-                const titleFile = uriImage.substring(uriImage.lastIndexOf("/") + 1);
-                chatMessage.size = 10;
-                chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
+                const uri = uriImage.substring(uriImage.lastIndexOf("/") + 1);
+                const type = getFileExtension(uriImage);
+                const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_"))+"."+type;
                 chatMessage.titleFile = titleFile;
+                chatMessage.size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
+                chatMessage.messageType = type.toUpperCase();
                 chatMessage.url = uriImage;
             } else if (type === 'File') {
                 const uri = uriFile.substring(uriFile.lastIndexOf("/") + 1);
-                const titleFile = uri.substring(uri.indexOf("_") + 1);
-                chatMessage.size = size;
-                chatMessage.messageType = getFileExtension(uriFile).toUpperCase();
+                const type = getFileExtension(uriFile);
+                const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_"))+"."+type;
                 chatMessage.titleFile = titleFile;
+                chatMessage.size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
+                chatMessage.messageType = type.toUpperCase();
                 chatMessage.url = uriFile;
             }
             else if (type === 'Video') {
@@ -239,16 +242,17 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = audio;
             }
-            stompClient.current.send("/app/private-single-message", {}, JSON.stringify(chatMessage));
+            let messageSend = {...chatMessage, idGroup: ""}
+            stompClient.current.send("/app/private-single-message", {}, JSON.stringify(messageSend));
         }
     }
 
-    const fowardMessage = (data) => {
+    const forwardMessage = (data) => {
         let dataSend = data.filter(item => item.checked);
         let dataMessage = convertMessageGiftedChatToMessage(messTarget);
         let listMessage = dataSend.map(item => ({ ...dataMessage, receiver: { id: item.id } }));
         stompClient.current.send("/app/forward-message", {}, JSON.stringify(listMessage));
-        hideModalMessageFoward();
+        hideModalMessageForward();
     }
 
     const handleSend = () => {
@@ -288,17 +292,21 @@ const Chat = ({ navigation, route }) => {
         }
     };
 
-    const handleImageSelect = (uri, type) => {
+    const handleImageSelect = (uri, type, size) => {
+        const uriType = uri.substring(uri.lastIndexOf(".") + 1);
+        const uriFile = uri.substring(0, uri.lastIndexOf("."));
+        const newUri = uriFile + "_" + size + "." + uriType;
         if (type === "image") {
-            setUriImage(uri);
+            setUriImage(newUri);
         } else {
-            setUriVideo(uri);
+            setUriVideo(newUri);
         }
         hideModal2();
     };
     const handleFileSelect = (uri, size) => {
-        setUriFile(uri);
-        setSize((parseInt(size) / 1024).toFixed(2))
+        const type = uri.substring(uri.lastIndexOf(".") + 1);
+        const uriFile = uri.substring(0, uri.lastIndexOf("."));
+        setUriFile(uriFile + "_" + size + "." + type);
         hideModal2();
     };
     const handleAudioSelect = (uri) => {
@@ -317,7 +325,7 @@ const Chat = ({ navigation, route }) => {
                 avatar: sender.avt,
             }
         };
-        const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
+        // const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
         sendMessage(id, "Image");
         // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
         dispatch(addMess(newMessage));
@@ -469,9 +477,9 @@ const Chat = ({ navigation, route }) => {
     const showModal2 = () => setVisible2(true);
     const hideModal2 = () => setVisible2(false);
 
-    const [visibleMessageFoward, setVisibleMessageFoward] = useState(false);
-    const showModalMessageFoward = () => setVisibleMessageFoward(true);
-    const hideModalMessageFoward = () => setVisibleMessageFoward(false);
+    const [visibleMessageForward, setVisibleMessageForward] = useState(false);
+    const showModalMessageForward = () => setVisibleMessageForward(true);
+    const hideModalMessageForward = () => setVisibleMessageForward(false);
 
     const [messTarget, setMessTarget] = useState();
 
@@ -521,26 +529,35 @@ const Chat = ({ navigation, route }) => {
             chatMessage.content = giftedMessage.text
             chatMessage.messageType = "Text"
         }
-        // else if (messTarget.image) {
-        //     const titleFile = messTarget.image.substring(messTarget.image.lastIndexOf("/") + 1);
-        //     chatMessage.size = 10;
-        //     chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
-        //     chatMessage.titleFile = titleFile;
-        //     chatMessage.url = uriImage;
-        // } else if (type === 'File') {
-        //     const titleFile = uriFile.substring(uriFile.lastIndexOf("/") + 1);
-        //     chatMessage.size = 10;
-        //     chatMessage.messageType = getFileExtension(uriFile).toUpperCase();
-        //     chatMessage.titleFile = titleFile;
-        //     chatMessage.url = uriFile;
-        // }
-        // else if (type === 'Video') {
-        //     const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
-        //     chatMessage.size = 10;
-        //     chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
-        //     chatMessage.titleFile = titleFile;
-        //     chatMessage.url = uriVideo;
-        // }
+        else if (giftedMessage.image) {
+            const uri = giftedMessage.image.substring(giftedMessage.image.lastIndexOf("/") + 1);
+            const titleFile = uri.substring(uri.indexOf("_") + 1);
+            chatMessage.size = 10;
+            chatMessage.messageType = getFileExtension(giftedMessage.image).toUpperCase();
+            chatMessage.titleFile = titleFile;
+            chatMessage.url = giftedMessage.image;
+        } else if (giftedMessage.file) {
+            const uri = giftedMessage.file.substring(giftedMessage.file.lastIndexOf("/") + 1);
+            const titleFile = uri.substring(uri.indexOf("_") + 1);
+            chatMessage.size = 10;
+            chatMessage.messageType = getFileExtension(giftedMessage.file).toUpperCase();
+            chatMessage.titleFile = titleFile;
+            chatMessage.url = giftedMessage.file;
+        } else if (giftedMessage.video) {
+            const uri = giftedMessage.video.substring(giftedMessage.video.lastIndexOf("/") + 1);
+            const titleFile = uri.substring(uri.indexOf("_") + 1);
+            chatMessage.size = 10;
+            chatMessage.messageType = getFileExtension(giftedMessage.video).toUpperCase();
+            chatMessage.titleFile = titleFile;
+            chatMessage.url = giftedMessage.video;
+        } else if (giftedMessage.audio) {
+            const uri = giftedMessage.audio.substring(giftedMessage.audio.lastIndexOf("/") + 1);
+            const titleFile = uri.substring(uri.indexOf("_") + 1);
+            chatMessage.size = 10;
+            chatMessage.messageType = getFileExtension(giftedMessage.audio).toUpperCase();
+            chatMessage.titleFile = titleFile;
+            chatMessage.url = giftedMessage.audio;
+        }
         return chatMessage;
     }
 
@@ -570,19 +587,18 @@ const Chat = ({ navigation, route }) => {
                                 <FontAwesome6 name="arrows-rotate" size={40} color="red" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
                             </TouchableOpacity>}
-                            { messTarget && messTarget.user._id == sender.id &&
                                 <TouchableOpacity style={{
                                 width: '100%', flexDirection: 'row', alignItems: 'center',
                                 marginVertical: 10
                             }}
                                 onPress={() => {
                                     hideModal();
-                                    showModalMessageFoward();
+                                    showModalMessageForward();
                                 }}
                             >
                                 <Ionicons name="arrow-undo" size={40} color="black" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
-                            </TouchableOpacity>}
+                            </TouchableOpacity>
                             <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
                                 onPress={() => {
                                     if (stompClient.current) {
@@ -611,7 +627,7 @@ const Chat = ({ navigation, route }) => {
                             <FilePickerComponent onSelectFile={handleFileSelect} />
                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                         </Modal>
-                        <MessageForward visible={visibleMessageFoward} onDismiss={hideModalMessageFoward} senderId={sender.id} onSend={fowardMessage} />
+                        <MessageForward visible={visibleMessageForward} onDismiss={hideModalMessageForward} senderId={sender.id} onSend={forwardMessage} />
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChat

@@ -43,7 +43,6 @@ const CreateMessager = ({ navigation }) => {
                         userName: userRes.data.userName,
                         avt: userRes.data.avt
                     };
-                    console.log("=========================", newUser);
                     setNewUser(newUser);
                 }
             } else {

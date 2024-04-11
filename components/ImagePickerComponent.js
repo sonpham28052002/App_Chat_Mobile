@@ -107,7 +107,7 @@ const ImagePickerComponent = ({ onSelectImage }) => {
                 }
             });
 
-            onSelectImage(response.data, type);
+            onSelectImage(response.data, type,fileSize);
         } catch (error) {
             console.error('Lỗi upload media', error);
         }

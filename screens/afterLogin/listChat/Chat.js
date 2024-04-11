@@ -17,6 +17,7 @@ import AudioRecorder from '../../../components/AudioRecorder';
 import VideoMessage from '../../../components/VideoMesssage';
 import AudioMessage from '../../../components/AudioMessage';
 import MessageForward from './components/MessageForward';
+import StipopSender from '../../../components/sticker/StipopSender'
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {
@@ -37,6 +38,9 @@ const Chat = ({ navigation, route }) => {
     const [showEmoji, setShowEmoji] = useState(false);
     const [audio, setAudio] = useState(null);
     const [size, setSize] = useState(0);
+    const [sizeImage, setSizeImage] = useState(0);
+    const [sizeVideo, setSizeVideo] = useState(0);
+    const [sizeAudio, setSizeAudio] = useState(0);
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
@@ -211,7 +215,7 @@ const Chat = ({ navigation, route }) => {
             }
             else if (type === 'Image') {
                 const titleFile = uriImage.substring(uriImage.lastIndexOf("/") + 1);
-                chatMessage.size = 10;
+                chatMessage.size = sizeImage;
                 chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriImage;
@@ -225,7 +229,7 @@ const Chat = ({ navigation, route }) => {
             }
             else if (type === 'Video') {
                 const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
-                chatMessage.size = 10;
+                chatMessage.size = sizeVideo;
                 chatMessage.messageType = getFileExtension(uriVideo) == 'mp3' ? 'AUDIO' : 'VIDEO';
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = uriVideo;
@@ -285,11 +289,13 @@ const Chat = ({ navigation, route }) => {
         }
     };
 
-    const handleImageSelect = (uri, type) => {
+    const handleImageSelect = (uri, type,fileSize) => {
         if (type === "image") {
             setUriImage(uri);
+            setSizeImage(fileSize)
         } else {
             setUriVideo(uri);
+            setSizeVideo(fileSize)
         }
         hideModal2();
     };
@@ -298,8 +304,9 @@ const Chat = ({ navigation, route }) => {
         setSize((parseInt(size) / 1024).toFixed(2))
         hideModal2();
     };
-    const handleAudioSelect = (uri) => {
+    const handleAudioSelect = (uri,fileSize) => {
         setAudio(uri);
+        setSizeAudio(fileSize);
         hideModal2();
     };
     const handleSendImage = () => {
@@ -307,6 +314,7 @@ const Chat = ({ navigation, route }) => {
         const newMessage = {
             _id: id,
             image: uriImage,
+            // size:sizeImage,
             createdAt: new Date() + "",
             user: {
                 _id: sender.id,
@@ -436,6 +444,9 @@ const Chat = ({ navigation, route }) => {
                     <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
                     >{titleFile}</Text>
+                    {/* <Text numberOfLines={3}
+                        style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
+                    >{size}</Text> */}
                 </TouchableOpacity>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
                 {/* <Text style={{
@@ -567,7 +578,8 @@ const Chat = ({ navigation, route }) => {
                                 <FontAwesome6 name="arrows-rotate" size={40} color="red" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
                             </TouchableOpacity>}
-                            <TouchableOpacity style={{
+                            { messTarget && messTarget.user._id == sender.id &&
+                                <TouchableOpacity style={{
                                 width: '100%', flexDirection: 'row', alignItems: 'center',
                                 marginVertical: 10
                             }}
@@ -579,6 +591,7 @@ const Chat = ({ navigation, route }) => {
                                 <Ionicons name="arrow-undo" size={40} color="black" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
                             </TouchableOpacity>
+                            }
                             <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
                                 onPress={() => {
                                     if (stompClient.current) {
@@ -608,6 +621,7 @@ const Chat = ({ navigation, route }) => {
                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                         </Modal>
                         <MessageForward visible={visibleMessageFoward} onDismiss={hideModalMessageFoward} senderId={sender.id} onSend={fowardMessage} />
+                        <StipopSender/>
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChat

@@ -59,10 +59,16 @@ const AudioRecorder = ({ onSelectAudio }) => {
     const uploadMedia = async (uri) => {
         try {
             let filename = uri.split('/').pop();
+            let fileInfo = await FileSystem.getInfoAsync(uri);
+            let fileSize = fileInfo.size / (1024 * 1024);
+            if (fileSize > 10) {
+                Alert.alert('Thông báo', 'Kích thước tệp quá lớn. Vui lòng chọn một tệp có kích thước nhỏ hơn 10MB.');
+                return;
+            }
             const formData = new FormData();
             formData.append('file', {
                 uri: uri,
-                type: 'audio/mp3',
+                type: 'audio/mp3',  
                 name: filename,
             });
             formData.append('name', filename);
@@ -73,7 +79,7 @@ const AudioRecorder = ({ onSelectAudio }) => {
                 }
             });
             console.log(response.data);
-            onSelectAudio(response.data);
+            onSelectAudio(response.data,fileSize);
         } catch (error) {
             console.error('Lỗi upload media', error);
         }

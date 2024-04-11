@@ -90,7 +90,7 @@ const CreateMessager = ({ navigation }) => {
 
         try {
             const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
-            dispatch(save(updatedUser));
+            dispatch(save(updateUserResponse.data));
             navigation.navigate('Chat',{userName:newUser.userName});
             console.log('thêm thành công');
         } catch (error) {

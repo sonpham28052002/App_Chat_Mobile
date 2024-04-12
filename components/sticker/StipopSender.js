@@ -4,6 +4,16 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 const { StipopModule } = NativeModules;
 
 const StipopSender = () => {
+    useEffect(() => {
+    if (StipopModule) {
+      StipopModule.connect("9759023ad992a581d4b12b91d8ca373f");
+      return () => {
+        StipopModule.disconnect();
+      };
+    } else {
+      console.error('StipopModule is not available.');
+    }
+  }, []);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [isStipopShowing, setIsStipopShowing] = useState(false);
 
@@ -37,22 +47,26 @@ const StipopSender = () => {
   }, []);
 
   const handleStipopPress = () => {
-    switch (Platform.OS) {
-      case 'android':
-        StipopModule.show(isKeyboardVisible, isStipopShowing, resultBool => {
-          setIsStipopShowing(resultBool);
-        });
-        break;
-
-      case 'ios':
-        StipopModule.show(
-          isKeyboardVisible,
-          isStipopShowing,
-          (error, resultBool) => {
+    if (StipopModule) {
+      switch (Platform.OS) {
+        case 'android':
+          StipopModule.show(isKeyboardVisible, isStipopShowing, resultBool => {
             setIsStipopShowing(resultBool);
-          },
-        );
-        break;
+          });
+          break;
+
+        case 'ios':
+          StipopModule.show(
+            isKeyboardVisible,
+            isStipopShowing,
+            (error, resultBool) => {
+              setIsStipopShowing(resultBool);
+            },
+          );
+          break;
+      }
+    } else {
+      console.error('StipopModule is not available.');
     }
   };
 
@@ -62,5 +76,6 @@ const StipopSender = () => {
     </TouchableOpacity>
   );
 };
+
 
 export default StipopSender;

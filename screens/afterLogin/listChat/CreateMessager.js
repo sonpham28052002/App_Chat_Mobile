@@ -43,6 +43,7 @@ const CreateMessager = ({ navigation }) => {
                         userName: userRes.data.userName,
                         avt: userRes.data.avt
                     };
+                    console.log("=========================", newUser);
                     setNewUser(newUser);
                 }
             } else {
@@ -64,6 +65,7 @@ const CreateMessager = ({ navigation }) => {
             setError('Người dùng đã tồn tại trong danh sách cuộc trò chuyện.');
             return;
         }
+        console.log("------------------------", newUser);
         const newConversation = {
             updateLast: new Date().toISOString(),
             conversationType: 'single',
@@ -75,12 +77,15 @@ const CreateMessager = ({ navigation }) => {
             lastMessage: {
                 id: uuidv4(),
                 sender: {
-                    id: newUser.id,
+                    id: currentUser.id,
                 },
-                // content:"Hãy nhắn tin để hiểu nhau hơn"
+                receiver:{
+                    id: newUser.id
+                },
+                content: "Hãy nhắn tin để hiểu nhau hơn"
             }
         };
-
+        console.log(">>>>>>>>>>>>>>>>", newConversation);
         const updatedConversations = [...(currentUser.conversation || []), newConversation];
 
         const updatedUser = {
@@ -88,10 +93,12 @@ const CreateMessager = ({ navigation }) => {
             conversation: updatedConversations
         };
 
+        console.log("==========================u", updatedUser);
+
         try {
             const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
-            dispatch(save(updateUserResponse.data));
-            navigation.navigate('Chat',{userName:newUser.userName});
+            dispatch(save(updatedUser));
+            navigation.navigate('Chat', newUser);
             console.log('thêm thành công');
         } catch (error) {
             console.log(error);

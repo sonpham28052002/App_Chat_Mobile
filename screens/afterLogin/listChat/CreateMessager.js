@@ -34,9 +34,7 @@ const CreateMessager = ({ navigation }) => {
                 setData([accountRes.data]);
                 setError(null);
                 const userId = accountRes.data.id;
-                console.log(userId);
                 const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
-                console.log(userRes.data);
                 if (userRes.data) {
                     const newUser = {
                         id: userRes.data.id,
@@ -57,14 +55,12 @@ const CreateMessager = ({ navigation }) => {
 
  const handleAddUser = async () => {
     if (data.length > 0) {
-        console.log("id", newUser.id);
        const existingConversation = currentUser.conversation && currentUser.conversation.find(conv => conv.user && conv.user.id === newUser.id);
 
         if (existingConversation) {
             setError('Người dùng đã tồn tại trong danh sách cuộc trò chuyện.');
             return;
         }
-        console.log("------------------------", newUser);
         const newConversation = {
             updateLast: new Date().toISOString(),
             conversationType: 'single',
@@ -84,21 +80,20 @@ const CreateMessager = ({ navigation }) => {
                 content: "Hãy nhắn tin để hiểu nhau hơn"
             }
         };
-        console.log(">>>>>>>>>>>>>>>>", newConversation);
-        const updatedConversations = [...(currentUser.conversation || []), newConversation];
+        const updatedConversations = [...currentUser.conversation, newConversation];
 
         const updatedUser = {
             ...currentUser,
             conversation: updatedConversations
         };
 
-        console.log("==========================u", updatedUser);
-
         try {
             const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
+            if(updateUserResponse.data) 
+            console.log('thêm thành công');
+        else console.log('thêm thất bại');
             dispatch(save(updatedUser));
             navigation.navigate('Chat', newUser);
-            console.log('thêm thành công');
         } catch (error) {
             console.log(error);
             setError('Đã xảy ra lỗi khi thêm người dùng vào cuộc trò chuyện.');

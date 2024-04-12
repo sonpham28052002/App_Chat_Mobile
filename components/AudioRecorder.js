@@ -3,7 +3,7 @@ import { TouchableWithoutFeedback } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import axios from 'axios';
-
+import * as FileSystem from 'expo-file-system'; 
 const AudioRecorder = ({ onSelectAudio }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [recording, setRecording] = useState(null);
@@ -39,8 +39,11 @@ const AudioRecorder = ({ onSelectAudio }) => {
             if (recording) {
                 await recording.stopAndUnloadAsync();
                 const uri = recording.getURI();
+                const durationInSeconds = recording._finalDurationMillis;
+                // const durationInSeconds = durationInMillis / 1000;
+                console.log('Sgiay:', durationInSeconds);
                 console.log('Uri', uri);
-                uploadMedia(uri);
+                uploadMedia(uri,durationInSeconds);
                 setRecording(null);
             }
         } catch (error) {
@@ -56,7 +59,7 @@ const AudioRecorder = ({ onSelectAudio }) => {
         }
     };
 
-    const uploadMedia = async (uri) => {
+    const uploadMedia = async (uri,durationInSeconds) => {
         try {
             let filename = uri.split('/').pop();
             let fileInfo = await FileSystem.getInfoAsync(uri);
@@ -79,7 +82,7 @@ const AudioRecorder = ({ onSelectAudio }) => {
                 }
             });
             console.log(response.data);
-            onSelectAudio(response.data,fileSize);
+            onSelectAudio(response.data,fileSize,durationInSeconds);
         } catch (error) {
             console.error('Lỗi upload media', error);
         }

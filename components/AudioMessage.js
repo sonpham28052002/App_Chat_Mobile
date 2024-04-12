@@ -9,19 +9,26 @@ const AudioMessage = ({ audioUri, sender, onLongPress }) => {
     const [duration, setDuration] = useState(0);
     const [position, setPosition] = useState(0);
     const [animation] = useState(new Animated.Value(0));
+    const [currentTime, setCurrentTime] = useState(0);
 
     useEffect(() => {
         const loadSound = async () => {
             try {
+                if (!audioUri) {
+                    console.error('Error loading sound: audioUri is null');
+                    return;
+                }
+
                 if (sound) {
                     await sound.unloadAsync();
                 }
-                const { sound: newSound, duration: newDuration } = await Audio.Sound.createAsync(
+
+                const { sound: newSound, status: { durationMillis } } = await Audio.Sound.createAsync(
                     { uri: audioUri.audio },
                     { shouldPlay: false }
                 );
                 setSound(newSound);
-                setDuration(newDuration);
+                setDuration(durationMillis);
             } catch (error) {
                 console.error('Error loading sound', error);
             }
@@ -32,31 +39,48 @@ const AudioMessage = ({ audioUri, sender, onLongPress }) => {
                 sound.unloadAsync();
             }
         };
-    }, [audioUri.audio]);
+    }, [audioUri]);
 
-const { width } = Dimensions.get('window');
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            const status = await sound.getStatusAsync();
+            if (status.isLoaded) {
+                setCurrentTime(status.positionMillis / 1000); // Update current time every second
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [sound]);
+
+    const { width } = Dimensions.get('window');
 
     const playSound = async () => {
         try {
             if (!sound) return;
-            if (!isPlaying) {
-                await sound.setPositionAsync(position);
-                await sound.playAsync();
-                setIsPlaying(true);
-                Animated.timing(animation, {
-                    toValue: 1,
-                    duration: (duration - position) * 1000,
-                    useNativeDriver: true
-                }).start();
+
+            const status = await sound.getStatusAsync();
+            if (status.isLoaded) {
+                if (!status.isPlaying) {
+                    const newPosition = position > duration ? 0 : position;
+                    await sound.setPositionAsync(newPosition);
+                    await sound.playAsync();
+                    setIsPlaying(true);
+                    Animated.timing(animation, {
+                        toValue: 1,
+                        duration: (duration - newPosition) * 1000,
+                        useNativeDriver: true
+                    }).start();
+                } else {
+                    console.log('Sound is already playing.');
+                }
             } else {
-                await sound.pauseAsync();
-                setIsPlaying(false);
-                Animated.timing(animation).stop();
+                console.error('Error playing sound: Sound is not loaded.');
             }
         } catch (error) {
             console.error('Error playing sound', error);
         }
     };
+
 
     const stopSound = async () => {
         try {
@@ -73,40 +97,25 @@ const { width } = Dimensions.get('window');
         }
     };
 
-    const onPositionChange = (value) => {
-        if (!isPlaying) {
-            setPosition(value);
-        }
-    };
-
     const progressBarWidth = animation.interpolate({
         inputRange: [0, 1],
         outputRange: [0, 1],
         extrapolate: 'clamp'
     });
 
+    const formatTime = (timeInSeconds) => {
+        const minutes = Math.floor(timeInSeconds / 60);
+        const seconds = Math.floor(timeInSeconds % 60);
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    };
+
     return (
-        // <TouchableOpacity style={{ width: width - 170,
-        // alignItems: 'center', padding: 10,
-        // backgroundColor: !sender? 'white':'#1E90FF',
-        // marginLeft: !sender? 53 : width - 232, 
-        // borderTopLeftRadius: 20, borderTopRightRadius: 20,
-        // borderBottomRightRadius: !sender? 20:0,
-        // borderBottomLeftRadius: !sender? 0:20,
-        // marginBottom: 10
-        // }}
-        //     onLongPress={() => onLongPress(audioUri)}
-        // >
-        //     <TouchableOpacity onPress={isPlaying ? stopSound : playSound}>
-        //         <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={35} color="black" />
-        //     </TouchableOpacity>
-        // </TouchableOpacity>
-        <View style={{ flexDirection: 'column', alignItems: 'center' ,marginLeft:'50%',borderRadius:10}}>
+        <View style={{ flexDirection: 'column', alignItems: 'center', marginLeft: '50%', borderRadius: 10 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <TouchableOpacity onPress={isPlaying ? stopSound : playSound}>
                     <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={35} color="black" />
                 </TouchableOpacity>
-                <Text>{`${Math.floor(position)} / ${Math.floor(duration)}`}</Text>
+                <Text>{`${formatTime(currentTime)} / ${formatTime(duration / 1000)}`}</Text>
             </View>
             <View style={{ width: '100%', height: 10, backgroundColor: 'lightgray' }}>
                 <Animated.View
@@ -120,5 +129,4 @@ const { width } = Dimensions.get('window');
         </View>
     );
 };
-
 export default AudioMessage;

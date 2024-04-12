@@ -41,6 +41,7 @@ const Chat = ({ navigation, route }) => {
     const [sizeImage, setSizeImage] = useState(0);
     const [sizeVideo, setSizeVideo] = useState(0);
     const [sizeAudio, setSizeAudio] = useState(0);
+    const [durationInSeconds, setdurationInSeconds] = useState(0);
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
@@ -239,7 +240,7 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.url = uriVideo;
             } else if (type === 'Audio') {
                 const titleFile = audio.substring(audio.lastIndexOf("/") + 1);
-                chatMessage.size = 10;
+                chatMessage.size = sizeAudio;
                 chatMessage.messageType = "AUDIO";
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = audio;
@@ -308,9 +309,10 @@ const Chat = ({ navigation, route }) => {
         setSize((parseInt(size) / 1024).toFixed(2))
         hideModal2();
     };
-    const handleAudioSelect = (uri,fileSize) => {
+    const handleAudioSelect = (uri,fileSize,durationInSeconds) => {
         setAudio(uri);
         setSizeAudio(fileSize);
+        setdurationInSeconds(durationInSeconds);
         hideModal2();
     };
     const handleSendImage = () => {
@@ -512,6 +514,7 @@ const Chat = ({ navigation, route }) => {
                     showModal();
                     setMessTarget(message);
                 }}
+                durationInSeconds={currentMessage.durationInSeconds}
             />;
         }
         return null;

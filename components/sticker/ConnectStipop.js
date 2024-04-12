@@ -5,10 +5,14 @@ const { StipopModule } = NativeModules;
 
 const ConnectStipop = () => {
   useEffect(() => {
-    StipopModule.connect("9759023ad992a581d4b12b91d8ca373f");
-    return () => {
-      StipopModule.disconnect();
-    };
+    if (StipopModule) {
+      StipopModule.connect("9759023ad992a581d4b12b91d8ca373f");
+      return () => {
+        StipopModule.disconnect();
+      };
+    } else {
+      console.error('StipopModule is not available.');
+    }
   }, []);
 
   return null;

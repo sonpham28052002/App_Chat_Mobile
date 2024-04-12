@@ -7,16 +7,18 @@ import { useSelector, useDispatch } from 'react-redux';
 import { save } from "../../../Redux/slice";
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
-
-const CreateMessager = ({ navigation }) => {
+import QRCode from 'react-native-qrcode-svg';
+const AddFriend = ({ navigation }) => {
     const [data, setData] = useState([]);
     const [text, setText] = useState('');
     const [error, setError] = useState(null);
-    const [newUser, setNewUser] = useState('');
     const phoneInput = useRef(null);
-    const currentUser = useSelector(state => state.account);
+    // const currentUser = useSelector(state => state.account);
+    const [currentUser, setCurrentUser] = useState(useSelector(state => state.account));
+    const qrContent = currentUser.id;
+     const [newUser, setNewUser] = useState('');
     const dispatch = useDispatch();
-
+  const [test, setTest] = useState(true);
     useEffect(() => {
         const timerId = setTimeout(() => {
             if (text.trim() !== '') {
@@ -34,6 +36,36 @@ const CreateMessager = ({ navigation }) => {
                 setData([accountRes.data]);
                 setError(null);
                 const userId = accountRes.data.id;
+                console.log(userId);
+                const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
+                console.log(userRes.data);
+                if (userRes.data) {
+                    const newUser = {
+                        id: userRes.data.id,
+                        userName: userRes.data.userName,
+                        avt: userRes.data.avt
+                    };
+                    console.log("newUser", newUser);
+                    setNewUser(newUser);
+                }
+            } else {
+                setData([]);
+                setError('Không tìm thấy số điện thoại.');
+            }
+        } catch (error) {
+            console.log(error);
+            setError('Đã xảy ra lỗi. Vui lòng thử lại sau.');
+        }
+    };
+
+const handleAddFriend = async () => {
+    if (test) {
+        try {
+            const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${text}`);
+            if (accountRes.data) {
+                setData([accountRes.data]);
+                setError(null);
+                const userId = accountRes.data.id;
                 const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
                 if (userRes.data) {
                     const newUser = {
@@ -47,62 +79,42 @@ const CreateMessager = ({ navigation }) => {
                 setData([]);
                 setError('Không tìm thấy số điện thoại.');
             }
+
+            // Tạo danh sách bạn mới
+            const newFriendList = [
+                ...currentUser.friendList,
+                {
+                    user: {
+                        id: newUser.id,
+                        userName: newUser.userName,
+                        avt: newUser.avt,
+                    },
+                    tag: "",
+                    nickName: ""
+                }
+            ];
+            const updatedCurrentUser = {
+                ...currentUser,
+                friendList: newFriendList
+            };
+        console.log("updatedCurrentUser", updatedCurrentUser);
+            const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedCurrentUser);
+            if (updateUserResponse.data) {
+                console.log(updateUserResponse.data);
+                dispatch(save(updatedCurrentUser));
+                console.log('Kết bạn thành công');
+                setCurrentUser(updatedCurrentUser);
+                // navigation.navigate("Contact")
+            }
         } catch (error) {
             console.log(error);
-            setError('Đã xảy ra lỗi. Vui lòng thử lại sau.');
+            setError('Đã xảy ra lỗi khi thêm người dùng vào danh sách bạn bè.');
         }
-    };
-
- const handleAddUser = async () => {
-    if (data.length > 0) {
-       const existingConversation = currentUser.conversation && currentUser.conversation.find(conv => conv.user && conv.user.id === newUser.id);
-
-        if (existingConversation) {
-            setError('Người dùng đã tồn tại trong danh sách cuộc trò chuyện.');
-            return;
-        }
-        // const newConversation = {
-        //     updateLast: new Date().toISOString(),
-        //     conversationType: 'single',
-        //     user: {
-        //         id: newUser.id,
-        //         userName: newUser.userName,
-        //         avt: newUser.avt
-        //     },
-        //     lastMessage: {
-        //         id: uuidv4(),
-        //         sender: {
-        //             id: currentUser.id,
-        //         },
-        //         receiver:{
-        //             id: newUser.id
-        //         },
-        //         content: "Hãy nhắn tin để hiểu nhau hơn"
-        //     }
-        // };
-        // const updatedConversations = [...currentUser.conversation, newConversation];
-
-        // const updatedUser = {
-        //     ...currentUser,
-        //     conversation: updatedConversations
-        // };
-
-        // try {
-            // const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
-            // if(updateUserResponse.data) 
-            // console.log('thêm thành công');
-        // else console.log('thêm thất bại');
-            // dispatch(save(updatedUser));
-            // console.log("updateUserResponse",updateUserResponse.data);
-            navigation.navigate('Chat', newUser);
-        // } catch (error) {
-        //     console.log(error);
-        //     setError('Đã xảy ra lỗi khi thêm người dùng vào cuộc trò chuyện.');
-        // }
     } else {
-        setError('Vui lòng tìm kiếm và chọn một người dùng trước khi thêm.');
+        setError('Không thể kết bạn với người dùng này.');
     }
 }
+
 
     return (
         <SafeAreaView>
@@ -114,8 +126,16 @@ const CreateMessager = ({ navigation }) => {
                     textAlign: 'center',
                     margin: 10,
                     color: '#fdf8f8'
-                }}>Chat together!</Text>
+                }}>KẾT BẠN</Text>
             </View>
+            <View style={{ alignItems: 'center', marginTop: 20 ,marginBottom:20}}>
+    <Text style={{ fontSize: 20, marginBottom: 10 }}>Mã QR của bạn:</Text>
+    <QRCode
+        value={qrContent} 
+        size={200} 
+    />
+</View>
+
             <PhoneInput
                 ref={phoneInput}
                 initialCountry='vn'
@@ -156,8 +176,8 @@ const CreateMessager = ({ navigation }) => {
                         renderItem={({ item }) => (
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10, paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#ccc' }}>
                                 <Text style={{ flex: 1, fontSize: 20 }}>{item.phone}</Text>
-                                <TouchableOpacity style={styles.buttonAdd} onPress={handleAddUser}>
-                                    <Text style={styles.buttonText}>THÊM</Text>
+                                <TouchableOpacity style={styles.buttonAdd} onPress={handleAddFriend}>
+                                    <Text style={styles.buttonText}>KẾT BẠN</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -190,4 +210,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default CreateMessager;
+export default AddFriend;

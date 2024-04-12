@@ -420,6 +420,7 @@ const Chat = ({ navigation, route }) => {
             const newMessage = {
                 _id: id,
                 file: uriFile,
+                fileSize:size,
                 createdAt: new Date() + "",
                 user: {
                     _id: sender.id,
@@ -495,9 +496,8 @@ const Chat = ({ navigation, route }) => {
                     <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
                     >{titleFile}</Text>
-                    {/* <Text numberOfLines={3}
-                        style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{size}</Text> */}
+                    <Text style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
+                    >{currentMessage.fileSize}</Text>
                 </TouchableOpacity>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
                 {/* <Text style={{
@@ -668,7 +668,7 @@ const Chat = ({ navigation, route }) => {
                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                         </Modal>
                         <MessageForward visible={visibleMessageForward} onDismiss={hideModalMessageForward} senderId={sender.id} onSend={forwardMessage} />
-                        <StipopSender />
+                        {/* <StipopSender/> */}
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChat

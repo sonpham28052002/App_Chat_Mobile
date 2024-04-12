@@ -98,6 +98,7 @@ const Chat = ({ navigation, route }) => {
         if(response.data.length <= 20) messages = [...response.data]
         else messages = response.data.slice(-20)
         messages=messages.map(message => {
+
             let date = new Date(message.senderDate);
             let newMess = {
                 _id: message.id,

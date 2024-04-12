@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 import { TextInput } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { save } from '../../../Redux/slice';
+import { save,deleteConversation } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -38,8 +38,10 @@ const ListChat = ({ navigation }) => {
   const [deleteMode, setDeleteMode] = useState(false);
 
   // Xóa cuộc trò chuyện
-  const deleteConversation = async (userId) => {
+ const deleteConversationAction = async (userId) => {
     try {
+
+      setDeleteMode(false);
       const updatedConversations = conversations.filter(conversation => {
         if (conversation.user && conversation.user.id !== userId) {
           return true;
@@ -49,11 +51,11 @@ const ListChat = ({ navigation }) => {
         return false;
       });
       setConversations(updatedConversations);
-      setDeleteMode(false);
       const updatedUser = { ...currentUser, conversation: updatedConversations };
       const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
 
       if (updateUserResponse.status === 200) {
+        // dispatch(deleteConversationAction(userId));
         dispatch(save(updateUserResponse.data));
         console.log('Cập nhật người dùng thành công', updateUserResponse.data);
       }
@@ -163,7 +165,7 @@ const ListChat = ({ navigation }) => {
                   <Text style={{ fontSize: 20 }} numberOfLines={1}>{item.user.userName}</Text>
                   {
                     deleteMode && selectedItem === item && // Hiển thị nút xóa nếu ở trạng thái xóa và mục được chọn
-                    <TouchableOpacity onPress={() => deleteConversation(item.user.id)}>
+                    <TouchableOpacity onPress={() => deleteConversationAction(item.user.id)}>
                       <AntDesign name="delete" size={24} color="red" />
                     </TouchableOpacity>
                   }

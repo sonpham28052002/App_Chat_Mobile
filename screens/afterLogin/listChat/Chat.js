@@ -96,7 +96,8 @@ const Chat = ({ navigation, route }) => {
         const response = await axios.get(`https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`);
         let messages = []
         if(response.data.length <= 20) messages = [...response.data]
-        messages = response.data.slice(-20).map(message => {
+        else messages = response.data.slice(-20)
+        messages=messages.map(message => {
             let date = new Date(message.senderDate);
             let newMess = {
                 _id: message.id,
@@ -372,6 +373,7 @@ const Chat = ({ navigation, route }) => {
             const newMessage = {
                 _id: id,
                 file: uriFile,
+                fileSize:size,
                 createdAt: new Date() + "",
                 user: {
                     _id: sender.id,
@@ -446,9 +448,8 @@ const Chat = ({ navigation, route }) => {
                     <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
                     >{titleFile}</Text>
-                    {/* <Text numberOfLines={3}
-                        style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{size}</Text> */}
+                    <Text style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
+                    >{currentMessage.fileSize}</Text>
                 </TouchableOpacity>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
                 {/* <Text style={{
@@ -622,7 +623,7 @@ const Chat = ({ navigation, route }) => {
                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                         </Modal>
                         <MessageForward visible={visibleMessageFoward} onDismiss={hideModalMessageFoward} senderId={sender.id} onSend={fowardMessage} />
-                        <StipopSender/>
+                        {/* <StipopSender/> */}
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChat

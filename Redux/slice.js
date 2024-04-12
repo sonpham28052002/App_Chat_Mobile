@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const accountSlice = createSlice({
   name: 'account',
   initialState: {
+       friendList: [],
   },
   reducers: {
     save: (state, action) => {
@@ -10,6 +11,9 @@ const accountSlice = createSlice({
     },
     updateAvatar: (state, action) => {
       Object.assign(state, action.payload);
+    },
+    addToFriendList: (state, action) => {
+      state.friendList.push(action.payload);
     },
   },
 });
@@ -50,15 +54,21 @@ const chatSlice = createSlice({
   },
   reducers: {
     deleteConversation: (state, action) => {
-      state.conversations = state.conversations.filter(
-        conversation => conversation.lastMessage.id !== action.payload
-      );
+      state.conversations = state.conversations.filter(conversation => {
+        if (conversation.user && conversation.user.id !== action.payload) {
+          return true;
+        } else if (conversation.conversationType === 'group') {
+          return false;
+        }
+        return false;
+      });
     },
   },
 });
 
-export const { save, updateAvatar, updateLastMessage } = accountSlice.actions;
+export const { save, updateAvatar, updateLastMessage,addToFriendList } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } = messSlice.actions;
 export const { deleteConversation } = chatSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;
+export const chatReducer = chatSlice.reducer

@@ -51,7 +51,7 @@ export default function ContactScreen({ navigation }) {
         type="ionicon"
         title="Tìm kiếm bạn bè"
         backgroundColor="#006AF5"
-        handlePress={() => navigation.navigate('AddFriend')}
+        // handlePress={() => navigation.navigate('AddFriend')}
       />
       <ContactAction
         name="group"

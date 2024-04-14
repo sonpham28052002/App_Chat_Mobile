@@ -9,6 +9,7 @@ import Stomp from 'stompjs';
 import axios from 'axios';
 import ModalAddChat from './components/ModalAddChat';
 import ModalCreateGroup from './components/ModalCreateGroup';
+import ModalAddFriend from './components/ModalAddFriend';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const ListChat = ({ navigation }) => {
   // const name = useSelector((state) => state.account.userName);
@@ -46,6 +47,10 @@ const ListChat = ({ navigation }) => {
   const [visibleCreateGroup, setVisibleCreateGroup] = useState(false);
   const showModalCreateGroup = () => setVisibleCreateGroup(true);
   const hideModalCreateGroup = () => setVisibleCreateGroup(false);
+
+  const [visibleAddFriend, setVisibleAddFriend] = useState(false);
+  const showModalAddFriend = () => setVisibleAddFriend(true);
+  const hideModalAddFriend = () => setVisibleAddFriend(false);
 
   // Xóa cuộc trò chuyện
   const deleteConversationAction = async (userId) => {
@@ -127,9 +132,19 @@ const ListChat = ({ navigation }) => {
     showModalCreateGroup();
   }
 
+  const handleShowModalAddFriend = () => {
+    hideModal();
+    showModalAddFriend();
+  }
+
   const createGroup = (data) => {
     // console.log("------------------->", data);
     stompClient.current.send('/app/createGroup', {}, JSON.stringify(data));
+  }
+
+  const addFriend = (data) => {
+    stompClient.current.send('/app/request-add-friend', {}, JSON.stringify(data));
+    hideModalAddFriend();
   }
 
   return (
@@ -247,8 +262,9 @@ const ListChat = ({ navigation }) => {
           </TouchableOpacity>
         )}
       </View>
-        <ModalAddChat visible={visible} onDismiss={hideModal} handleShowModalCreateGroup={handleShowModalCreateGroup}/>
+        <ModalAddChat visible={visible} onDismiss={hideModal} handleShowModalAddFriend={handleShowModalAddFriend} handleShowModalCreateGroup={handleShowModalCreateGroup}/>
         <ModalCreateGroup visible={visibleCreateGroup} senderId={id} onPress={createGroup} onDismiss={hideModalCreateGroup} />
+        <ModalAddFriend visible={visibleAddFriend} onDismiss={hideModalAddFriend} onPress={addFriend}/>
     </SafeAreaView >
   );
 }

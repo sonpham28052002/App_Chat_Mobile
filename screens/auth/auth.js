@@ -21,6 +21,7 @@ import ListChat from '../afterLogin/listChat/ListChat.js';
 import Chat from '../afterLogin/listChat/Chat.js';
 import OptionChat from '../afterLogin/listChat/OptionChat.js';
 import OptionChat2 from '../afterLogin/listChat/OptionChat2.js';
+import Search from '../afterLogin/Search/Search.js'
 const Stack = createStackNavigator()
 
 export default function Auth() {
@@ -84,6 +85,11 @@ export default function Auth() {
           headerTintColor: "white",
         }}
       />
+       <Stack.Screen name="Search" component={Search} 
+          options={{
+            headerShown: false
+          }}
+          />
           {/* <Stack.Screen name="CreatePassword" component={CreatePassword} /> */}
           {/* <Stack.Screen name="User" component={User} /> */}
         </Stack.Navigator>

@@ -38,7 +38,7 @@ const ListChat = ({ navigation }) => {
   const [conversations, setConversations] = useState(currentUser.conversation);
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteMode, setDeleteMode] = useState(false);
-
+ const [isRes, setIsRes] = useState(false);
   const [visible, setVisible] = useState(false);
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
@@ -46,34 +46,8 @@ const ListChat = ({ navigation }) => {
   const [visibleCreateGroup, setVisibleCreateGroup] = useState(false);
   const showModalCreateGroup = () => setVisibleCreateGroup(true);
   const hideModalCreateGroup = () => setVisibleCreateGroup(false);
-
-  // // Xóa cuộc trò chuyện
-  // const deleteConversationAction = async (userId) => {
-  //   try {
-
-  //     setDeleteMode(false);
-  //     const updatedConversations = conversations.filter(conversation => {
-  //       if (conversation.user && conversation.user.id !== userId) {
-  //         return true;
-  //       } else if (conversation.conversationType === 'group') {
-  //         return false;
-  //       }
-  //       return false;
-  //     });
-  //     setConversations(updatedConversations);
-  //     const updatedUser = { ...currentUser, conversation: updatedConversations };
-  //     const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
-
-  //     if (updateUserResponse.status === 200) {
-  //       // dispatch(deleteConversationAction(userId));
-  //       dispatch(save(updateUserResponse.data));
-  //       console.log('Cập nhật người dùng thành công', updateUserResponse.data);
-  //     }
-  //   } catch (error) {
-  //     console.error('Lỗi khi cập nhật người dùng', error);
-  //   }
-  // };
-
+const [deleteTimeout, setDeleteTimeout] = useState(null);
+  const [restoring, setRestoring] = useState(false);
   useEffect(() => {
     const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
     stompClient.current = Stomp.over(socket);
@@ -142,6 +116,47 @@ const ListChat = ({ navigation }) => {
     // console.log("------------------->", data);
     stompClient.current.send('/app/createGroup', {}, JSON.stringify(data));
   }
+ const [secondsLeft, setSecondsLeft] = useState(10);
+
+const handleDelete = (item) => {
+  setSelectedItem(item);
+  setDeleteMode(true);
+  setSecondsLeft(10); 
+  setIsRes(true)
+  startDeleteTimeout();
+};
+
+const cancelDelete = () => {
+  clearTimeout(deleteTimeout);
+  setDeleteMode(false);
+};
+
+const restoreConversation = () => {
+  cancelDelete();
+   setIsRes(false)
+};
+
+const startDeleteTimeout = () => {
+  const timeout = setInterval(() => {
+    setSecondsLeft(prevSeconds => prevSeconds - 1); 
+    if (secondsLeft === 1) {
+      clearInterval(timeout);
+      deleteConversation(selectedItem);
+      setDeleteMode(false);
+    }
+  }, 1000);
+  
+  setDeleteTimeout(timeout);
+};
+
+
+
+useEffect(() => {
+  return () => {
+    clearTimeout(deleteTimeout);
+  };
+}, [deleteMode]);
+ 
 const deleteConversation = (item) => {
   if (!item) {
     console.error("Item Error:", item);
@@ -243,9 +258,10 @@ const deleteConversation = (item) => {
                   <Text style={{ fontSize: 20 }} numberOfLines={1}>{item.user ? item.user.userName : item.nameGroup}</Text>
                   {
                     deleteMode && selectedItem === item && // Hiển thị nút xóa nếu ở trạng thái xóa và mục được chọn
-                    <TouchableOpacity onPress={() => deleteConversation(item)}>
+                    <TouchableOpacity onPress={() => handleDelete(item)}>
                       <AntDesign name="delete" size={24} color="red" />
                     </TouchableOpacity>
+                    
                   }
                   {
                     item.lastMessage? item.lastMessage.sender.id == obj.id ?
@@ -290,11 +306,25 @@ const deleteConversation = (item) => {
         )} */}
             </TouchableOpacity>
                {deleteMode && selectedItem === item && (
-          <TouchableOpacity onPress={() => setDeleteMode(false)}>
+
+               <View style={{}}>
+        <TouchableOpacity onPress={restoreConversation}>
+        <View style={{ backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', height: 50 }}>
+               <Text style={{ fontSize: 14, color: 'red' }}>{secondsLeft} giây còn lại</Text>
+              <Text style={{ color: 'red' }}>Khôi phục</Text>
+            </View>
+        </TouchableOpacity>
+     <TouchableOpacity onPress={() => setDeleteMode(false)}>
             <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
               <Text style={{ color: 'white' }}>Hủy Xóa</Text>
             </View>
           </TouchableOpacity>
+      </View>
+          // <TouchableOpacity onPress={() => setDeleteMode(false)}>
+          //   <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
+          //     <Text style={{ color: 'white' }}>Hủy Xóa</Text>
+          //   </View>
+          // </TouchableOpacity>
         )}
           </View>
          

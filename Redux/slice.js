@@ -27,12 +27,10 @@ const messSlice = createSlice({
   reducers:{
     saveReceiverId: (state, action) => {
       state = {...state, id: action.payload};
-      console.log("sss", state);
     },
     saveMess: (state, action) => {
       state.messages = [...action.payload];
       // state = {...state, messages: action.payload}
-      console.log("sssxxx", state);
     },
     addMess: (state, action) => {
       if(state.messages.findIndex(mess => mess._id === action.payload._id) === -1)

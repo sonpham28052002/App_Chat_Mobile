@@ -18,13 +18,12 @@ import VideoMessage from '../../../components/VideoMesssage';
 import AudioMessage from '../../../components/AudioMessage';
 import MessageForward from './components/MessageForward';
 import StipopSender from '../../../components/sticker/StipopSender'
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {
-    console.log("sssssssssssssssssssssssssssssssssssssssssssssss", route.params);
     const dispatch = useDispatch();
     const sender = useSelector((state) => state.account);
-    // const [messages, setMessages] = useState([]);
     const messages = useSelector((state) => state.message.messages);
     // const receiverId = useSelector((state) => state.message.id);
     // let [receiverId, setReceiverId] = useState('alo');
@@ -44,13 +43,16 @@ const Chat = ({ navigation, route }) => {
     const [sizeImage, setSizeImage] = useState(0);
     const [sizeVideo, setSizeVideo] = useState(0);
     const [sizeAudio, setSizeAudio] = useState(0);
+    const [durationInSeconds, setdurationInSeconds] = useState(0);
     //    const [messagesVideo, setMessagesVideo] = useState([]);
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
 
+    let listMember = useRef([]);
+
     useEffect(() => {
         navigation.setOptions({
-            title: route.params.userName,
+            title: route.params.userName? route.params.userName: route.params.nameGroup,
             headerRight: () => (
                 <View style={{
                     width: 120,
@@ -73,10 +75,12 @@ const Chat = ({ navigation, route }) => {
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
 
+        // if(route.params.nameGroup){
+            getListMember();
+        // }
         // if (receiverId !== route.params.id) {
             // dispatch(saveReceiverId(route.params.id));
-            console.log("rrrr" + receiverId +"RRRRRR");
-            getMessage();
+        // getMessage();
         // }
     }, []);
     const [messLoad, setMessLoad] = useState([]);
@@ -96,8 +100,35 @@ const Chat = ({ navigation, route }) => {
         }
     }
 
+    const getListMember = async () => {
+        if(route.params.nameGroup){
+        let api = `https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
+        console.log("api get list member", api);
+        const result = await axios.get(api)
+        try {
+            if (result.data){
+                listMember.current = [...result.data];
+                getMessage();
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        }else getMessage();
+    }
+
+    const getMember = (id) => {
+        return listMember.current.find(item => item.member.id === id);
+    }
+
     const getMessage = async () => {
-        const response = await axios.get(`https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`);
+        let response = null;
+        let api = ''
+        if(route.params.nameGroup)
+            api = `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
+        else 
+            api = `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`
+        console.log("api get message", api);
+        response = await axios.get(api);
         let messages = []
         if (response.data.length <= 20) messages = [...response.data]
         else messages = response.data.slice(-20)
@@ -108,8 +139,8 @@ const Chat = ({ navigation, route }) => {
                 createdAt: date.setUTCHours(date.getUTCHours() + 7),
                 user: {
                     _id: message.sender.id,
-                    name: message.sender.id == sender.id ? sender.userName : route.params.userName,
-                    avatar: message.sender.id == sender.id ? sender.avt : route.params.avt,
+                    name: message.sender.id == sender.id ? sender.userName : route.params.nameGroup? getMember(message.sender.id).member.userName : route.params.userName,
+                    avatar: message.sender.id == sender.id ? sender.avt : route.params.nameGroup? getMember(message.sender.id).member.avt : route.params.avt,
                 }
             }
             if (message.messageType === 'RETRIEVE')
@@ -145,8 +176,15 @@ const Chat = ({ navigation, route }) => {
 
     function onConnected() {
         stompClient.current.subscribe('/user/' + sender.id + '/singleChat', onMessageReceived)
+        stompClient.current.subscribe('/user/' + sender.id + '/groupChat', onGroupMessageReceived)
         stompClient.current.subscribe('/user/' + sender.id + '/retrieveMessage', onRetrieveMessage)
         stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
+    }
+
+    function onGroupMessageReceived(payload){
+        let message = JSON.parse(payload.body)
+        updateMess();
+        addMessage(message, "group")
     }
 
     function onDeleteResult(payload) {
@@ -180,47 +218,43 @@ const Chat = ({ navigation, route }) => {
         }
     }
 
+    function addMessage(message, type){
+        let date = new Date(message.senderDate);
+        let newMessage = {
+            _id: message.id,
+            createdAt: date.setUTCHours(date.getUTCHours() + 7),
+            user: {
+                _id: message.sender.id,
+                name: message.sender.id === sender.id ? sender.userName : type == "group"? getMember(message.sender.id).member.userName : route.params.userName,
+                avatar: message.sender.id === sender.id ? sender.avt : type == "group"? getMember(message.sender.id).member.avt : route.params.avt,
+            }
+        };
+        if (message.content)
+            newMessage.text = message.content;
+        else {
+            if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
+                newMessage.image = message.url;
+            else if (message.messageType == 'AUDIO')
+                newMessage.audio = message.url;
+            else if (message.messageType == 'VIDEO')
+                newMessage.video = message.url;
+            else if (message.messageType == 'PDF' || message.messageType == 'DOC'
+                || message.messageType == 'DOCX' || message.messageType == 'XLS'
+                || message.messageType == 'XLSX' || message.messageType == 'PPT'
+                || message.messageType == 'PPTX' || message.messageType == 'RAR'
+                || message.messageType == 'ZIP' || message.messageType == 'TXT'
+                || message.messageType == 'JSON' || message.messageType == 'XML'
+                || message.messageType == 'CSV' || message.messageType == 'HTML')
+                newMessage.file = message.url;
+        }
+        dispatch(addMess(newMessage));
+    }
+
     function onMessageReceived(payload) {
         const message = JSON.parse(payload.body);
         updateMess();
-        if (message.sender.id === sender.id && message.receiver.id === receiverId) {
-            let date = new Date(message.senderDate);
-            let newMessage = {
-                _id: message.id,
-                createdAt: date.setUTCHours(date.getUTCHours() + 7),
-                user: {
-                    _id: message.sender.id === sender.id ? sender.id : route.params.id,
-                    name: message.sender.id === sender.id ? sender.userName : route.params.userName,
-                    avatar: message.sender.id === sender.id ? sender.avt : route.params.avt,
-                }
-            };
-            if (message.content)
-                newMessage.text = message.content;
-            // else if (message.url)
-            //     newMessage.image = message.url;
-            // else if (message.file)
-            //     newMessage.file = message.file;
-            // else if (message.video)
-            //     newMessage.video = message.video;
-            else {
-                if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
-                    newMessage.image = message.url;
-                else if (message.messageType == 'AUDIO')
-                    newMessage.audio = message.url;
-                else if (message.messageType == 'VIDEO')
-                    newMessage.video = message.url;
-                else if (message.messageType == 'PDF' || message.messageType == 'DOC'
-                    || message.messageType == 'DOCX' || message.messageType == 'XLS'
-                    || message.messageType == 'XLSX' || message.messageType == 'PPT'
-                    || message.messageType == 'PPTX' || message.messageType == 'RAR'
-                    || message.messageType == 'ZIP' || message.messageType == 'TXT'
-                    || message.messageType == 'JSON' || message.messageType == 'XML'
-                    || message.messageType == 'CSV' || message.messageType == 'HTML')
-                    newMessage.file = message.url;
-            }
-            // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-            dispatch(addMess(newMessage));
-        }
+        if (message.sender.id === sender.id && message.receiver.id === receiverId)
+            addMessage(message, "single");
     }
 
     function onError(error) {
@@ -232,7 +266,6 @@ const Chat = ({ navigation, route }) => {
             var chatMessage = {
                 id: id,
                 sender: { id: sender.id },
-                receiver: { id: route.params.id }
             };
             if (mess && type === 'Text') {
                 chatMessage.content = mess
@@ -272,12 +305,17 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.url = uriVideo;
             } else if (type === 'Audio') {
                 const titleFile = audio.substring(audio.lastIndexOf("/") + 1);
-                chatMessage.size = 10;
+                chatMessage.size = sizeAudio;
                 chatMessage.messageType = "AUDIO";
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = audio;
             }
-            let messageSend = { ...chatMessage, idGroup: "" }
+            let messageSend = null
+            if(route.params.nameGroup)
+                messageSend = { ...chatMessage, idGroup: route.params.id, receiver: undefined}
+            else
+                messageSend = { ...chatMessage, idGroup: "", receiver: { id: route.params.id }
+            }
             stompClient.current.send("/app/private-single-message", {}, JSON.stringify(messageSend));
         }
     }
@@ -285,7 +323,7 @@ const Chat = ({ navigation, route }) => {
     const forwardMessage = (data) => {
         let dataSend = data.filter(item => item.checked);
         let dataMessage = convertMessageGiftedChatToMessage(messTarget);
-        let listMessage = dataSend.map(item => ({ ...dataMessage, sender:{ id: sender.id }, receiver: { id: item.id } }));
+        let listMessage = dataSend.map(item => ({ ...dataMessage, sender:{ id: sender.id }, receiver: route.params.nameGroup? { id: "group_"+route.params.id} : { id: item.id } }));
         stompClient.current.send("/app/forward-message", {}, JSON.stringify(listMessage));
         hideModalMessageForward();
     }
@@ -354,9 +392,10 @@ const Chat = ({ navigation, route }) => {
         setSize((parseInt(size) / 1024).toFixed(2))
         hideModal2();
     };
-    const handleAudioSelect = (uri, fileSize) => {
+    const handleAudioSelect = (uri,fileSize,durationInSeconds) => {
         setAudio(uri);
         setSizeAudio(fileSize);
+        setdurationInSeconds(durationInSeconds);
         hideModal2();
     };
     const handleSendImage = () => {
@@ -496,8 +535,8 @@ const Chat = ({ navigation, route }) => {
                     <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
                     >{titleFile}</Text>
-                    <Text style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{currentMessage.fileSize}</Text>
+                    {/* <Text style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
+                    >{currentMessage.fileSize}</Text> */}
                 </TouchableOpacity>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
                 {/* <Text style={{
@@ -559,6 +598,7 @@ const Chat = ({ navigation, route }) => {
                     showModal();
                     setMessTarget(message);
                 }}
+                durationInSeconds={currentMessage.durationInSeconds}
             />;
         }
         return null;
@@ -569,8 +609,7 @@ const Chat = ({ navigation, route }) => {
             id: giftedMessage._id,
             senderDate: new Date(giftedMessage.createdAt)
         };
-        chatMessage.sender = giftedMessage.user._id === sender.id? 
-            { id: sender.id } : { id: route.params.id },
+        chatMessage.sender = { id: giftedMessage.user._id}
         chatMessage.receiver = giftedMessage.user._id === sender.id?
             { id: route.params.id } : { id: sender.id }
         if (giftedMessage.text) {
@@ -578,12 +617,13 @@ const Chat = ({ navigation, route }) => {
             chatMessage.messageType = "Text"
         }
         else { // image, file, video, audio
-            const uri = giftedMessage.image.substring(giftedMessage.image.lastIndexOf("/") + 1);
+            const u = giftedMessage.image ? giftedMessage.image : giftedMessage.file ? giftedMessage.file : giftedMessage.video ? giftedMessage.video : giftedMessage.audio;
+            const uri = u.substring(u.lastIndexOf("/") + 1);
             const type = uri.substring(uri.lastIndexOf(".") + 1);
-            const size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
-            const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
-            chatMessage.size = size;
-            chatMessage.titleFile = titleFile;
+            // const size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
+            // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
+            // chatMessage.size = size;
+            // chatMessage.titleFile = titleFile;
             if (giftedMessage.image) {
                 chatMessage.messageType = type.toUpperCase();
                 chatMessage.url = giftedMessage.image;
@@ -619,8 +659,11 @@ const Chat = ({ navigation, route }) => {
                                 <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
                                     onPress={() => {
                                         if (stompClient.current) {
+                                            let messSend = convertMessageGiftedChatToMessage(messTarget)
+                                            if(route.params.nameGroup)
+                                                messSend = { ...messSend, receiver: { id: "group_"+route.params.id } }
                                             stompClient.current.send("/app/retrieve-message", {},
-                                                JSON.stringify(convertMessageGiftedChatToMessage(messTarget)));
+                                                JSON.stringify(messSend));
                                         }
                                     }}
                                 >
@@ -644,7 +687,7 @@ const Chat = ({ navigation, route }) => {
                                     if (stompClient.current) {
                                         let deleteMessage = convertMessageGiftedChatToMessage(messTarget)
                                         delete deleteMessage.senderDate
-                                        let idGroup = ""
+                                        let idGroup = route.params.id
                                         let ownerId = sender.id
                                         stompClient.current.send("/app/delete-message", {},
                                             JSON.stringify({ ...deleteMessage, idGroup, ownerId }));

@@ -8,17 +8,27 @@ import { save } from "../../../Redux/slice";
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 import QRCode from 'react-native-qrcode-svg';
-const AddFriend = ({ navigation }) => {
+import SockJS from 'sockjs-client';
+import { over } from 'stompjs';
+const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+const stompClient = over(socket);
+
+const AddFriend = ({ route, navigation }) => {
     const [data, setData] = useState([]);
     const [text, setText] = useState('');
     const [error, setError] = useState(null);
     const phoneInput = useRef(null);
-    // const currentUser = useSelector(state => state.account);
     const [currentUser, setCurrentUser] = useState(useSelector(state => state.account));
     const qrContent = currentUser.id;
-     const [newUser, setNewUser] = useState('');
+    const [newUser, setNewUser] = useState('');
     const dispatch = useDispatch();
-  const [test, setTest] = useState(true);
+
+    useEffect(() => {
+        if (route.params && route.params.phoneNumber) {
+            setText(route.params.phoneNumber);
+        }
+    }, [route.params]);
+
     useEffect(() => {
         const timerId = setTimeout(() => {
             if (text.trim() !== '') {
@@ -31,21 +41,17 @@ const AddFriend = ({ navigation }) => {
     const searchUser = async () => {
         try {
             const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${text}`);
-            console.log(accountRes.data);
             if (accountRes.data) {
                 setData([accountRes.data]);
                 setError(null);
                 const userId = accountRes.data.id;
-                console.log(userId);
                 const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
-                console.log(userRes.data);
                 if (userRes.data) {
                     const newUser = {
                         id: userRes.data.id,
                         userName: userRes.data.userName,
                         avt: userRes.data.avt
                     };
-                    console.log("newUser", newUser);
                     setNewUser(newUser);
                 }
             } else {
@@ -58,63 +64,38 @@ const AddFriend = ({ navigation }) => {
         }
     };
 
-const handleAddFriend = async () => {
-    if (test) {
+    const handleAddFriend = async () => {
         try {
-            const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${text}`);
-            if (accountRes.data) {
-                setData([accountRes.data]);
-                setError(null);
-                const userId = accountRes.data.id;
-                const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
-                if (userRes.data) {
-                    const newUser = {
-                        id: userRes.data.id,
-                        userName: userRes.data.userName,
-                        avt: userRes.data.avt
-                    };
-                    setNewUser(newUser);
-                }
-            } else {
-                setData([]);
-                setError('Không tìm thấy số điện thoại.');
-            }
-
-            // Tạo danh sách bạn mới
-            const newFriendList = [
-                ...currentUser.friendList,
-                {
-                    user: {
-                        id: newUser.id,
-                        userName: newUser.userName,
-                        avt: newUser.avt,
-                    },
-                    tag: "",
-                    nickName: ""
-                }
-            ];
-            const updatedCurrentUser = {
-                ...currentUser,
-                friendList: newFriendList
+            const request = {
+                id: currentUser.id,
+                userName: currentUser.userName,
+                avt: currentUser.avt,
+                receiverId: newUser.id,
             };
-        console.log("updatedCurrentUser", updatedCurrentUser);
-            const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedCurrentUser);
-            if (updateUserResponse.data) {
-                console.log(updateUserResponse.data);
-                dispatch(save(updatedCurrentUser));
-                console.log('Kết bạn thành công');
-                setCurrentUser(updatedCurrentUser);
-                // navigation.navigate("Contact")
-            }
+            stompClient.send("/app/request-add-friend", {}, JSON.stringify(request));
         } catch (error) {
-            console.log(error);
-            setError('Đã xảy ra lỗi khi thêm người dùng vào danh sách bạn bè.');
+            console.error('Error sending friend request:', error);
         }
-    } else {
-        setError('Không thể kết bạn với người dùng này.');
-    }
-}
+    };
 
+    useEffect(() => {
+        stompClient.connect(
+            {},
+            () => {
+                console.log("Running");
+                stompClient.subscribe("/user/" + currentUser.id + "/requestAddFriend", (message) => {
+                    let mess = JSON.parse(message.body);
+                    if (mess.sender.id === currentUser.id) {
+                        // Xử lý phản hồi ở đây, ví dụ: hiển thị thông báo thành công
+                        console.log("Friend request sent successfully");
+                    }
+                });
+            },
+            (error) => {
+                console.error('Error connecting to WebSocket server:', error);
+            }
+        );
+    }, []);
 
     return (
         <SafeAreaView>
@@ -128,13 +109,13 @@ const handleAddFriend = async () => {
                     color: '#fdf8f8'
                 }}>KẾT BẠN</Text>
             </View>
-            <View style={{ alignItems: 'center', marginTop: 20 ,marginBottom:20}}>
-    <Text style={{ fontSize: 20, marginBottom: 10 }}>Mã QR của bạn:</Text>
-    <QRCode
-        value={qrContent} 
-        size={200} 
-    />
-</View>
+            <View style={{ alignItems: 'center', marginTop: 20, marginBottom: 20 }}>
+                <Text style={{ fontSize: 20, marginBottom: 10 }}>Mã QR của bạn:</Text>
+                <QRCode
+                    value={qrContent}
+                    size={200}
+                />
+            </View>
 
             <PhoneInput
                 ref={phoneInput}

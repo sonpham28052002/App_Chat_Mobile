@@ -5,6 +5,8 @@ import Contact from '../Contact'
 import ContactAction from '../ContactAction'
 import User from '../user/User'
 import AddFriend from '../listChat/AddFriend'
+import FriendRequests from './FriendRequests'
+import UserDetailAddFriend from './UserDetailAddFriend'
 const Stack = createStackNavigator()
 const ContactHome = () => {
   return (
@@ -15,6 +17,8 @@ const ContactHome = () => {
           <Stack.Screen name="ContactAction" component={ContactAction} />
         <Stack.Screen name="User" component={User} />
           <Stack.Screen name="AddFriend" component={AddFriend} />
+          <Stack.Screen name="FriendRequests" component={FriendRequests} />
+             <Stack.Screen name="UserDetailAddFriend" component={UserDetailAddFriend} />
     </Stack.Navigator>
   )
 }

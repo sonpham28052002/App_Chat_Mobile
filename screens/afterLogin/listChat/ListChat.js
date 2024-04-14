@@ -1,12 +1,14 @@
 import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView, Platform } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
-import { TextInput } from 'react-native-paper';
+import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { save, deleteConversation } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
+import ModalAddChat from './components/ModalAddChat';
+import ModalCreateGroup from './components/ModalCreateGroup';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const ListChat = ({ navigation }) => {
   // const name = useSelector((state) => state.account.userName);
@@ -36,6 +38,14 @@ const ListChat = ({ navigation }) => {
   const [conversations, setConversations] = useState(currentUser.conversation);
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteMode, setDeleteMode] = useState(false);
+
+  const [visible, setVisible] = useState(false);
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
+
+  const [visibleCreateGroup, setVisibleCreateGroup] = useState(false);
+  const showModalCreateGroup = () => setVisibleCreateGroup(true);
+  const hideModalCreateGroup = () => setVisibleCreateGroup(false);
 
   // Xóa cuộc trò chuyện
   const deleteConversationAction = async (userId) => {
@@ -72,6 +82,7 @@ const ListChat = ({ navigation }) => {
 
   const onConnected = () => {
     stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+    // stompClient.current.subscribe('/user/' + id + '/createGroup', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
   }
@@ -111,6 +122,16 @@ const ListChat = ({ navigation }) => {
     return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
   };
 
+  const handleShowModalCreateGroup = () => {
+    hideModal();
+    showModalCreateGroup();
+  }
+
+  const createGroup = (data) => {
+    // console.log("------------------->", data);
+    stompClient.current.send('/app/createGroup', {}, JSON.stringify(data));
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       {Platform.OS == "android" && <View style={{ height: 30 }} />}
@@ -138,7 +159,10 @@ const ListChat = ({ navigation }) => {
           <FontAwesome name="qrcode" size={35} color="white" />
         </TouchableOpacity>
         <View style={{ marginRight: 10 }}>
-          <TouchableOpacity onPress={() => navigation.navigate('CreateMessager')}>
+          <TouchableOpacity onPress={() => 
+            // navigation.navigate('CreateMessager')
+            showModal()
+            }>
             <AntDesign name="adduser" size={35} color="white" />
           </TouchableOpacity>
         </View>
@@ -148,7 +172,7 @@ const ListChat = ({ navigation }) => {
         scrollEnabled={true}
           data={obj.conversation}
           renderItem={({ item }) => (
-            // item.user &&
+          (item.user || (item.status && item.status !== "DISBANDED")) &&
             <TouchableOpacity
               style={{
                 height: 70, flexDirection: 'row', alignItems: 'center',
@@ -223,6 +247,8 @@ const ListChat = ({ navigation }) => {
           </TouchableOpacity>
         )}
       </View>
+        <ModalAddChat visible={visible} onDismiss={hideModal} handleShowModalCreateGroup={handleShowModalCreateGroup}/>
+        <ModalCreateGroup visible={visibleCreateGroup} senderId={id} onPress={createGroup} onDismiss={hideModalCreateGroup} />
     </SafeAreaView >
   );
 }

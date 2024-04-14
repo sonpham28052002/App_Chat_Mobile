@@ -65,7 +65,7 @@ useEffect(() => {
       const formattedPhoneNumberWithPrefix = formattedPhoneNumber.startsWith('84') ? formattedPhoneNumber : `84${formattedPhoneNumber.replace(/^0/, '')}`;
       const matchedAccount = accountList.find(account => account.phone === formattedPhoneNumberWithPrefix);
       const accountId = matchedAccount ? matchedAccount.id : null;
-      console.log('accountId', accountId);
+      // console.log('accountId', accountId);
       const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
       const isFriend = friendList && friendList.length > 0 && friendList.some(friend => friend.user.id === accountId);
       if (isFriend) {
@@ -93,12 +93,15 @@ useEffect(() => {
           <Text style={styles.addButtonText}>Kết bạn</Text>
         </TouchableOpacity>
       ) : item.isFriend ? (
+        <View style={{flexDirection:'row'}}>
+          <View style={{margin:10}}><Text style={styles.notRegisteredText}>Đã là bạn bè</Text></View>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => handleSendMessage(item.phoneNumbers[0].number)}
         >
           <Text style={styles.addButtonText}>Nhắn tin</Text>
         </TouchableOpacity>
+        </View>
       ) : (
         <Text style={styles.notRegisteredText}>Chưa đăng ký</Text>
       )}
@@ -137,7 +140,7 @@ useEffect(() => {
         const accountId = account.id;
         const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${accountId}`);
         if (userRes.data) {
-          navigation.navigate('Chat',{user: userRes.data})
+          navigation.navigate('Chat',userRes.data)
         } else {
           console.log('User not found for account ID:', accountId);
         }

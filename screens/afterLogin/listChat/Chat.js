@@ -18,14 +18,16 @@ import VideoMessage from '../../../components/VideoMesssage';
 import AudioMessage from '../../../components/AudioMessage';
 import MessageForward from './components/MessageForward';
 import StipopSender from '../../../components/sticker/StipopSender'
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const sender = useSelector((state) => state.account);
-    // const [messages, setMessages] = useState([]);
     const messages = useSelector((state) => state.message.messages);
-    const receiverId = useSelector((state) => state.message.receiverId);
+    // const receiverId = useSelector((state) => state.message.id);
+    // let [receiverId, setReceiverId] = useState('alo');
+    const receiverId = useRef(route.params.id).current;
     var stompClient = useRef(null);
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
@@ -46,9 +48,11 @@ const Chat = ({ navigation, route }) => {
     //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
     //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
 
+    let listMember = useRef([]);
+
     useEffect(() => {
         navigation.setOptions({
-            title: route.params.userName,
+            title: route.params.userName? route.params.userName: route.params.nameGroup,
             headerRight: () => (
                 <View style={{
                     width: 120,
@@ -71,10 +75,13 @@ const Chat = ({ navigation, route }) => {
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
 
-        if (receiverId !== route.params.id) {
-            dispatch(saveReceiverId(route.params.id));
-            getMessage();
-        }
+        // if(route.params.nameGroup){
+            getListMember();
+        // }
+        // if (receiverId !== route.params.id) {
+            // dispatch(saveReceiverId(route.params.id));
+        // getMessage();
+        // }
     }, []);
     const [messLoad, setMessLoad] = useState([]);
 
@@ -93,21 +100,47 @@ const Chat = ({ navigation, route }) => {
         }
     }
 
-    const getMessage = async () => {
-        const response = await axios.get(`https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`);
-        let messages = []
-        if(response.data.length <= 20) messages = [...response.data]
-        else messages = response.data.slice(-20)
-        messages=messages.map(message => {
+    const getListMember = async () => {
+        if(route.params.nameGroup){
+        let api = `https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
+        console.log("api get list member", api);
+        const result = await axios.get(api)
+        try {
+            if (result.data){
+                listMember.current = [...result.data];
+                getMessage();
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        }else getMessage();
+    }
 
+    const getMember = (id) => {
+        return listMember.current.find(item => item.member.id === id);
+    }
+
+    const getMessage = async () => {
+        let response = null;
+        let api = ''
+        if(route.params.nameGroup)
+            api = `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
+        else 
+            api = `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`
+        console.log("api get message", api);
+        response = await axios.get(api);
+        let messages = []
+        if (response.data.length <= 20) messages = [...response.data]
+        else messages = response.data.slice(-20)
+        messages = messages.map(message => {
             let date = new Date(message.senderDate);
             let newMess = {
                 _id: message.id,
                 createdAt: date.setUTCHours(date.getUTCHours() + 7),
                 user: {
                     _id: message.sender.id,
-                    name: message.sender.id == sender.id ? sender.userName : route.params.userName,
-                    avatar: message.sender.id == sender.id ? sender.avt : route.params.avt,
+                    name: message.sender.id == sender.id ? sender.userName : route.params.nameGroup? getMember(message.sender.id).member.userName : route.params.userName,
+                    avatar: message.sender.id == sender.id ? sender.avt : route.params.nameGroup? getMember(message.sender.id).member.avt : route.params.avt,
                 }
             }
             if (message.messageType === 'RETRIEVE')
@@ -137,14 +170,21 @@ const Chat = ({ navigation, route }) => {
         setMessLoad(messages);
     }
 
-    const loadMessage = () => {
+    function loadMessage(){
         dispatch(saveMess(messLoad.reverse()));
     }
 
     function onConnected() {
         stompClient.current.subscribe('/user/' + sender.id + '/singleChat', onMessageReceived)
+        stompClient.current.subscribe('/user/' + sender.id + '/groupChat', onGroupMessageReceived)
         stompClient.current.subscribe('/user/' + sender.id + '/retrieveMessage', onRetrieveMessage)
         stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
+    }
+
+    function onGroupMessageReceived(payload){
+        let message = JSON.parse(payload.body)
+        updateMess();
+        addMessage(message, "group")
     }
 
     function onDeleteResult(payload) {
@@ -178,29 +218,43 @@ const Chat = ({ navigation, route }) => {
         }
     }
 
-    function onMessageReceived(payload) {
-        const message = JSON.parse(payload.body);
-        updateMess();
+    function addMessage(message, type){
         let date = new Date(message.senderDate);
         let newMessage = {
             _id: message.id,
             createdAt: date.setUTCHours(date.getUTCHours() + 7),
             user: {
-                _id: message.sender.id === sender.id ? sender.id : route.params.id,
-                name: message.sender.id === sender.id ? sender.userName : route.params.userName,
-                avatar: message.sender.id === sender.id ? sender.avt : route.params.avt,
+                _id: message.sender.id,
+                name: message.sender.id === sender.id ? sender.userName : type == "group"? getMember(message.sender.id).member.userName : route.params.userName,
+                avatar: message.sender.id === sender.id ? sender.avt : type == "group"? getMember(message.sender.id).member.avt : route.params.avt,
             }
         };
         if (message.content)
             newMessage.text = message.content;
-        else if (message.url)
-            newMessage.image = message.url;
-        else if (message.file)
-            newMessage.file = message.file;
-        else if (message.video)
-            newMessage.video = message.video;
-        // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
+        else {
+            if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
+                newMessage.image = message.url;
+            else if (message.messageType == 'AUDIO')
+                newMessage.audio = message.url;
+            else if (message.messageType == 'VIDEO')
+                newMessage.video = message.url;
+            else if (message.messageType == 'PDF' || message.messageType == 'DOC'
+                || message.messageType == 'DOCX' || message.messageType == 'XLS'
+                || message.messageType == 'XLSX' || message.messageType == 'PPT'
+                || message.messageType == 'PPTX' || message.messageType == 'RAR'
+                || message.messageType == 'ZIP' || message.messageType == 'TXT'
+                || message.messageType == 'JSON' || message.messageType == 'XML'
+                || message.messageType == 'CSV' || message.messageType == 'HTML')
+                newMessage.file = message.url;
+        }
         dispatch(addMess(newMessage));
+    }
+
+    function onMessageReceived(payload) {
+        const message = JSON.parse(payload.body);
+        updateMess();
+        if (message.sender.id === sender.id && message.receiver.id === receiverId)
+            addMessage(message, "single");
     }
 
     function onError(error) {
@@ -212,19 +266,30 @@ const Chat = ({ navigation, route }) => {
             var chatMessage = {
                 id: id,
                 sender: { id: sender.id },
-                receiver: { id: route.params.id }
             };
             if (mess && type === 'Text') {
                 chatMessage.content = mess
                 chatMessage.messageType = type
             }
             else if (type === 'Image') {
+                // const uri = uriImage.substring(uriImage.lastIndexOf("/") + 1);
+                // const type = getFileExtension(uriImage);
+                // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_"))+"."+type;
                 const titleFile = uriImage.substring(uriImage.lastIndexOf("/") + 1);
                 chatMessage.size = sizeImage;
                 chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
                 chatMessage.titleFile = titleFile;
+                // chatMessage.size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
+                // chatMessage.messageType = type.toUpperCase();
                 chatMessage.url = uriImage;
             } else if (type === 'File') {
+                // const uri = uriFile.substring(uriFile.lastIndexOf("/") + 1);
+                // const type = getFileExtension(uriFile);
+                // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
+                // chatMessage.titleFile = titleFile;
+                // chatMessage.size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
+                // chatMessage.messageType = type.toUpperCase();
+                // chatMessage.url = uriFile;
                 const uri = uriFile.substring(uriFile.lastIndexOf("/") + 1);
                 const titleFile = uri.substring(uri.indexOf("_") + 1);
                 chatMessage.size = size;
@@ -245,16 +310,22 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.titleFile = titleFile;
                 chatMessage.url = audio;
             }
-            stompClient.current.send("/app/private-single-message", {}, JSON.stringify(chatMessage));
+            let messageSend = null
+            if(route.params.nameGroup)
+                messageSend = { ...chatMessage, idGroup: route.params.id, receiver: undefined}
+            else
+                messageSend = { ...chatMessage, idGroup: "", receiver: { id: route.params.id }
+            }
+            stompClient.current.send("/app/private-single-message", {}, JSON.stringify(messageSend));
         }
     }
 
-    const fowardMessage = (data) => {
+    const forwardMessage = (data) => {
         let dataSend = data.filter(item => item.checked);
         let dataMessage = convertMessageGiftedChatToMessage(messTarget);
-        let listMessage = dataSend.map(item => ({ ...dataMessage, receiver: { id: item.id } }));
+        let listMessage = dataSend.map(item => ({ ...dataMessage, sender:{ id: sender.id }, receiver: route.params.nameGroup? { id: "group_"+route.params.id} : { id: item.id } }));
         stompClient.current.send("/app/forward-message", {}, JSON.stringify(listMessage));
-        hideModalMessageFoward();
+        hideModalMessageForward();
     }
 
     const handleSend = () => {
@@ -294,7 +365,15 @@ const Chat = ({ navigation, route }) => {
         }
     };
 
-    const handleImageSelect = (uri, type,fileSize) => {
+    // const handleImageSelect = (uri, type, size) => {
+    //     const uriType = uri.substring(uri.lastIndexOf(".") + 1);
+    //     const uriFile = uri.substring(0, uri.lastIndexOf("."));
+    //     const newUri = uriFile + "_" + size + "." + uriType;
+    //     if (type === "image") {
+    //         setUriImage(newUri);
+    //     } else {
+    //         setUriVideo(newUri);
+    const handleImageSelect = (uri, type, fileSize) => {
         if (type === "image") {
             setUriImage(uri);
             setSizeImage(fileSize)
@@ -305,6 +384,10 @@ const Chat = ({ navigation, route }) => {
         hideModal2();
     };
     const handleFileSelect = (uri, size) => {
+        // const type = uri.substring(uri.lastIndexOf(".") + 1);
+        // const uriFile = uri.substring(0, uri.lastIndexOf("."));
+        // setUriFile(uriFile + "_" + size + "." + type);
+        // hideModal2();
         setUriFile(uri);
         setSize((parseInt(size) / 1024).toFixed(2))
         hideModal2();
@@ -328,7 +411,7 @@ const Chat = ({ navigation, route }) => {
                 avatar: sender.avt,
             }
         };
-        const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
+        // const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
         sendMessage(id, "Image");
         // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
         dispatch(addMess(newMessage));
@@ -429,7 +512,8 @@ const Chat = ({ navigation, route }) => {
                 colorIcon = '#111111';
         }
         const uri = currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)
-        const titleFile = uri.substring(uri.indexOf("_") + 1);
+        const type = uri.substring(uri.lastIndexOf(".") + 1);
+        const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
         return (
             <View style={[styles.fileMessageContainer, {
                 marginLeft: currentMessage.user._id !== sender.id ? 53 : width - 252,
@@ -451,8 +535,8 @@ const Chat = ({ navigation, route }) => {
                     <Text numberOfLines={2}
                         style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
                     >{titleFile}</Text>
-                    <Text style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{currentMessage.fileSize}</Text>
+                    {/* <Text style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
+                    >{currentMessage.fileSize}</Text> */}
                 </TouchableOpacity>
                 {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
                 {/* <Text style={{
@@ -483,9 +567,9 @@ const Chat = ({ navigation, route }) => {
     const showModal2 = () => setVisible2(true);
     const hideModal2 = () => setVisible2(false);
 
-    const [visibleMessageFoward, setVisibleMessageFoward] = useState(false);
-    const showModalMessageFoward = () => setVisibleMessageFoward(true);
-    const hideModalMessageFoward = () => setVisibleMessageFoward(false);
+    const [visibleMessageForward, setVisibleMessageForward] = useState(false);
+    const showModalMessageForward = () => setVisibleMessageForward(true);
+    const hideModalMessageForward = () => setVisibleMessageForward(false);
 
     const [messTarget, setMessTarget] = useState();
 
@@ -525,37 +609,35 @@ const Chat = ({ navigation, route }) => {
             id: giftedMessage._id,
             senderDate: new Date(giftedMessage.createdAt)
         };
-        if (giftedMessage.user._id === sender.id) {
-            chatMessage.sender = { id: sender.id },
-                chatMessage.receiver = { id: route.params.id }
-        } else {
-            chatMessage.receiver = { id: sender.id },
-                chatMessage.sender = { id: route.params.id }
-        }
+        chatMessage.sender = { id: giftedMessage.user._id}
+        chatMessage.receiver = giftedMessage.user._id === sender.id?
+            { id: route.params.id } : { id: sender.id }
         if (giftedMessage.text) {
             chatMessage.content = giftedMessage.text
             chatMessage.messageType = "Text"
         }
-        // else if (messTarget.image) {
-        //     const titleFile = messTarget.image.substring(messTarget.image.lastIndexOf("/") + 1);
-        //     chatMessage.size = 10;
-        //     chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
-        //     chatMessage.titleFile = titleFile;
-        //     chatMessage.url = uriImage;
-        // } else if (type === 'File') {
-        //     const titleFile = uriFile.substring(uriFile.lastIndexOf("/") + 1);
-        //     chatMessage.size = 10;
-        //     chatMessage.messageType = getFileExtension(uriFile).toUpperCase();
-        //     chatMessage.titleFile = titleFile;
-        //     chatMessage.url = uriFile;
-        // }
-        // else if (type === 'Video') {
-        //     const titleFile = uriVideo.substring(uriVideo.lastIndexOf("/") + 1);
-        //     chatMessage.size = 10;
-        //     chatMessage.messageType = getFileExtension(uriVideo)=='mp3'? 'AUDIO':'VIDEO';
-        //     chatMessage.titleFile = titleFile;
-        //     chatMessage.url = uriVideo;
-        // }
+        else { // image, file, video, audio
+            const u = giftedMessage.image ? giftedMessage.image : giftedMessage.file ? giftedMessage.file : giftedMessage.video ? giftedMessage.video : giftedMessage.audio;
+            const uri = u.substring(u.lastIndexOf("/") + 1);
+            const type = uri.substring(uri.lastIndexOf(".") + 1);
+            // const size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
+            // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
+            // chatMessage.size = size;
+            // chatMessage.titleFile = titleFile;
+            if (giftedMessage.image) {
+                chatMessage.messageType = type.toUpperCase();
+                chatMessage.url = giftedMessage.image;
+            } else if (giftedMessage.file) {
+                chatMessage.messageType = getFileExtension(giftedMessage.file).toUpperCase();
+                chatMessage.url = giftedMessage.file;
+            } else if (giftedMessage.video) {
+                chatMessage.messageType = "VIDEO";
+                chatMessage.url = giftedMessage.video;
+            } else if (giftedMessage.audio) {
+                chatMessage.messageType = "AUDIO";
+                chatMessage.url = giftedMessage.audio;
+            }
+        }
         return chatMessage;
     }
 
@@ -573,37 +655,39 @@ const Chat = ({ navigation, route }) => {
                             {messTarget &&
                                 <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text>
                             }
-                            { messTarget && messTarget.user._id == sender.id &&
-                             <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
-                                onPress={() => {
-                                    if (stompClient.current) {
-                                        stompClient.current.send("/app/retrieve-message", {},
-                                            JSON.stringify(convertMessageGiftedChatToMessage(messTarget)));
-                                    }
-                                }}
-                            >
-                                <FontAwesome6 name="arrows-rotate" size={40} color="red" />
-                                <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
-                            </TouchableOpacity>}
-                            { messTarget && messTarget.user._id == sender.id &&
-                                <TouchableOpacity style={{
+                            {messTarget && messTarget.user._id == sender.id &&
+                                <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
+                                    onPress={() => {
+                                        if (stompClient.current) {
+                                            let messSend = convertMessageGiftedChatToMessage(messTarget)
+                                            if(route.params.nameGroup)
+                                                messSend = { ...messSend, receiver: { id: "group_"+route.params.id } }
+                                            stompClient.current.send("/app/retrieve-message", {},
+                                                JSON.stringify(messSend));
+                                        }
+                                    }}
+                                >
+                                    <FontAwesome6 name="arrows-rotate" size={40} color="red" />
+                                    <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
+                                </TouchableOpacity>}
+                            <TouchableOpacity style={{
                                 width: '100%', flexDirection: 'row', alignItems: 'center',
                                 marginVertical: 10
                             }}
                                 onPress={() => {
                                     hideModal();
-                                    showModalMessageFoward();
+                                    showModalMessageForward();
                                 }}
                             >
                                 <Ionicons name="arrow-undo" size={40} color="black" />
                                 <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
-                            </TouchableOpacity>}
+                            </TouchableOpacity>
                             <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
                                 onPress={() => {
                                     if (stompClient.current) {
                                         let deleteMessage = convertMessageGiftedChatToMessage(messTarget)
                                         delete deleteMessage.senderDate
-                                        let idGroup = ""
+                                        let idGroup = route.params.id
                                         let ownerId = sender.id
                                         stompClient.current.send("/app/delete-message", {},
                                             JSON.stringify({ ...deleteMessage, idGroup, ownerId }));
@@ -626,7 +710,7 @@ const Chat = ({ navigation, route }) => {
                             <FilePickerComponent onSelectFile={handleFileSelect} />
                             <ImagePickerComponent onSelectImage={handleImageSelect} />
                         </Modal>
-                        <MessageForward visible={visibleMessageFoward} onDismiss={hideModalMessageFoward} senderId={sender.id} onSend={fowardMessage} />
+                        <MessageForward visible={visibleMessageForward} onDismiss={hideModalMessageForward} senderId={sender.id} onSend={forwardMessage} />
                         {/* <StipopSender/> */}
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>

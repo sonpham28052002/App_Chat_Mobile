@@ -131,6 +131,38 @@ const ListChat = ({ navigation }) => {
     // console.log("------------------->", data);
     stompClient.current.send('/app/createGroup', {}, JSON.stringify(data));
   }
+const deleteConversation = (item) => {
+  const con = {
+    ownerId: item,
+    idUser: "",
+    idGroup: ""
+  };
+
+  if (item.conversationType === "group") {
+    con.idGroup = item.idGroup;
+  } else {
+    con.idUser = item.user.id;
+  }
+
+  stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
+  const subscription = stompClient.current.subscribe('/user/' + currentUser.id + '/deleteConversation', (message) => {
+    console.log(message);
+    const conversation = JSON.parse(message.body);
+    if (conversation) {
+      console.log('Cuộc trò chuyện đã được xóa thành công:', conversation);
+      const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
+      setConversations(updatedConversations);
+    } else {
+      console.log('Xóa cuộc trò chuyện không thành công:', conversation);
+    }
+    subscription.unsubscribe();
+  });
+}
+
+
+
+
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -197,7 +229,7 @@ const ListChat = ({ navigation }) => {
                   <Text style={{ fontSize: 20 }} numberOfLines={1}>{item.user ? item.user.userName : item.nameGroup}</Text>
                   {
                     deleteMode && selectedItem === item && // Hiển thị nút xóa nếu ở trạng thái xóa và mục được chọn
-                    <TouchableOpacity onPress={() => deleteConversationAction(item.user.id)}>
+                    <TouchableOpacity onPress={() => deleteConversation(item)}>
                       <AntDesign name="delete" size={24} color="red" />
                     </TouchableOpacity>
                   }

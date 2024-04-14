@@ -6,7 +6,7 @@ import axios from 'axios';
 import { SimpleLineIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system'; 
 
-const ImagePickerComponent = ({ onSelectImage }) => {
+const ImagePickerComponent = ({ onSelectImage ,buttonText}) => {
     const [isVideo, setIsVideo] = useState(false);
 
     const selectImage = async (isAvatar) => {
@@ -116,7 +116,7 @@ const ImagePickerComponent = ({ onSelectImage }) => {
     return (
         <TouchableOpacity onPress={handleSelectOption} style={{ height: 50, flexDirection: 'row', alignItems: 'center' }}>
             <SimpleLineIcons name="picture" size={35} color="black" />
-            <Text style={{ fontSize: 20, marginLeft: 10 }}>Chọn ảnh/video</Text>
+            <Text style={{ fontSize: 20, marginLeft: 10 }}>{buttonText}</Text>
         </TouchableOpacity>
     );
 };

@@ -15,8 +15,7 @@ const User = ({ navigation }) => {
 
   useEffect(() => {
     const fetchAccountList = async () => {
-      try {
-        
+      try {        
         const userRes = await axios.get('https://deploybackend-production.up.railway.app/account/all');
         if (userRes.data && Array.isArray(userRes.data)) {
           setAccountList(userRes.data);
@@ -38,13 +37,14 @@ const User = ({ navigation }) => {
       const { status } = await Contacts.requestPermissionsAsync();
       if (status === 'granted') {
         const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers],
+          fields: [Contacts.Fields.Image,Contacts.Fields.Name, Contacts.Fields.PhoneNumbers],
         });
 
         if (data.length > 0) {
           setContacts(data.map(contact => ({
             ...contact,
-            isRegistered: false
+            isRegistered: false,
+            isFriend: false, 
           })));
         }
       } else {
@@ -54,19 +54,30 @@ const User = ({ navigation }) => {
 
     getContacts();
   }, []);
+  
 
-  useEffect(() => {
-    const updatedContacts = [...contacts];
-    updatedContacts.forEach(contact => {
-      const normalizedPhoneNumber = normalizePhoneNumber(contact.phoneNumbers && contact.phoneNumbers.length > 0 ? contact.phoneNumbers[0].number : '');
-      contact.isRegistered = matchingIds.includes(contact.id) || matchingPhones.includes(normalizedPhoneNumber);
-      if (friendList && friendList.user) {
-        contact.isFriend = friendList.some(friend => friend.user.id === contact.id);
+useEffect(() => {
+  const updatedContacts = [...contacts];
+  updatedContacts.forEach(contact => {
+    const phoneNumber = contact.phoneNumbers && contact.phoneNumbers.length > 0 ? contact.phoneNumbers[0].number : null;
+    if (phoneNumber) {
+      const formattedPhoneNumber = phoneNumber.replace(/\D/g, '');
+      const formattedPhoneNumberWithPrefix = formattedPhoneNumber.startsWith('84') ? formattedPhoneNumber : `84${formattedPhoneNumber.replace(/^0/, '')}`;
+      const matchedAccount = accountList.find(account => account.phone === formattedPhoneNumberWithPrefix);
+      const accountId = matchedAccount ? matchedAccount.id : null;
+      console.log('accountId', accountId);
+      const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
+      const isFriend = friendList && friendList.length > 0 && friendList.some(friend => friend.user.id === accountId);
+      if (isFriend) {
+        contact.isFriend = true;
+      } else {
+        contact.isRegistered = matchingIds.includes(contact.id) || matchingPhones.includes(normalizedPhoneNumber);
       }
-    });
-    setContacts(updatedContacts);
-  }, [matchingIds, matchingPhones, friendList]);
-
+    } else {
+    }
+  });
+  setContacts(updatedContacts);
+}, [matchingIds, matchingPhones, friendList]);
 
   const renderItem = ({ item }) => (
     <View style={styles.contactItem}>
@@ -84,7 +95,7 @@ const User = ({ navigation }) => {
       ) : item.isFriend ? (
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => handleSendMessage(item.id)}
+          onPress={() => handleSendMessage(item.phoneNumbers[0].number)}
         >
           <Text style={styles.addButtonText}>Nhắn tin</Text>
         </TouchableOpacity>
@@ -94,43 +105,54 @@ const User = ({ navigation }) => {
     </View>
   );
 
-const handleAddFriend = async (phoneNumber) => {
-  try {
-    const formattedPhoneNumber = phoneNumber.replace(/\D/g, '');
-    const formattedPhoneNumberWithPrefix = formattedPhoneNumber.startsWith('84') ? formattedPhoneNumber : `84${formattedPhoneNumber.replace(/^0/, '')}`;
-    console.log(`Add friend with phone number: ${formattedPhoneNumberWithPrefix}`);
-    const account = accountList.find(account => account.phone === formattedPhoneNumberWithPrefix);
-    if (account) {
-      // console.log('Account:', account);
-      const accountId = account.id;
-      // console.log(accountId);
-      const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${accountId}`);
-      if (userRes.data) {
-        navigation.navigate('UserDetailAddFriend',{user: userRes.data})
+  const handleAddFriend = async (phoneNumber) => {
+    try {
+      const formattedPhoneNumber = phoneNumber.replace(/\D/g, '');
+      const formattedPhoneNumberWithPrefix = formattedPhoneNumber.startsWith('84') ? formattedPhoneNumber : `84${formattedPhoneNumber.replace(/^0/, '')}`;
+      console.log(`Add friend with phone number: ${formattedPhoneNumberWithPrefix}`);
+      const account = accountList.find(account => account.phone === formattedPhoneNumberWithPrefix);
+      if (account) {
+        const accountId = account.id;
+        const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${accountId}`);
+        if (userRes.data) {
+          navigation.navigate('UserDetailAddFriend',{user: userRes.data})
+        } else {
+          console.log('User not found for account ID:', accountId);
+        }
       } else {
-        console.log('User not found for account ID:', accountId);
+        console.log('Account not found for phone number:', formattedPhoneNumberWithPrefix);
       }
-    } else {
-      console.log('Account not found for phone number:', formattedPhoneNumberWithPrefix);
+    } catch (error) {
+      console.error('Error fetching user by account ID:', error);
     }
-  } catch (error) {
-    console.error('Error fetching user by account ID:', error);
-  }
-};
-
-
-
-
-  const handleSendMessage = (userId) => {
-    console.log(`Send message to user with ID: ${userId}`);
   };
 
+ const handleSendMessage = async (phoneNumber) => {
+    try {
+      const formattedPhoneNumber = phoneNumber.replace(/\D/g, '');
+      const formattedPhoneNumberWithPrefix = formattedPhoneNumber.startsWith('84') ? formattedPhoneNumber : `84${formattedPhoneNumber.replace(/^0/, '')}`;
+      console.log(`Add friend with phone number: ${formattedPhoneNumberWithPrefix}`);
+      const account = accountList.find(account => account.phone === formattedPhoneNumberWithPrefix);
+      if (account) {
+        const accountId = account.id;
+        const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${accountId}`);
+        if (userRes.data) {
+          navigation.navigate('Chat',{user: userRes.data})
+        } else {
+          console.log('User not found for account ID:', accountId);
+        }
+      } else {
+        console.log('Account not found for phone number:', formattedPhoneNumberWithPrefix);
+      }
+    } catch (error) {
+      console.error('Error fetching user by account ID:', error);
+    }
+  };
   const normalizePhoneNumber = (phoneNumber) => {
     let normalizedNumber = phoneNumber.replace(/[^\d]/g, '');
     if (normalizedNumber.startsWith('0')) {
       normalizedNumber = '84' + normalizedNumber.slice(1);
     }
-
     return normalizedNumber;
   };
 

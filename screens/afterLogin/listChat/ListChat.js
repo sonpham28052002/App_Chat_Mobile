@@ -82,6 +82,7 @@ const ListChat = ({ navigation }) => {
 
   const onConnected = () => {
     stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+    stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
     // stompClient.current.subscribe('/user/' + id + '/createGroup', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
@@ -97,7 +98,17 @@ const ListChat = ({ navigation }) => {
       console.log(error);
     }
   }
-
+  const onReceiveDeleteConversationResponse = (message) => {
+    console.log("DELETE CONVERSATION RESPONSE:", message);
+    const conversation = JSON.parse(message.body);
+    if (conversation) {
+      console.log('Cuộc trò chuyện đã được xóa thành công:', conversation);
+      // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
+      // setConversations(updatedConversations);
+    } else {
+      console.log('Xóa cuộc trò chuyện không thành công:', conversation);
+    }
+  }
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
   }
@@ -132,32 +143,44 @@ const ListChat = ({ navigation }) => {
     stompClient.current.send('/app/createGroup', {}, JSON.stringify(data));
   }
 const deleteConversation = (item) => {
+  if (!item) {
+    console.error("Item Error:", item);
+    return;
+  }
+
   const con = {
-    ownerId: item,
+    ownerId: id,
     idUser: "",
     idGroup: ""
   };
 
-  if (item.conversationType === "group") {
+  if (item.conversationType === "group" && item.idGroup) {
     con.idGroup = item.idGroup;
-  } else {
+  } else if (item.user && item.user.id) {
     con.idUser = item.user.id;
+  } else {
+    console.error("Invalid Item:", item);
+    return;
   }
 
   stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
-  const subscription = stompClient.current.subscribe('/user/' + currentUser.id + '/deleteConversation', (message) => {
-    console.log(message);
-    const conversation = JSON.parse(message.body);
-    if (conversation) {
-      console.log('Cuộc trò chuyện đã được xóa thành công:', conversation);
-      const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
-      setConversations(updatedConversations);
+
+  const updatedConversations = conversations.filter(conv => {
+    if (item.conversationType === "group") {
+      return conv.idGroup !== item.idGroup;
     } else {
-      console.log('Xóa cuộc trò chuyện không thành công:', conversation);
+      return conv.user.id !== item.user.id;
     }
-    subscription.unsubscribe();
   });
+
+  setConversations(updatedConversations);
+  setSelectedItem(null); 
+  setDeleteMode(false);
 }
+
+
+
+
 
 
 
@@ -202,7 +225,7 @@ const deleteConversation = (item) => {
       <View>
         <FlatList
         scrollEnabled={true}
-          data={obj.conversation}
+          data={conversations}
           renderItem={({ item }) => (
           (item.user || (item.status && item.status !== "DISBANDED")) &&
           <View>

@@ -30,17 +30,63 @@ import { icon } from "@fortawesome/fontawesome-svg-core";
 import { Button } from "react-native-web";
 import { useSelector, useDispatch } from "react-redux";
 import { ro } from "rn-emoji-keyboard";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const OptionChat = ({ navigation, route }) => {
   const [showModal, setShowModal] = useState(false);
   const account = useSelector((state) => state.account);
-  console.log("aaa", route.params);
+  const [isGroup, setIsGroup] = useState(false);
+  const [member, setMember] = useState("");
+  function getMember() {
+    axios
+      .get(
+        `https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
+      )
+      .then((res) => {
+        setMember(res.data.length);
+      })
+      .catch((err) => {
+        console.log("get member error", err);
+      });
+  }
   useEffect(() => {
-    getImageFileLink();
+    if (route.params.nameGroup) {
+      getImageFileLinkGroup();
+      getMember();
+      setIsGroup(true);
+    } else {
+      getImageFileLink();
+      setIsGroup(false);
+    }
   }, []);
+  // get danh sách 4 ảnh file đầu tiên của group chat
+  const [firtFourImageGroup, setFirtFourImageGroup] = useState([]);
+  async function getImageFileLinkGroup() {
+    try {
+      const res = await axios.get(
+        `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
+      );
+      if (res.data) {
+        const sort = res.data.sort(
+          (a, b) => new Date(a.senderDate) - new Date(b.senderDate)
+        );
+        const image = sort.filter((item) => {
+          return (
+            item.messageType === "PNG" ||
+            item.messageType === "JPEG" ||
+            item.messageType === "JPG" ||
+            item.messageType === "VIDEO"
+          );
+        });
+        setFirtFourImageGroup(image.slice(0, 4));
+      }
+    } catch (error) {
+      console.log("get image file link group error", error);
+    }
+  }
+
   // biến lưu trữ danh sách tin nhắn dạng file image sort theo thời gian gửi
-  const [imageSortByTime, setImageSortByTime] = useState([]);
-  const [fileSortByTime, setfileSortByTime] = useState([]);
+
   const [firtFourImage, setFirtFourImage] = useState([]);
   async function getImageFileLink() {
     try {
@@ -71,11 +117,20 @@ const OptionChat = ({ navigation, route }) => {
     <View style={styles.container}>
       <ScrollView style={{ width: "100%", height: "100%" }}>
         <View style={styles.ViewTop}>
-          <Image
-            style={{ width: 90, height: 90, borderRadius: 50 }}
-            source={{ uri: route.params?.avt }}
-          />
-          <Text>{route.params?.userName}</Text>
+          <TouchableOpacity activeOpacity={0.8}>
+            <Image
+              style={{ width: 90, height: 90, borderRadius: 50 }}
+              source={{ uri: route.params?.avt }}
+            />
+          </TouchableOpacity>
+
+          {isGroup ? (
+            <Text style={{ fontSize: 17, fontWeight: 500, marginTop: 7 }}>
+              {route.params?.nameGroup}
+            </Text>
+          ) : (
+            <Text>{route.params?.userName}</Text>
+          )}
           <View style={styles.ViewBottomTop}>
             <View style={styles.ViewItemTop}>
               <TouchableOpacity style={styles.ViewButtonTop}>
@@ -93,22 +148,42 @@ const OptionChat = ({ navigation, route }) => {
                 Tìm{"\n"}tin nhắn
               </Text>
             </View>
-            <View style={styles.ViewItemTop}>
-              <TouchableOpacity style={styles.ViewButtonTop}>
-                <Feather name="user" size={24} color="black" />
-              </TouchableOpacity>
+            {isGroup ? (
+              <View style={styles.ViewItemTop}>
+                <TouchableOpacity style={styles.ViewButtonTop}>
+                  <AntDesign name="addusergroup" size={24} color="black" />
+                </TouchableOpacity>
 
-              <Text
-                style={{
-                  width: 60,
-                  height: 50,
-                  fontSize: 12,
-                  textAlign: "center",
-                }}
-              >
-                Trang{"\n"}cá nhân
-              </Text>
-            </View>
+                <Text
+                  style={{
+                    width: 60,
+                    height: 50,
+                    fontSize: 12,
+                    textAlign: "center",
+                  }}
+                >
+                  Thêm{"\n"}thành viên
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.ViewItemTop}>
+                <TouchableOpacity style={styles.ViewButtonTop}>
+                  <Feather name="user" size={24} color="black" />
+                </TouchableOpacity>
+
+                <Text
+                  style={{
+                    width: 60,
+                    height: 50,
+                    fontSize: 12,
+                    textAlign: "center",
+                  }}
+                >
+                  Trang{"\n"}cá nhân
+                </Text>
+              </View>
+            )}
+
             <View style={styles.ViewItemTop}>
               <TouchableOpacity style={styles.ViewButtonTop}>
                 <Ionicons
@@ -194,8 +269,7 @@ const OptionChat = ({ navigation, route }) => {
             </View>
           </View>
         </View>
-
-        <View
+          {isGroup ? null : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -208,9 +282,9 @@ const OptionChat = ({ navigation, route }) => {
               Chưa nâng cấp
             </Text>
           </TouchableOpacity>
-        </View>
-
-        <View
+        </View>)}
+        
+        {isGroup ? null : ( <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -219,7 +293,8 @@ const OptionChat = ({ navigation, route }) => {
               <Text style={styles.text}>Đổi tên gợi nhớ </Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>)}
+       
 
         <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
@@ -237,7 +312,23 @@ const OptionChat = ({ navigation, route }) => {
               <View style={{}}>
                 <Text style={styles.text}>Ảnh, file, link đã gửi</Text>
                 <View style={{ flexDirection: "row", gap: 5 }}>
-                  {firtFourImage.map((item, index) => {
+                  {isGroup? firtFourImageGroup.map((item, index) => {
+                    return item.messageType === "VIDEO" ? (
+                      <Video
+                        key={index}
+                        source={{ uri: item.url }}
+                        style={{ width: 57, height: 67, borderRadius: 10 }}
+                        useNativeControls
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <Image
+                        key={index}
+                        source={{ uri: item.url }}
+                        style={{ width: 57, height: 67, borderRadius: 10 }}
+                      />
+                    );
+                  }):firtFourImage.map((item, index) => {
                     return item.messageType === "VIDEO" ? (
                       <Video
                         key={index}
@@ -254,6 +345,8 @@ const OptionChat = ({ navigation, route }) => {
                       />
                     );
                   })}
+
+                  
                   <View
                     style={{
                       width: 57,
@@ -302,7 +395,16 @@ const OptionChat = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        <View
+        {isGroup ? (   <View
+          style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
+        >
+          <TouchableOpacity style={styles.item}>
+            <View style={styles.contentButton}>
+              <Feather name="users" size={22} color="#767A7F" />
+              <Text style={styles.text}>Xem thành viên ({member})</Text>
+            </View>
+          </TouchableOpacity>
+        </View>):(   <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -311,7 +413,7 @@ const OptionChat = ({ navigation, route }) => {
               <Text style={styles.text}>Xem nhóm chung</Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>)}
 
         <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}

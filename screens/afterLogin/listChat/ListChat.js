@@ -114,7 +114,8 @@ const ListChat = ({ navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       {Platform.OS == "android" && <View style={{ height: 30 }} />}
-      <View style={{
+      <TouchableOpacity  onPress={() => navigation.navigate('Search')}
+      style={{
         backgroundColor: 'cyan',
         height: 50, flexDirection: 'row',
         width: '100%', justifyContent: 'space-between', alignItems: 'center'
@@ -122,13 +123,17 @@ const ListChat = ({ navigation }) => {
         <View style={{ width: 45, marginHorizontal: 10, justifyContent: 'center', alignItems: 'center' }}>
           <FontAwesome name="search" size={40} color="white" />
         </View>
-        <TextInput style={{
+        {/* <TextInput style={{
           fontSize: 20, height: 40, width: '60%',
           backgroundColor: 'white', borderRadius: 5, borderWidth: 1
         }}
           placeholder='Tìm kiếm...'
           placeholderTextColor={'grey'}
-        />
+        /> */}
+        <View style={{ fontSize: 20, height: 40, width: '60%',
+          backgroundColor: 'white', borderRadius: 5, borderWidth: 1, justifyContent:'center', paddingLeft:5}}>
+            <Text style={{fontSize:18}}>Tìm kiếm...</Text>
+        </View>
         <TouchableOpacity onPress={() => navigation.navigate("ScanQR")}>
           <FontAwesome name="qrcode" size={35} color="white" />
         </TouchableOpacity>
@@ -137,7 +142,7 @@ const ListChat = ({ navigation }) => {
             <AntDesign name="adduser" size={35} color="white" />
           </TouchableOpacity>
         </View>
-      </View>
+      </TouchableOpacity>
       <View>
         <FlatList
           data={currentUser.conversation}

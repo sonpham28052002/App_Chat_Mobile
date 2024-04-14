@@ -227,7 +227,7 @@ const OptionChat = ({ navigation, route }) => {
           <TouchableOpacity
             onPress={() => {
               // truyền dữ liệu qua màn hình OptionChat2 là account của người đang chat với user hiện tại
-              navigation.navigate("OptionChat2", {account: route.params});
+              navigation.navigate("OptionChat2", { account: route.params });
             }}
             activeOpacity={0.7}
             style={[styles.item, { height: 140 }]}

@@ -7,9 +7,10 @@ const ButtonCustom = (props) => {
         backgroundColor: props.backgroundColor,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
+        borderWidth: props.border? 0 : 1,
         borderRadius: 10,
-        height: 50,
+        width: props.width? props.width : '100%',
+        height: props.height? props.height : 50,
         }}
         onPress={props.onPress}
         >

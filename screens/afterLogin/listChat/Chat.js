@@ -11,7 +11,6 @@ import { save, saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } fro
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
-import 'react-native-get-random-values';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AudioRecorder from '../../../components/AudioRecorder';
 import VideoMessage from '../../../components/VideoMesssage';
@@ -19,6 +18,8 @@ import AudioMessage from '../../../components/AudioMessage';
 import MessageForward from './components/MessageForward';
 import StipopSender from '../../../components/sticker/StipopSender'
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import ModalAddChat from './components/ModalAddChat';
+import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 
 const Chat = ({ navigation, route }) => {

@@ -47,32 +47,32 @@ const ListChat = ({ navigation }) => {
   const showModalCreateGroup = () => setVisibleCreateGroup(true);
   const hideModalCreateGroup = () => setVisibleCreateGroup(false);
 
-  // Xóa cuộc trò chuyện
-  const deleteConversationAction = async (userId) => {
-    try {
+  // // Xóa cuộc trò chuyện
+  // const deleteConversationAction = async (userId) => {
+  //   try {
 
-      setDeleteMode(false);
-      const updatedConversations = conversations.filter(conversation => {
-        if (conversation.user && conversation.user.id !== userId) {
-          return true;
-        } else if (conversation.conversationType === 'group') {
-          return false;
-        }
-        return false;
-      });
-      setConversations(updatedConversations);
-      const updatedUser = { ...currentUser, conversation: updatedConversations };
-      const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
+  //     setDeleteMode(false);
+  //     const updatedConversations = conversations.filter(conversation => {
+  //       if (conversation.user && conversation.user.id !== userId) {
+  //         return true;
+  //       } else if (conversation.conversationType === 'group') {
+  //         return false;
+  //       }
+  //       return false;
+  //     });
+  //     setConversations(updatedConversations);
+  //     const updatedUser = { ...currentUser, conversation: updatedConversations };
+  //     const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
 
-      if (updateUserResponse.status === 200) {
-        // dispatch(deleteConversationAction(userId));
-        dispatch(save(updateUserResponse.data));
-        console.log('Cập nhật người dùng thành công', updateUserResponse.data);
-      }
-    } catch (error) {
-      console.error('Lỗi khi cập nhật người dùng', error);
-    }
-  };
+  //     if (updateUserResponse.status === 200) {
+  //       // dispatch(deleteConversationAction(userId));
+  //       dispatch(save(updateUserResponse.data));
+  //       console.log('Cập nhật người dùng thành công', updateUserResponse.data);
+  //     }
+  //   } catch (error) {
+  //     console.error('Lỗi khi cập nhật người dùng', error);
+  //   }
+  // };
 
   useEffect(() => {
     const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
@@ -173,7 +173,8 @@ const ListChat = ({ navigation }) => {
           data={obj.conversation}
           renderItem={({ item }) => (
           (item.user || (item.status && item.status !== "DISBANDED")) &&
-            <TouchableOpacity
+          <View>
+   <TouchableOpacity
               style={{
                 height: 70, flexDirection: 'row', alignItems: 'center',
                 flex: 1
@@ -234,18 +235,27 @@ const ListChat = ({ navigation }) => {
                   </View>
                 </View>
               </View>
+             {/* {deleteMode && (
+          <TouchableOpacity onPress={() => setDeleteMode(false)}>
+            <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
+              <Text style={{ color: 'white' }}>Hủy Xóa</Text>
+            </View>
+          </TouchableOpacity>
+        )} */}
             </TouchableOpacity>
-          )
-          }
-          keyExtractor={(item) => item.updateLast}
-        />
-        {deleteMode && (
+               {deleteMode && selectedItem === item && (
           <TouchableOpacity onPress={() => setDeleteMode(false)}>
             <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
               <Text style={{ color: 'white' }}>Hủy Xóa</Text>
             </View>
           </TouchableOpacity>
         )}
+          </View>
+         
+          )
+          }
+          keyExtractor={(item) => item.updateLast}
+        />
       </View>
         <ModalAddChat visible={visible} onDismiss={hideModal} handleShowModalCreateGroup={handleShowModalCreateGroup}/>
         <ModalCreateGroup visible={visibleCreateGroup} senderId={id} onPress={createGroup} onDismiss={hideModalCreateGroup} />

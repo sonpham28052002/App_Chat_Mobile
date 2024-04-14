@@ -58,7 +58,7 @@ export default function ContactScreen({ navigation }) {
         type="material"
         title="Lời mời kết bạn"
         backgroundColor="#006AF5"
-        handlePress={() => navigation.navigate('Lời mời kết bạn')}
+        handlePress={() => navigation.navigate('FriendRequests')}
       />
       <ContactAction
         name="phone-square"
@@ -111,8 +111,8 @@ const styles = StyleSheet.create({
   },
   empty: {
     flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 50,
   },
   text: {

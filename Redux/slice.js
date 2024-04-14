@@ -21,15 +21,16 @@ const accountSlice = createSlice({
 const messSlice = createSlice({
   name: 'message',
   initialState: {
-    receiverId: '',
+    id: '',
     messages: []
   },
   reducers:{
     saveReceiverId: (state, action) => {
-      state.id = action.payload;
+      state = {...state, id: action.payload};
     },
     saveMess: (state, action) => {
       state.messages = [...action.payload];
+      // state = {...state, messages: action.payload}
     },
     addMess: (state, action) => {
       if(state.messages.findIndex(mess => mess._id === action.payload._id) === -1)

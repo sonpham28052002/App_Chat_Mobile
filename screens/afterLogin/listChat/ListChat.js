@@ -47,32 +47,32 @@ const ListChat = ({ navigation }) => {
   const showModalCreateGroup = () => setVisibleCreateGroup(true);
   const hideModalCreateGroup = () => setVisibleCreateGroup(false);
 
-  // Xóa cuộc trò chuyện
-  const deleteConversationAction = async (userId) => {
-    try {
+  // // Xóa cuộc trò chuyện
+  // const deleteConversationAction = async (userId) => {
+  //   try {
 
-      setDeleteMode(false);
-      const updatedConversations = conversations.filter(conversation => {
-        if (conversation.user && conversation.user.id !== userId) {
-          return true;
-        } else if (conversation.conversationType === 'group') {
-          return false;
-        }
-        return false;
-      });
-      setConversations(updatedConversations);
-      const updatedUser = { ...currentUser, conversation: updatedConversations };
-      const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
+  //     setDeleteMode(false);
+  //     const updatedConversations = conversations.filter(conversation => {
+  //       if (conversation.user && conversation.user.id !== userId) {
+  //         return true;
+  //       } else if (conversation.conversationType === 'group') {
+  //         return false;
+  //       }
+  //       return false;
+  //     });
+  //     setConversations(updatedConversations);
+  //     const updatedUser = { ...currentUser, conversation: updatedConversations };
+  //     const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
 
-      if (updateUserResponse.status === 200) {
-        // dispatch(deleteConversationAction(userId));
-        dispatch(save(updateUserResponse.data));
-        console.log('Cập nhật người dùng thành công', updateUserResponse.data);
-      }
-    } catch (error) {
-      console.error('Lỗi khi cập nhật người dùng', error);
-    }
-  };
+  //     if (updateUserResponse.status === 200) {
+  //       // dispatch(deleteConversationAction(userId));
+  //       dispatch(save(updateUserResponse.data));
+  //       console.log('Cập nhật người dùng thành công', updateUserResponse.data);
+  //     }
+  //   } catch (error) {
+  //     console.error('Lỗi khi cập nhật người dùng', error);
+  //   }
+  // };
 
   useEffect(() => {
     const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
@@ -82,6 +82,7 @@ const ListChat = ({ navigation }) => {
 
   const onConnected = () => {
     stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+    stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
     // stompClient.current.subscribe('/user/' + id + '/createGroup', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
@@ -97,7 +98,17 @@ const ListChat = ({ navigation }) => {
       console.log(error);
     }
   }
-
+  const onReceiveDeleteConversationResponse = (message) => {
+    console.log("DELETE CONVERSATION RESPONSE:", message);
+    const conversation = JSON.parse(message.body);
+    if (conversation) {
+      console.log('Cuộc trò chuyện đã được xóa thành công:', conversation);
+      // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
+      // setConversations(updatedConversations);
+    } else {
+      console.log('Xóa cuộc trò chuyện không thành công:', conversation);
+    }
+  }
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
   }
@@ -131,6 +142,50 @@ const ListChat = ({ navigation }) => {
     // console.log("------------------->", data);
     stompClient.current.send('/app/createGroup', {}, JSON.stringify(data));
   }
+const deleteConversation = (item) => {
+  if (!item) {
+    console.error("Item Error:", item);
+    return;
+  }
+
+  const con = {
+    ownerId: id,
+    idUser: "",
+    idGroup: ""
+  };
+
+  if (item.conversationType === "group" && item.idGroup) {
+    con.idGroup = item.idGroup;
+  } else if (item.user && item.user.id) {
+    con.idUser = item.user.id;
+  } else {
+    console.error("Invalid Item:", item);
+    return;
+  }
+
+  stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
+
+  const updatedConversations = conversations.filter(conv => {
+    if (item.conversationType === "group") {
+      return conv.idGroup !== item.idGroup;
+    } else {
+      return conv.user.id !== item.user.id;
+    }
+  });
+
+  setConversations(updatedConversations);
+  setSelectedItem(null); 
+  setDeleteMode(false);
+}
+
+
+
+
+
+
+
+
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -170,10 +225,11 @@ const ListChat = ({ navigation }) => {
       <View>
         <FlatList
         scrollEnabled={true}
-          data={obj.conversation}
+          data={conversations}
           renderItem={({ item }) => (
           (item.user || (item.status && item.status !== "DISBANDED")) &&
-            <TouchableOpacity
+          <View>
+   <TouchableOpacity
               style={{
                 height: 70, flexDirection: 'row', alignItems: 'center',
                 flex: 1
@@ -196,7 +252,7 @@ const ListChat = ({ navigation }) => {
                   <Text style={{ fontSize: 20 }} numberOfLines={1}>{item.user ? item.user.userName : item.nameGroup}</Text>
                   {
                     deleteMode && selectedItem === item && // Hiển thị nút xóa nếu ở trạng thái xóa và mục được chọn
-                    <TouchableOpacity onPress={() => deleteConversationAction(item.user.id)}>
+                    <TouchableOpacity onPress={() => deleteConversation(item)}>
                       <AntDesign name="delete" size={24} color="red" />
                     </TouchableOpacity>
                   }
@@ -234,18 +290,27 @@ const ListChat = ({ navigation }) => {
                   </View>
                 </View>
               </View>
+             {/* {deleteMode && (
+          <TouchableOpacity onPress={() => setDeleteMode(false)}>
+            <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
+              <Text style={{ color: 'white' }}>Hủy Xóa</Text>
+            </View>
+          </TouchableOpacity>
+        )} */}
             </TouchableOpacity>
-          )
-          }
-          keyExtractor={(item) => item.updateLast}
-        />
-        {deleteMode && (
+               {deleteMode && selectedItem === item && (
           <TouchableOpacity onPress={() => setDeleteMode(false)}>
             <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
               <Text style={{ color: 'white' }}>Hủy Xóa</Text>
             </View>
           </TouchableOpacity>
         )}
+          </View>
+         
+          )
+          }
+          keyExtractor={(item) => item.updateLast}
+        />
       </View>
         <ModalAddChat visible={visible} onDismiss={hideModal} handleShowModalCreateGroup={handleShowModalCreateGroup}/>
         <ModalCreateGroup visible={visibleCreateGroup} senderId={id} onPress={createGroup} onDismiss={hideModalCreateGroup} />

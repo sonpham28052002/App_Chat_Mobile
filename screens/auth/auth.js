@@ -22,6 +22,7 @@ import Chat from '../afterLogin/listChat/Chat.js';
 import OptionChat from '../afterLogin/listChat/OptionChat.js';
 import OptionChat2 from '../afterLogin/listChat/OptionChat2.js';
 import Search from '../afterLogin/Search/Search.js'
+import ListMemberGroup from '../afterLogin/listChat/ListMemberGroup.js'
 const Stack = createStackNavigator()
 
 export default function Auth() {
@@ -79,6 +80,18 @@ export default function Auth() {
         options={{
           headerShown: true,
           title: "Ảnh,file,link đã gửi",
+          headerStyle: {
+            backgroundColor: "#00aaff",
+          },
+          headerTintColor: "white",
+        }}
+      />
+      <Stack.Screen
+        name="ListMemberGroup"
+        component={ListMemberGroup}
+        options={{
+          headerShown: true,
+          title: "Thành viên",
           headerStyle: {
             backgroundColor: "#00aaff",
           },

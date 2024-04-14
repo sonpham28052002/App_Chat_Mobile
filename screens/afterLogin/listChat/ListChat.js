@@ -178,15 +178,6 @@ const deleteConversation = (item) => {
   setDeleteMode(false);
 }
 
-
-
-
-
-
-
-
-
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       {Platform.OS == "android" && <View style={{ height: 30 }} />}

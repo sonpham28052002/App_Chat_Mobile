@@ -16,7 +16,7 @@ const ContactHome = () => {
         <Stack.Screen name="Contact" component={Contact} />
           <Stack.Screen name="ContactAction" component={ContactAction} />
         <Stack.Screen name="User" component={User} />
-          <Stack.Screen name="AddFriend" component={AddFriend} />
+          {/* <Stack.Screen name="AddFriend" component={AddFriend} /> */}
           <Stack.Screen name="FriendRequests" component={FriendRequests} />
              <Stack.Screen name="UserDetailAddFriend" component={UserDetailAddFriend} />
     </Stack.Navigator>

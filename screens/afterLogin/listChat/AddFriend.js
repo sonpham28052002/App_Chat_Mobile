@@ -1,33 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, SafeAreaView, Platform, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { TextInput } from 'react-native-paper';
+import { View, Text, Dimensions, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import PhoneInput from "react-native-phone-input";
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
-import { save } from "../../../Redux/slice";
 import 'react-native-get-random-values';
-const { v4: uuidv4 } = require('uuid');
 import QRCode from 'react-native-qrcode-svg';
-import SockJS from 'sockjs-client';
-import { over } from 'stompjs';
-const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
-const stompClient = over(socket);
 
-const AddFriend = ({ route, navigation }) => {
-    const [data, setData] = useState([]);
+const AddFriend = ({ onPress }) => {
+    // const [data, setData] = useState();
+    const { width, height } = Dimensions.get('window');
     const [text, setText] = useState('');
-    const [error, setError] = useState(null);
+    const [error, setError] = useState("Không tìm thấy số điện thoại.");
     const phoneInput = useRef(null);
-    const [currentUser, setCurrentUser] = useState(useSelector(state => state.account));
-    const qrContent = currentUser.id;
-    const [newUser, setNewUser] = useState('');
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        if (route.params && route.params.phoneNumber) {
-            setText(route.params.phoneNumber);
-        }
-    }, [route.params]);
+    const [phone, setPhone] = useState('');
+    const id = useSelector(state => state.account.id);
+    const qrContent = id;
+    let receiverId = useRef('');
 
     useEffect(() => {
         const timerId = setTimeout(() => {
@@ -42,20 +30,12 @@ const AddFriend = ({ route, navigation }) => {
         try {
             const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${text}`);
             if (accountRes.data) {
-                setData([accountRes.data]);
+                receiverId.current = accountRes.data.id;
+                setPhone(accountRes.data.phone);
+                // setData(accountRes.data);
                 setError(null);
-                const userId = accountRes.data.id;
-                const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
-                if (userRes.data) {
-                    const newUser = {
-                        id: userRes.data.id,
-                        userName: userRes.data.userName,
-                        avt: userRes.data.avt
-                    };
-                    setNewUser(newUser);
-                }
             } else {
-                setData([]);
+                // setData([]);
                 setError('Không tìm thấy số điện thoại.');
             }
         } catch (error) {
@@ -67,50 +47,31 @@ const AddFriend = ({ route, navigation }) => {
     const handleAddFriend = async () => {
         try {
             const request = {
-                id: currentUser.id,
-                userName: currentUser.userName,
-                avt: currentUser.avt,
-                receiverId: newUser.id,
+                id: id,
+                receiverId: receiverId.current
             };
-            stompClient.send("/app/request-add-friend", {}, JSON.stringify(request));
+            onPress(request);
+            // stompClient.send("/app/request-add-friend", {}, JSON.stringify(request));
+            Alert.alert('Kết bạn', 'Yêu cầu kết bạn đã được gửi.');
+            // navigation.navigate("Contact")
         } catch (error) {
             console.error('Error sending friend request:', error);
         }
     };
 
-    useEffect(() => {
-        stompClient.connect(
-            {},
-            () => {
-                console.log("Running");
-                stompClient.subscribe("/user/" + currentUser.id + "/requestAddFriend", (message) => {
-                    let mess = JSON.parse(message.body);
-                    if (mess.sender.id === currentUser.id) {
-                        // Xử lý phản hồi ở đây, ví dụ: hiển thị thông báo thành công
-                        console.log("Friend request sent successfully");
-                    }
-                });
-            },
-            (error) => {
-                console.error('Error connecting to WebSocket server:', error);
-            }
-        );
-    }, []);
-
     return (
-        <SafeAreaView>
-            {Platform.OS == "android" && <View style={{ height: 30 }} />}
-            <View style={{ backgroundColor: '#1fadea' }}>
+        <View>
+            {/* {Platform.OS == "android" && <View style={{ height: 30 }} />} */}
+            <View style={{ backgroundColor: '#1fadea', height: 50 }}>
                 <Text style={{
-                    textAlign: 'center',
-                    fontSize: 40,
+                    fontSize: 20,
                     textAlign: 'center',
                     margin: 10,
                     color: '#fdf8f8'
                 }}>KẾT BẠN</Text>
             </View>
-            <View style={{ alignItems: 'center', marginTop: 20, marginBottom: 20 }}>
-                <Text style={{ fontSize: 20, marginBottom: 10 }}>Mã QR của bạn:</Text>
+            <View style={{ alignItems: 'center'}}>
+                <Text style={{ fontSize: 20, marginVertical: 10}}>Mã QR của bạn:</Text>
                 <QRCode
                     value={qrContent}
                     size={200}
@@ -132,6 +93,7 @@ const AddFriend = ({ route, navigation }) => {
                     backgroundColor: 'white',
                     borderWidth: 2,
                     borderRadius: 5,
+                    marginVertical: 10
                 }}
                 textStyle={{
                     paddingHorizontal: 10,
@@ -145,33 +107,35 @@ const AddFriend = ({ route, navigation }) => {
                 confirmTextStyle={{ fontSize: 20, color: 'green' }}
                 pickerItemStyle={{ fontSize: 20 }}
             />
-            <View>
+            <View style={{ height: height*0.8 - 380 }}>
                 {error ? (
                     <View style={{ alignItems: 'center', marginTop: 20 }}>
                         <Text style={{ fontSize: 16, color: 'red' }}>{error}</Text>
                     </View>
-                ) : data && data.length > 0 ? (
-                    <FlatList
-                        data={data}
-                        keyExtractor={(item) => `${item.id}_${item.phone}`}
-                        renderItem={({ item }) => (
+                ) :
+                // data && data.length > 0 ? (
+                    // <FlatList
+                        // data={data}
+                        // keyExtractor={(item) => `${item.id}_${item.phone}`}
+                        // renderItem={({ item }) => (
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10, paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#ccc' }}>
-                                <Text style={{ flex: 1, fontSize: 20 }}>{item.phone}</Text>
+                                <Text style={{ flex: 1, fontSize: 20 }}>{phone}</Text>
                                 <TouchableOpacity style={styles.buttonAdd} onPress={handleAddFriend}>
                                     <Text style={styles.buttonText}>KẾT BẠN</Text>
                                 </TouchableOpacity>
                             </View>
-                        )}
-                    />
-                ) : (
-                    <View style={{ alignItems: 'center', marginTop: 20 }}>
-                        <Text style={{ fontSize: 16, color: 'red' }}>
-                            {text.trim() !== '' ? 'Không tìm thấy số điện thoại.' : 'Vui lòng nhập số điện thoại.'}
-                        </Text>
-                    </View>
-                )}
+                        // )}
+                    // />
+                // ) : (
+                //     <View style={{ alignItems: 'center', marginTop: 20 }}>
+                //         <Text style={{ fontSize: 16, color: 'red' }}>
+                //             {text.trim() !== '' ? 'Không tìm thấy số điện thoại.' : 'Vui lòng nhập số điện thoại.'}
+                //         </Text>
+                //     </View>
+                // )
+                }
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

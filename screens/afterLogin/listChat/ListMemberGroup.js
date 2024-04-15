@@ -1,4 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import ButtonCustom from "../../../components/button";
+import { Modal, TextInput } from "react-native-paper";
+import { CheckBox } from '@rneui/themed';
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
 import {
   View,
   Text,
@@ -7,8 +12,8 @@ import {
   TouchableOpacity,
   ScrollView,
   SectionList,
-  Modal,
   FlatList,
+  Dimensions
 } from "react-native";
 import {
   EvilIcons,
@@ -36,6 +41,7 @@ function TatCa({ route }) {
     setDataMember(route.params.members);
     setMemberType(route.params.members.find((item) => item.member.id === account.id).memberType);
   }, []);
+
   const renderItem = ({ item }) => {
     return (
       <View style={styles.FlatListTatCa}>
@@ -60,10 +66,19 @@ function TatCa({ route }) {
           )}
         </View>
         {
-           ( memberType === "DEPUTY_LEADER" &&item.member.id != account.id ) || (memberType === "GROUP_LEADER" &&item.member.id != account.id)
+           ( memberType === "DEPUTY_LEADER" && item.member.id != account.id 
+                  && item.memberType != "DEPUTY_LEADER" && item.memberType != "GROUP_LEADER") 
+            || (memberType === "GROUP_LEADER" && item.member.id != account.id)
             ? 
             (
-              <TouchableOpacity>
+              <TouchableOpacity onPress={()=>{
+                let dataSend = {
+                  userId: item.member.id,
+                  groupId: route.params.idGroup,
+                  ownerID: account.id
+                }
+                removeMember(dataSend)
+              }}>
                 <Entypo name="remove-user" size={24} color="red" />
               </TouchableOpacity>
             ) : <View style={{width:20}}>
@@ -74,12 +89,88 @@ function TatCa({ route }) {
     );
   };
 
+  const [visible, setVisible] = useState(false);
+  const { width, height } = Dimensions.get("window");
+  const [data, setData] = useState(account.friendList.map((item) => ({ ...item.user, checked: false })));
+  var stompClient = useRef(null);
+
+  useEffect(() => {
+    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+    stompClient.current = Stomp.over(socket);
+    stompClient.current.connect({}, onConnected, onError);
+  }, []);
+
+  const removeMember = (data) => {
+   stompClient.current.send('/app/removeMemberInGroup', {}, JSON.stringify(data)); 
+  }
+
+  const onConnected = () => {
+    // stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+  }
+
+  const addMember = (data) => {
+    stompClient.current.send('/app/addMemberIntoGroup', {}, JSON.stringify(data));
+    setVisible(false);
+  }
+
+  const onError = (error) => {
+    console.log('Could not connect to WebSocket server. Please refresh and try again!');
+  }
+
   return (
     <View style={styles.container}>
       <Text style={{ fontSize: 18, color: "blue" }}>
         Thành viên ({route.params.members.length})
       </Text>
       <FlatList data={dataMember} renderItem={renderItem} />
+      {memberType != "MEMBER" && <ButtonCustom title="+" backgroundColor="cyan" onPress={()=>setVisible(true)}/>}
+      <Modal visible={visible} onDismiss={()=>setVisible(false)}
+            contentContainerStyle={{
+                backgroundColor: 'white',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: width * 0.9,
+                marginHorizontal: width * 0.05,
+                padding: 10,
+                height: height * 0.8
+                // height: 200,
+                // marginLeft: width - width * 0.4,
+                // marginBottom: height * 0.5 + 150
+            }}
+        >
+          <Text style={{ fontSize: 25 }}>Thêm thành viên nhóm</Text>
+          <TextInput style={{ backgroundColor: 'white', width: '100%' }} 
+                placeholder='Tìm kiếm' placeholderTextColor={'gray'}
+            />
+                <View style={{ height: height * 0.8 - 170 }}>
+                <FlatList data={data}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 5, alignItems: 'center' }}>
+                            <CheckBox
+                                checked={item.checked}
+                                onPress={() => {
+                                    setData(data.map(i => i.id === item.id ? { ...i, checked: !i.checked } : i))
+                                }}
+                            />
+                            <Image source={{ uri: item.avt }} style={{ width: 50, height: 50 }} />
+                            <Text style={{ fontSize: 20, marginHorizontal: 10 }}>{item.userName}</Text>
+                        </TouchableOpacity>
+                    )}
+                    keyExtractor={(item) => item.id}
+                />
+            </View>
+            <ButtonCustom title='Thêm' backgroundColor='cyan' border={true} onPress={()=> {
+                let dataSelect = data.filter(item => item.checked)
+                let arr = []
+                dataSelect.map(item => arr.push({member: { id: item.id }}))
+                let dataSend = {
+                    idGroup: route.params.idGroup,
+                    ownerID: account.id,
+                    members: arr
+                }
+                addMember(dataSend)
+            }}/>
+        </Modal>
     </View>
   );
 }
@@ -97,7 +188,7 @@ const ThanhVien = ({ navigation, route }) => {
     <Tab.Navigator>
       <Tab.Screen
         name="Tất cả"
-        initialParams={{ members: route.params.member }}
+        initialParams={{ members: route.params.member, idGroup: route.params.idGroup}}
         component={TatCa}
       />
 

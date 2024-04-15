@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -24,13 +24,10 @@ import {
   FontAwesome5,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
 import axios from "axios";
-import { icon } from "@fortawesome/fontawesome-svg-core";
-import { Button } from "react-native-web";
 import { useSelector, useDispatch } from "react-redux";
-import { ro } from "rn-emoji-keyboard";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const OptionChat = ({ navigation, route }) => {
   const [showModal, setShowModal] = useState(false);
@@ -38,6 +35,7 @@ const OptionChat = ({ navigation, route }) => {
   const [isGroup, setIsGroup] = useState(false);
   const [dataMember, setDataMember] = useState([]);
   const [member, setMember] = useState("");
+  var stompClient = useRef(null);
   function getMember() {
     axios
       .get(
@@ -60,7 +58,23 @@ const OptionChat = ({ navigation, route }) => {
       getImageFileLink();
       setIsGroup(false);
     }
+    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+    stompClient.current = Stomp.over(socket);
+    stompClient.current.connect({}, onConnected, onError);
   }, []);
+
+  const onConnected = () => {
+    // stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+  }
+
+  const addMember = (data) => {
+    stompClient.current.send('/app/addMemberIntoGroup', {}, JSON.stringify(data));
+  }
+
+  const onError = (error) => {
+    console.log('Could not connect to WebSocket server. Please refresh and try again!');
+  }
+
   // get danh sách 4 ảnh file đầu tiên của group chat
   const [firtFourImageGroup, setFirtFourImageGroup] = useState([]);
   async function getImageFileLinkGroup() {
@@ -424,7 +438,7 @@ const OptionChat = ({ navigation, route }) => {
         >
           <TouchableOpacity 
           onPress={() => {
-            navigation.navigate("ListMemberGroup", { member: dataMember });
+            navigation.navigate("ListMemberGroup", { member: dataMember, idGroup: route.params.id});
           }}
           style={styles.item}>
             <View style={styles.contentButton}>

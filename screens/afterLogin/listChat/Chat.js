@@ -180,6 +180,14 @@ const Chat = ({ navigation, route }) => {
         stompClient.current.subscribe('/user/' + sender.id + '/groupChat', onGroupMessageReceived)
         stompClient.current.subscribe('/user/' + sender.id + '/retrieveMessage', onRetrieveMessage)
         stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
+        stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
+            let message = JSON.parse(payload.body)
+            let members = message.members;
+            if(route.params.id === message.idGroup && !members.find(item => item.id === sender.id)){
+                Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
+                navigation.navigate('ListChat')
+            }
+        })
     }
 
     function onGroupMessageReceived(payload){

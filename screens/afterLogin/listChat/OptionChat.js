@@ -65,6 +65,9 @@ const OptionChat = ({ navigation, route }) => {
   }, []);
 
   const onConnected = () => {
+    stompClient.current.subscribe('/user/' + id + '/outGroup', (payload)=>{
+      navigation.navigate("ListChat")
+    })
     // stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
   }
 
@@ -100,6 +103,10 @@ const OptionChat = ({ navigation, route }) => {
     } catch (error) {
       console.log("get image file link group error", error);
     }
+  }
+
+  const outGroup = (data) => {
+    stompClient.current.send('/app/outGroup', {}, JSON.stringify(data));
   }
 
   // biến lưu trữ danh sách tin nhắn dạng file image sort theo thời gian gửi
@@ -547,7 +554,15 @@ const OptionChat = ({ navigation, route }) => {
         {isGroup ? (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
-          <TouchableOpacity style={styles.item}>
+          <TouchableOpacity style={styles.item} 
+            onPress={()=>{
+              let datasend = {
+                userId : account.id,
+                idGroup: route.params.idGroup
+              }
+              outGroup(datasend)
+            }}
+          >
             <View style={styles.contentButton}>
             <Feather name="log-out" size={22} color="red" />
               <Text style={styles.text}>Rời nhóm</Text>

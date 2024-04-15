@@ -93,7 +93,7 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onCreateGroup)
-
+    stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
     // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
   }

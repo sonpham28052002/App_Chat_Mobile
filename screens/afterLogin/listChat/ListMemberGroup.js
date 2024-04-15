@@ -95,7 +95,6 @@ function TatCa({ route }) {
             ) : <View style={{width:20}}>
                 </View>
         }
-          
       </TouchableOpacity>
     : null
     );
@@ -113,7 +112,8 @@ function TatCa({ route }) {
   }, []);
 
   const removeMember = (data) => {
-   stompClient.current.send('/app/removeMemberInGroup', {}, JSON.stringify(data)); 
+   stompClient.current.send('/app/removeMemberInGroup', {}, JSON.stringify(data));
+   loadAllMember()
   }
 
   const onConnected = () => {
@@ -123,6 +123,7 @@ function TatCa({ route }) {
   const addMember = (data) => {
     stompClient.current.send('/app/addMemberIntoGroup', {}, JSON.stringify(data));
     setVisible(false);
+    loadAllMember()
   }
 
   const onError = (error) => {
@@ -131,6 +132,18 @@ function TatCa({ route }) {
 
   const grantMember = (data) => {
     stompClient.current.send('/app/grantRoleMember_DEPUTY_LEADER', {}, JSON.stringify(data));
+    loadAllMember()
+  }
+
+  const loadAllMember = async () =>{
+    const result = await axios.get(`https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.idGroup}`)
+    try{
+      if(result.data){
+        setDataMember(result.data)
+      }
+    }catch(error){
+    console.log(error);
+    }
   }
 
   return (
@@ -139,7 +152,7 @@ function TatCa({ route }) {
         Thành viên ({route.params.members.length})
       </Text>
       <FlatList data={dataMember} renderItem={renderItem} />
-      {memberType != "MEMBER" && <ButtonCustom title="+" backgroundColor="cyan" onPress={()=>setVisible(true)}/>}
+      {memberType != "MEMBER" && <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center'}}><ButtonCustom width={50} title="+" backgroundColor="cyan" onPress={()=>setVisible(true)}/></View>}
       <Modal visible={visible} onDismiss={()=>setVisible(false)}
             contentContainerStyle={{
                 backgroundColor: 'white',

@@ -93,7 +93,7 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
                     // avtGroup: avtGroup,
                     conversationType: "group",
                     nameGroup: groupName,
-                    status: "READ_ONLY",
+                    status: "ACTIVE",
                     members: arr
                 }
                 onPress(dataSend)

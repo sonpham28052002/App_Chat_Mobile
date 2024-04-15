@@ -93,6 +93,7 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onCreateGroup)
+
     // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
   }
@@ -122,13 +123,22 @@ const ListChat = ({ navigation }) => {
       console.log(error);
     }
   }
-  const onReceiveDeleteConversationResponse = (message) => {
+  const onReceiveDeleteConversationResponse = async (message) => {
     console.log("DELETE CONVERSATION RESPONSE:", message);
     const conversation = JSON.parse(message.body);
     if (conversation) {
       console.log('Cuộc trò chuyện đã được xóa thành công:', conversation);
       // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
       // setConversations(updatedConversations);
+       const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
+    try {
+      if (result.data) {
+        dispatch(save(result.data));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
     } else {
       console.log('Xóa cuộc trò chuyện không thành công:', conversation);
     }
@@ -235,7 +245,7 @@ const ListChat = ({ navigation }) => {
     }
 
     stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
-
+    
     const updatedConversations = conversations.filter(conv => {
       if (item.conversationType === "group") {
         return conv.idGroup !== item.idGroup;
@@ -244,7 +254,8 @@ const ListChat = ({ navigation }) => {
       }
     });
 
-    setConversations(updatedConversations);
+    // setConversations(updatedConversations);
+
     setSelectedItem(null);
     setDeleteMode(false);
   }
@@ -321,7 +332,7 @@ const ListChat = ({ navigation }) => {
                     <Text style={{ fontSize: 20 }} numberOfLines={1}>{item.user ? item.user.userName : item.nameGroup}</Text>
                     {
                       deleteMode && selectedItem === item && // Hiển thị nút xóa nếu ở trạng thái xóa và mục được chọn
-                      <TouchableOpacity onPress={() => handleDelete(item)}>
+                      <TouchableOpacity onPress={() => deleteConversation(item)}>
                         <AntDesign name="delete" size={24} color="red" />
                       </TouchableOpacity>
 
@@ -371,12 +382,12 @@ const ListChat = ({ navigation }) => {
               {deleteMode && selectedItem === item && (
 
                 <View style={{}}>
-                  <TouchableOpacity onPress={restoreConversation}>
+                  {/* <TouchableOpacity onPress={restoreConversation}>
                     <View style={{ backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', height: 50 }}>
                       <Text style={{ fontSize: 14, color: 'red' }}>{secondsLeft} giây còn lại</Text>
                       <Text style={{ color: 'red' }}>Khôi phục</Text>
                     </View>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                   <TouchableOpacity onPress={() => setDeleteMode(false)}>
                     <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
                       <Text style={{ color: 'white' }}>Hủy Xóa</Text>

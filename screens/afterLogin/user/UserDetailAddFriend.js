@@ -1,7 +1,20 @@
 // UserDetailsScreen.js
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity,Image } from 'react-native';
-
+ const handleAddFriend = async () => {
+        try {
+            const request = {
+                id: id,
+                receiverId: receiverId.current
+            };
+            onPress(request);
+            // stompClient.send("/app/request-add-friend", {}, JSON.stringify(request));
+            Alert.alert('Kết bạn', 'Yêu cầu kết bạn đã được gửi.');
+            // navigation.navigate("Contact")
+        } catch (error) {
+            console.error('Error sending friend request:', error);
+        }
+    };
 const UserDetailAddFriend = ({ route }) => {
   const { user } = route.params;
   return (
@@ -11,7 +24,7 @@ const UserDetailAddFriend = ({ route }) => {
                   style={styles.avatar}
                 />
       <Text style={styles.userName}>{user.userName}</Text>
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity style={styles.addButton} onPress={handleAddFriend}>
         <Text style={styles.addButtonText}>Gửi yêu cầu kết bạn</Text>
       </TouchableOpacity>
     </View>

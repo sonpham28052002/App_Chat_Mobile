@@ -179,11 +179,12 @@ const Chat = ({ navigation, route }) => {
         stompClient.current.subscribe('/user/' + sender.id + '/singleChat', onMessageReceived)
         stompClient.current.subscribe('/user/' + sender.id + '/groupChat', onGroupMessageReceived)
         stompClient.current.subscribe('/user/' + sender.id + '/retrieveMessage', onRetrieveMessage)
-        stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
+        // stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
         stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
             let message = JSON.parse(payload.body)
             let members = message.members;
-            if(route.params.id === message.idGroup && !members.find(item => item.id === sender.id)){
+            let isRemove = members.filter(item => item.id == sender.id && item.memberType == "LEFT_MEMBER");
+            if(route.params.id === message.idGroup && isRemove.length > 0){
                 Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
                 navigation.navigate('ListChat')
             }
@@ -196,11 +197,11 @@ const Chat = ({ navigation, route }) => {
         addMessage(message, "group")
     }
 
-    function onDeleteResult(payload) {
-        let message = JSON.parse(payload.body)
-        dispatch(deleteMess(message.id));
-        hideModal();
-    }
+    // function onDeleteResult(payload) {
+    //     let message = JSON.parse(payload.body)
+    //     dispatch(deleteMess(message.id));
+    //     hideModal();
+    // }
 
     function onRetrieveMessage(payload) {
         let message = JSON.parse(payload.body)

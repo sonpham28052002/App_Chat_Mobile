@@ -42,9 +42,20 @@ function TatCa({ route }) {
     setMemberType(route.params.members.find((item) => item.member.id === account.id).memberType);
   }, []);
 
+  const [visibleRemove, setVisibleRemove] = useState(false);
+
+  const [memberTarget, setMemberTarget] = useState('');
+
   const renderItem = ({ item }) => {
     return (
-      <View style={styles.FlatListTatCa}>
+      item.memberType !== "LEFT_MEMBER"? <TouchableOpacity style={styles.FlatListTatCa}
+        onLongPress={() => {
+          if(memberType === "GROUP_LEADER" && account.id !== item.member.id){
+              setMemberTarget(item.member.id)
+              setVisibleRemove(true)
+            }
+        }}
+      >
         <Image
           style={{ width: 50, height: 50, borderRadius: 50 }}
           source={{ uri: item.member.avt }}
@@ -74,8 +85,8 @@ function TatCa({ route }) {
               <TouchableOpacity onPress={()=>{
                 let dataSend = {
                   userId: item.member.id,
-                  groupId: route.params.idGroup,
-                  ownerID: account.id
+                  idGroup: route.params.idGroup,
+                  ownerId: account.id
                 }
                 removeMember(dataSend)
               }}>
@@ -85,7 +96,8 @@ function TatCa({ route }) {
                 </View>
         }
           
-      </View>
+      </TouchableOpacity>
+    : null
     );
   };
 
@@ -115,6 +127,10 @@ function TatCa({ route }) {
 
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
+  }
+
+  const grantMember = (data) => {
+    stompClient.current.send('/app/grantRoleMember_DEPUTY_LEADER', {}, JSON.stringify(data));
   }
 
   return (
@@ -170,6 +186,30 @@ function TatCa({ route }) {
                 }
                 addMember(dataSend)
             }}/>
+        </Modal>
+        <Modal visible={visibleRemove} onDismiss={()=>setVisibleRemove(false)}
+            contentContainerStyle={{
+                backgroundColor: 'white',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: width * 0.7,
+                marginHorizontal: width * 0.15,
+                // width: 280,
+                // padding: 10,
+                // height: height * 0.3
+                height: 50,
+                // marginLeft: width - width * 0.4,
+                marginBottom: height * 0.5 + 255
+            }}
+        >
+          <ButtonCustom title='Chọn làm phó nhóm' backgroundColor='white' border={true} onPress={()=>{
+            let dataSend = {
+              members: [{ member: { id: memberTarget}}],
+              idGroup: route.params.idGroup,
+              ownerID: account.id
+            }
+            grantMember(dataSend)
+            setVisibleRemove(false)}}/>
         </Modal>
     </View>
   );

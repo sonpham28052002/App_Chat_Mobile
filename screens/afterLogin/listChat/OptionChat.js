@@ -43,7 +43,8 @@ const OptionChat = ({ navigation, route }) => {
       )
       .then((res) => {
       setDataMember(res.data);
-        setMember(res.data.length);
+      let arr = res.data.filter((item) => item.memberType !== "LEFT_MEMBER");
+        setMember(arr.length);
       })
       .catch((err) => {
         console.log("get member error", err);

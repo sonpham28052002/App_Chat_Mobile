@@ -15,7 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState("0123456789Cc");
+  const [password, setPassword] = useState("123");
   const [showPassword, setShowPassword] = useState(false);
   const [account, setAccount] = useState([]);
   const [error, setError] = useState("");

@@ -15,7 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState("sonpham1234");
+  const [password, setPassword] = useState("0123456789Cc");
   const [showPassword, setShowPassword] = useState(false);
   const [account, setAccount] = useState([]);
   const [error, setError] = useState("");
@@ -23,7 +23,7 @@ const Login = ({ navigation }) => {
   const [showError, setShowError] = useState(false);
   const dispatch = useDispatch();
   const phoneInput = useRef(null);
-  const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('84898168640');
+  const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('84814929002');
 
   const handleLogin = async () => {
     let found = false;

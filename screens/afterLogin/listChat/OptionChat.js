@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -24,25 +24,25 @@ import {
   FontAwesome5,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
 import axios from "axios";
-import { icon } from "@fortawesome/fontawesome-svg-core";
-import { Button } from "react-native-web";
 import { useSelector, useDispatch } from "react-redux";
-import { ro } from "rn-emoji-keyboard";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const OptionChat = ({ navigation, route }) => {
   const [showModal, setShowModal] = useState(false);
   const account = useSelector((state) => state.account);
   const [isGroup, setIsGroup] = useState(false);
+  const [dataMember, setDataMember] = useState([]);
   const [member, setMember] = useState("");
+  var stompClient = useRef(null);
   function getMember() {
     axios
       .get(
         `https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
       )
       .then((res) => {
+      setDataMember(res.data);
         setMember(res.data.length);
       })
       .catch((err) => {
@@ -58,7 +58,23 @@ const OptionChat = ({ navigation, route }) => {
       getImageFileLink();
       setIsGroup(false);
     }
+    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+    stompClient.current = Stomp.over(socket);
+    stompClient.current.connect({}, onConnected, onError);
   }, []);
+
+  const onConnected = () => {
+    // stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+  }
+
+  const addMember = (data) => {
+    stompClient.current.send('/app/addMemberIntoGroup', {}, JSON.stringify(data));
+  }
+
+  const onError = (error) => {
+    console.log('Could not connect to WebSocket server. Please refresh and try again!');
+  }
+
   // get danh sách 4 ảnh file đầu tiên của group chat
   const [firtFourImageGroup, setFirtFourImageGroup] = useState([]);
   async function getImageFileLinkGroup() {
@@ -369,7 +385,18 @@ const OptionChat = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        <View
+        {isGroup ? (<View
+          style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
+        >
+          <TouchableOpacity style={styles.item}>
+            <View style={styles.contentButton}>
+            <Ionicons name="calendar-outline" size={22} color="#767A7F" />
+              <Text style={styles.text}>
+                Lịch nhóm
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>): (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -380,9 +407,20 @@ const OptionChat = ({ navigation, route }) => {
               </Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>)}
 
-        <View
+        {isGroup ? (<View
+          style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
+        >
+          <TouchableOpacity style={styles.item}>
+            <View style={styles.contentButton}>
+            <AntDesign name="pushpino" size={22} color="#767A7F" />
+              <Text style={styles.text}>
+                Tin nhắn đã ghim
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>) : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -393,12 +431,16 @@ const OptionChat = ({ navigation, route }) => {
               </Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>)}
 
         {isGroup ? (   <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
-          <TouchableOpacity style={styles.item}>
+          <TouchableOpacity 
+          onPress={() => {
+            navigation.navigate("ListMemberGroup", { member: dataMember, idGroup: route.params.id});
+          }}
+          style={styles.item}>
             <View style={styles.contentButton}>
               <Feather name="users" size={22} color="#767A7F" />
               <Text style={styles.text}>Xem thành viên ({member})</Text>
@@ -426,7 +468,16 @@ const OptionChat = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        <View
+        {isGroup ? (<View
+          style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
+        >
+          <TouchableOpacity style={styles.item}>
+            <View style={styles.contentButton}>
+            <Entypo name="link" size={22} color="#767A7F" />
+              <Text style={styles.text}>Link tham gia nhóm</Text>
+            </View>
+          </TouchableOpacity>
+        </View>) :  <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -435,9 +486,18 @@ const OptionChat = ({ navigation, route }) => {
               <Text style={styles.text}>Báo cuộc gọi đến</Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>}
 
-        <View
+        {isGroup ? (<View
+          style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
+        >
+          <TouchableOpacity style={styles.item}>
+            <View style={styles.contentButton}>
+            <AntDesign name="pushpino" size={24} color="black" />
+              <Text style={styles.text}>Ghim trò chuyện</Text>
+            </View>
+          </TouchableOpacity>
+        </View>) : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -446,9 +506,18 @@ const OptionChat = ({ navigation, route }) => {
               <Text style={styles.text}>Cài đặt cá nhân</Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>)}
 
-        <View
+        {isGroup ? (<View
+          style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
+        >
+          <TouchableOpacity style={styles.item}>
+            <View style={styles.contentButton}>
+            <FontAwesome5 name="user-cog" size={22} color="#767A7F" />
+              <Text style={styles.text}>Cài đặt cá nhân</Text>
+            </View>
+          </TouchableOpacity>
+        </View>) : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -461,7 +530,7 @@ const OptionChat = ({ navigation, route }) => {
               <Text style={styles.text}>Tin nhắn tự xóa</Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>)}
 
         <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
@@ -474,7 +543,16 @@ const OptionChat = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        <View
+        {isGroup ? (<View
+          style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
+        >
+          <TouchableOpacity style={styles.item}>
+            <View style={styles.contentButton}>
+            <Feather name="log-out" size={22} color="red" />
+              <Text style={styles.text}>Rời nhóm</Text>
+            </View>
+          </TouchableOpacity>
+        </View>) : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -483,7 +561,7 @@ const OptionChat = ({ navigation, route }) => {
               <Text style={styles.text}>Quản lý chặn</Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>)}
 
         <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
@@ -496,7 +574,20 @@ const OptionChat = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        <View
+        {isGroup ? (<View
+          style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
+        >
+          <TouchableOpacity style={styles.item}>
+            <View style={styles.contentButton}>
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={22}
+                color="black"
+              />
+              <Text style={styles.text}>Xóa lịch sử trò chuyện </Text>
+            </View>
+          </TouchableOpacity>
+        </View>) : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -509,7 +600,7 @@ const OptionChat = ({ navigation, route }) => {
               <Text style={styles.text}>Xóa lịch sử trò chuyện </Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View>)}
       </ScrollView>
     </View>
   );

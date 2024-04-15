@@ -90,7 +90,7 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
                 arr.push({member: { id: senderId }, memberType: "GROUP_LEADER"})
                 let dataSend = {
                     idGroup: uuidv4(),
-                    // avtGroup: avtGroup,
+                    avtGroup: avtGroup,
                     conversationType: "group",
                     nameGroup: groupName,
                     status: "ACTIVE",

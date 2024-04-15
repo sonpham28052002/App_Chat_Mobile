@@ -6,10 +6,11 @@ import ButtonCustom from '../../../../components/button';
 import axios from 'axios';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
-
+import ImagePickerComponent from '../../../../components/ImagePickerComponent'
 const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
     const { width, height } = Dimensions.get('window')
     const [groupName, setGroupName] = useState('')
+     const [avtGroup, setAvtGroupName] = useState('')
     const [data, setData] = useState([])
 
     useEffect(() => {
@@ -28,7 +29,9 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
         }
         return res.data
     }
-
+ const handleImageSelect = (uri, type, fileSize) => {
+    setAvtGroupName(uri)
+    };
     return (
         <Modal visible={visible} onDismiss={onDismiss}
             contentContainerStyle={{
@@ -52,8 +55,11 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
                 placeholder='Nhập tên group' placeholderTextColor={'gray'}
                 value={groupName} onChangeText={setGroupName}
             />
-            <View style={{ marginVertical: 10, width: '100%' }}>
-            <ButtonCustom title="Chọn avatar group" backgroundColor="white"/>
+            <View style={{ marginVertical: 10, width: '100%',alignItems:'center'}}>
+            {/* <ButtonCustom title="Chọn avatar group" backgroundColor="white" /> */}
+            <TouchableOpacity style={{borderRadius:10,borderWidth:1,width:'80%',justifyContent:'center',alignItems:'center'}}>
+             <ImagePickerComponent onSelectImage={handleImageSelect} buttonText="Chọn avatar group" />
+            </TouchableOpacity>
             </View>
             <TextInput style={{ backgroundColor: 'white', width: '100%' }} 
                 placeholder='Tìm kiếm' placeholderTextColor={'gray'}
@@ -84,6 +90,7 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
                 arr.push({member: { id: senderId }, memberType: "GROUP_LEADER"})
                 let dataSend = {
                     idGroup: uuidv4(),
+                    // avtGroup: avtGroup,
                     conversationType: "group",
                     nameGroup: groupName,
                     status: "READ_ONLY",

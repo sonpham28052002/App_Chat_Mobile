@@ -717,7 +717,7 @@ const Chat = ({ navigation, route }) => {
                                 marginTop: height - 375
                             }}>
                             <FilePickerComponent onSelectFile={handleFileSelect} />
-                            <ImagePickerComponent onSelectImage={handleImageSelect} />
+                            <ImagePickerComponent onSelectImage={handleImageSelect}  buttonText="Chọn ảnh/video" />
                         </Modal>
                         <MessageForward visible={visibleMessageForward} onDismiss={hideModalMessageForward} senderId={sender.id} onSend={forwardMessage} />
                         {/* <StipopSender/> */}

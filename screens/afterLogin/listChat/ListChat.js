@@ -39,7 +39,7 @@ const ListChat = ({ navigation }) => {
   const [conversations, setConversations] = useState(currentUser.conversation);
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteMode, setDeleteMode] = useState(false);
-
+  const [isRes, setIsRes] = useState(false);
   const [visible, setVisible] = useState(false);
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
@@ -79,6 +79,8 @@ const ListChat = ({ navigation }) => {
   //   }
   // };
 
+  const [deleteTimeout, setDeleteTimeout] = useState(null);
+  const [restoring, setRestoring] = useState(false);
   useEffect(() => {
     const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
     stompClient.current = Stomp.over(socket);
@@ -98,13 +100,13 @@ const ListChat = ({ navigation }) => {
   const updateMess = async () => {
     const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
     try {
-        if (result.data) {
-            dispatch(save(result.data));
-        }
+      if (result.data) {
+        dispatch(save(result.data));
+      }
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
-}
+  }
 
   const onCreateGroup = (message) => {
     updateMess();
@@ -170,50 +172,82 @@ const ListChat = ({ navigation }) => {
     stompClient.current.send('/app/createGroup', {}, JSON.stringify(data));
     hideModalCreateGroup();
   }
-const deleteConversation = (item) => {
-  if (!item) {
-    console.error("Item Error:", item);
-    return;
-  }
+  const [secondsLeft, setSecondsLeft] = useState(10);
 
-  const con = {
-    ownerId: id,
-    idUser: "",
-    idGroup: ""
+  const handleDelete = (item) => {
+    setSelectedItem(item);
+    setDeleteMode(true);
+    setSecondsLeft(10);
+    setIsRes(true)
+    startDeleteTimeout();
   };
 
-  if (item.conversationType === "group" && item.idGroup) {
-    con.idGroup = item.idGroup;
-  } else if (item.user && item.user.id) {
-    con.idUser = item.user.id;
-  } else {
-    console.error("Invalid Item:", item);
-    return;
-  }
+  const cancelDelete = () => {
+    clearTimeout(deleteTimeout);
+    setDeleteMode(false);
+  };
 
-  stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
+  const restoreConversation = () => {
+    cancelDelete();
+    setIsRes(false)
+  };
 
-  const updatedConversations = conversations.filter(conv => {
-    if (item.conversationType === "group") {
-      return conv.idGroup !== item.idGroup;
-    } else {
-      return conv.user.id !== item.user.id;
+  const startDeleteTimeout = () => {
+    const timeout = setInterval(() => {
+      setSecondsLeft(prevSeconds => prevSeconds - 1);
+      if (secondsLeft === 1) {
+        clearInterval(timeout);
+        deleteConversation(selectedItem);
+        setDeleteMode(false);
+      }
+    }, 1000);
+
+    setDeleteTimeout(timeout);
+  };
+
+
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(deleteTimeout);
+    };
+  }, [deleteMode]);
+
+  const deleteConversation = (item) => {
+    if (!item) {
+      console.error("Item Error:", item);
+      return;
     }
-  });
 
-  setConversations(updatedConversations);
-  setSelectedItem(null); 
-  setDeleteMode(false);
-}
+    const con = {
+      ownerId: id,
+      idUser: "",
+      idGroup: ""
+    };
 
+    if (item.conversationType === "group" && item.idGroup) {
+      con.idGroup = item.idGroup;
+    } else if (item.user && item.user.id) {
+      con.idUser = item.user.id;
+    } else {
+      console.error("Invalid Item:", item);
+      return;
+    }
 
+    stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
 
+    const updatedConversations = conversations.filter(conv => {
+      if (item.conversationType === "group") {
+        return conv.idGroup !== item.idGroup;
+      } else {
+        return conv.user.id !== item.user.id;
+      }
+    });
 
-
-
-
-
-
+    setConversations(updatedConversations);
+    setSelectedItem(null);
+    setDeleteMode(false);
+  }
 
   const addFriend = (data) => {
     stompClient.current.send('/app/request-add-friend', {}, JSON.stringify(data));
@@ -223,12 +257,12 @@ const deleteConversation = (item) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       {Platform.OS == "android" && <View style={{ height: 30 }} />}
-      <TouchableOpacity  onPress={() => navigation.navigate('Search')}
-      style={{
-        backgroundColor: 'cyan',
-        height: 50, flexDirection: 'row',
-        width: '100%', justifyContent: 'space-between', alignItems: 'center'
-      }}>
+      <TouchableOpacity onPress={() => navigation.navigate('Search')}
+        style={{
+          backgroundColor: 'cyan',
+          height: 50, flexDirection: 'row',
+          width: '100%', justifyContent: 'space-between', alignItems: 'center'
+        }}>
         <View style={{ width: 45, marginHorizontal: 10, justifyContent: 'center', alignItems: 'center' }}>
           <FontAwesome name="search" size={40} color="white" />
         </View>
@@ -239,115 +273,132 @@ const deleteConversation = (item) => {
           placeholder='Tìm kiếm...'
           placeholderTextColor={'grey'}
         /> */}
-        <View style={{ fontSize: 20, height: 40, width: '60%',
-          backgroundColor: 'white', borderRadius: 5, borderWidth: 1, justifyContent:'center', paddingLeft:5}}>
-            <Text style={{fontSize:18}}>Tìm kiếm...</Text>
+        <View style={{
+          fontSize: 20, height: 40, width: '60%',
+          backgroundColor: 'white', borderRadius: 5, borderWidth: 1, justifyContent: 'center', paddingLeft: 5
+        }}>
+          <Text style={{ fontSize: 18 }}>Tìm kiếm...</Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate("ScanQR")}>
           <FontAwesome name="qrcode" size={35} color="white" />
         </TouchableOpacity>
         <View style={{ marginRight: 10 }}>
-          <TouchableOpacity onPress={() => 
+          <TouchableOpacity onPress={() =>
             // navigation.navigate('CreateMessager')
             showModal()
-            }>
+          }>
             <AntDesign name="adduser" size={35} color="white" />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
       <View>
         <FlatList
-        scrollEnabled={true}
+          scrollEnabled={true}
           data={currentUser.conversation}
           renderItem={({ item }) => (
-          (item.user || (item.status && item.status !== "DISBANDED")) &&
-          <View>
-   <TouchableOpacity
-              style={{
-                height: 70, flexDirection: 'row', alignItems: 'center',
-                flex: 1
-              }}
-              onPress={() => navigation.navigate("Chat", item.user ? item.user :
-                { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status })}
-              onLongPress={() => {
-                setSelectedItem(item);
-                setDeleteMode(true);
-              }}
-            >
-              <View style={{ width: 65, paddingHorizontal: 7, justifyContent: 'center', alignItems: 'center' }}>
-                <Image source={{ uri: item.user ? item.user.avt : item.avtGroup }} style={{ width: 50, height: 50, borderRadius: 25 }} />
-              </View>
-              <View style={{ width: width - 65, flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'grey' }}>
-                <View style={{
-                  width: width - 145, paddingHorizontal: 10,
-                  height: 70, justifyContent: 'center'
-                }}>
-                  <Text style={{ fontSize: 20 }} numberOfLines={1}>{item.user ? item.user.userName : item.nameGroup}</Text>
-                  {
-                    deleteMode && selectedItem === item && // Hiển thị nút xóa nếu ở trạng thái xóa và mục được chọn
-                    <TouchableOpacity onPress={() => deleteConversation(item)}>
-                      <AntDesign name="delete" size={24} color="red" />
-                    </TouchableOpacity>
-                  }
-                  {
-                    item.lastMessage? item.lastMessage.sender.id == obj.id ?
-                      <Text style={{ fontSize: 14, color: 'grey' }} numberOfLines={1}>{
-                        item.lastMessage.messageType == 'RETRIEVE' ? 'Bạn đã thu hồi một tin nhắn' :
-                          item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
-                            'Bạn: [Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
-                              || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
-                              || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
-                              'Bạn: ' + item.lastMessage.titleFile :
-                              item.lastMessage.messageType == 'AUDIO' ? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO' ?
-                                'Bạn: [Video]' : 'Bạn: ' + item.lastMessage.content}</Text>
-                      : <Text style={{
-                        fontSize: 14, color: item.lastMessage && item.lastMessage.seen ? 'grey' : 'black',
-                        fontWeight: item.lastMessage && item.lastMessage.seen ? 'normal' : 'bold'
-                      }} numberOfLines={1}>
-                        {
-                          item.lastMessage.messageType == 'RETRIEVE' ? 'Đã thu hồi một tin nhắn' :
+            (item.user || (item.status && item.status !== "DISBANDED")) &&
+            <View>
+              <TouchableOpacity
+                style={{
+                  height: 70, flexDirection: 'row', alignItems: 'center',
+                  flex: 1
+                }}
+                onPress={() => navigation.navigate("Chat", item.user ? item.user :
+                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status })}
+                onLongPress={() => {
+                  setSelectedItem(item);
+                  setDeleteMode(true);
+                }}
+              >
+                <View style={{ width: 65, paddingHorizontal: 7, justifyContent: 'center', alignItems: 'center' }}>
+                  <Image source={{ uri: item.user ? item.user.avt : item.avtGroup }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+                </View>
+                <View style={{ width: width - 65, flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'grey' }}>
+                  <View style={{
+                    width: width - 145, paddingHorizontal: 10,
+                    height: 70, justifyContent: 'center'
+                  }}>
+                    <Text style={{ fontSize: 20 }} numberOfLines={1}>{item.user ? item.user.userName : item.nameGroup}</Text>
+                    {
+                      deleteMode && selectedItem === item && // Hiển thị nút xóa nếu ở trạng thái xóa và mục được chọn
+                      <TouchableOpacity onPress={() => handleDelete(item)}>
+                        <AntDesign name="delete" size={24} color="red" />
+                      </TouchableOpacity>
+
+                    }
+                    {
+                      item.lastMessage ? item.lastMessage.sender.id == obj.id ?
+                        <Text style={{ fontSize: 14, color: 'grey' }} numberOfLines={1}>{
+                          item.lastMessage.messageType == 'RETRIEVE' ? 'Bạn đã thu hồi một tin nhắn' :
                             item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
-                              '[Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
+                              'Bạn: [Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
                                 || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
                                 || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
-                                item.lastMessage.titleFile :
-                                item.lastMessage.messageType == 'AUDIO' ? '[Audio]' : item.lastMessage.messageType == 'VIDEO' ?
-                                  '[Video]' : item.lastMessage.content
-                        }</Text> : null
-                  }
-                </View>
-                <View style={{ width: 70, marginRight: 10, justifyContent: 'center', alignItems: 'center' }}>
-                  {item.lastMessage && <Text style={{ fontSize: 12, color: 'grey' }} numberOfLines={1}>{calcTime(item.lastMessage.senderDate)}</Text>}
-                  <View style={{ backgroundColor: 'red', borderRadius: 10, justifyContent: 'center', alignItems: 'center', width: 30 }}>
-                    <Text style={{ fontSize: 16, color: 'white' }}>1</Text>
+                                'Bạn: ' + item.lastMessage.titleFile :
+                                item.lastMessage.messageType == 'AUDIO' ? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO' ?
+                                  'Bạn: [Video]' : 'Bạn: ' + item.lastMessage.content}</Text>
+                        : <Text style={{
+                          fontSize: 14, color: item.lastMessage && item.lastMessage.seen ? 'grey' : 'black',
+                          fontWeight: item.lastMessage && item.lastMessage.seen ? 'normal' : 'bold'
+                        }} numberOfLines={1}>
+                          {
+                            item.lastMessage.messageType == 'RETRIEVE' ? 'Đã thu hồi một tin nhắn' :
+                              item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
+                                '[Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
+                                  || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
+                                  || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
+                                  item.lastMessage.titleFile :
+                                  item.lastMessage.messageType == 'AUDIO' ? '[Audio]' : item.lastMessage.messageType == 'VIDEO' ?
+                                    '[Video]' : item.lastMessage.content
+                          }</Text> : null
+                    }
+                  </View>
+                  <View style={{ width: 70, marginRight: 10, justifyContent: 'center', alignItems: 'center' }}>
+                    {item.lastMessage && <Text style={{ fontSize: 12, color: 'grey' }} numberOfLines={1}>{calcTime(item.lastMessage.senderDate)}</Text>}
+                    <View style={{ backgroundColor: 'red', borderRadius: 10, justifyContent: 'center', alignItems: 'center', width: 30 }}>
+                      <Text style={{ fontSize: 16, color: 'white' }}>1</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-             {/* {deleteMode && (
+                {/* {deleteMode && (
           <TouchableOpacity onPress={() => setDeleteMode(false)}>
             <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
               <Text style={{ color: 'white' }}>Hủy Xóa</Text>
             </View>
           </TouchableOpacity>
         )} */}
-            </TouchableOpacity>
-               {deleteMode && selectedItem === item && (
-          <TouchableOpacity onPress={() => setDeleteMode(false)}>
-            <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
-              <Text style={{ color: 'white' }}>Hủy Xóa</Text>
+              </TouchableOpacity>
+              {deleteMode && selectedItem === item && (
+
+                <View style={{}}>
+                  <TouchableOpacity onPress={restoreConversation}>
+                    <View style={{ backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', height: 50 }}>
+                      <Text style={{ fontSize: 14, color: 'red' }}>{secondsLeft} giây còn lại</Text>
+                      <Text style={{ color: 'red' }}>Khôi phục</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setDeleteMode(false)}>
+                    <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
+                      <Text style={{ color: 'white' }}>Hủy Xóa</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+                // <TouchableOpacity onPress={() => setDeleteMode(false)}>
+                //   <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
+                //     <Text style={{ color: 'white' }}>Hủy Xóa</Text>
+                //   </View>
+                // </TouchableOpacity>
+              )}
             </View>
-          </TouchableOpacity>
-        )}
-          </View>
-         
+
           )
           }
           keyExtractor={(item) => item.updateLast}
         />
       </View>
-        <ModalAddChat visible={visible} onDismiss={hideModal} handleShowModalAddFriend={handleShowModalAddFriend} handleShowModalCreateGroup={handleShowModalCreateGroup}/>
-        <ModalCreateGroup visible={visibleCreateGroup} senderId={id} onPress={createGroup} onDismiss={hideModalCreateGroup} />
-        <ModalAddFriend visible={visibleAddFriend} onDismiss={hideModalAddFriend} onPress={addFriend}/>
+      <ModalAddChat visible={visible} onDismiss={hideModal} handleShowModalAddFriend={handleShowModalAddFriend} handleShowModalCreateGroup={handleShowModalCreateGroup} />
+      <ModalCreateGroup visible={visibleCreateGroup} senderId={id} onPress={createGroup} onDismiss={hideModalCreateGroup} />
+      <ModalAddFriend visible={visibleAddFriend} onDismiss={hideModalAddFriend} onPress={addFriend} />
     </SafeAreaView >
   );
 }

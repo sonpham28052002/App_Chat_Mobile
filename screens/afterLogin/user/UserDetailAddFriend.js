@@ -1,22 +1,36 @@
-// UserDetailsScreen.js
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity,Image } from 'react-native';
- const handleAddFriend = async () => {
+
+import React,{useEffect,useRef} from 'react';
+import { View, Text, StyleSheet, TouchableOpacity,Image,Alert } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
+const UserDetailAddFriend = ({ route }) => {
+  const currentUser = useSelector((state) => state.account);
+  var stompClient = useRef(null);
+  const { user } = route.params;
+   useEffect(() => {
+    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+    stompClient.current = Stomp.over(socket);
+    stompClient.current.connect({}, onConnected, onError);
+  }, [])
+ const onError = (error) => {
+    console.log('Could not connect to WebSocket server. Please refresh and try again!');
+  }
+  const onConnected = () => {
+  }
+  const handleAddFriend = async () => {
         try {
             const request = {
-                id: id,
-                receiverId: receiverId.current
+                id: currentUser.id,
+                receiverId: user.id
             };
-            onPress(request);
-            // stompClient.send("/app/request-add-friend", {}, JSON.stringify(request));
+            stompClient.current.send("/app/request-add-friend", {}, JSON.stringify(request));
             Alert.alert('Kết bạn', 'Yêu cầu kết bạn đã được gửi.');
             // navigation.navigate("Contact")
         } catch (error) {
             console.error('Error sending friend request:', error);
         }
     };
-const UserDetailAddFriend = ({ route }) => {
-  const { user } = route.params;
   return (
     <View style={styles.container}>
           <Image

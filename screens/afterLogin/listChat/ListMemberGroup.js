@@ -123,6 +123,7 @@ function TatCa({ route }) {
   const addMember = (data) => {
     stompClient.current.send('/app/addMemberIntoGroup', {}, JSON.stringify(data));
     setVisible(false);
+    loadAllMember()
   }
 
   const onError = (error) => {

@@ -3,7 +3,8 @@ import { createSlice } from '@reduxjs/toolkit';
 const accountSlice = createSlice({
   name: 'account',
   initialState: {
-       friendList: [],
+    conversation: [],
+      //  friendList: [],
   },
   reducers: {
     save: (state, action) => {
@@ -15,6 +16,11 @@ const accountSlice = createSlice({
     addToFriendList: (state, action) => {
       state.friendList.push(action.payload);
     },
+    addLastMessage: (state, action) => {
+      let message = action.payload.message;
+      let index = action.payload.index;
+      state.conversation[index].lastMessage = message;
+    }
   },
 });
 
@@ -26,10 +32,11 @@ const messSlice = createSlice({
   },
   reducers:{
     saveReceiverId: (state, action) => {
-      state = {...state, id: action.payload};
+      // state = {...state, id: action.payload};
+      state.id = action.payload;
     },
     saveMess: (state, action) => {
-      state.messages = [...action.payload];
+      state.messages = action.payload;
       // state = {...state, messages: action.payload}
     },
     addMess: (state, action) => {
@@ -67,9 +74,23 @@ const chatSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar, updateLastMessage,addToFriendList } = accountSlice.actions;
+const socketSlice = createSlice({
+  name: 'socket',
+  initialState: {
+    connected : false,
+  },
+  reducers: {
+    initSocket: (state, action) => {
+      state.connected = action.payload;
+    },
+  },
+});
+
+export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } = messSlice.actions;
 export const { deleteConversation } = chatSlice.actions;
+export const { initSocket } = socketSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;
 export const chatReducer = chatSlice.reducer
+export const socketReducer = socketSlice.reducer;

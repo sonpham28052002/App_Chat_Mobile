@@ -3,12 +3,13 @@ import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, KeyboardAvoiding
 import { GiftedChat, Message } from 'react-native-gifted-chat';
 import { TextInput, Modal, Portal, PaperProvider } from 'react-native-paper';
 import { Entypo, FontAwesome, MaterialIcons, FontAwesome6, Ionicons } from '@expo/vector-icons';
-import EmojiPicker from 'rn-emoji-keyboard'
+import EmojiPicker, { id } from 'rn-emoji-keyboard'
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
 import { save, saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } from '../../../Redux/slice';
 import axios from 'axios';
+// import { onMessageReceive } from '../../../function/socket/onReceiveMessage';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -16,9 +17,7 @@ import AudioRecorder from '../../../components/AudioRecorder';
 import VideoMessage from '../../../components/VideoMesssage';
 import AudioMessage from '../../../components/AudioMessage';
 import MessageForward from './components/MessageForward';
-import StipopSender from '../../../components/sticker/StipopSender'
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
-import ModalAddChat from './components/ModalAddChat';
+import { getMessage } from '../../../function/socket/loadMessage';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 
@@ -26,8 +25,6 @@ const Chat = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const sender = useSelector((state) => state.account);
     const messages = useSelector((state) => state.message.messages);
-    // const receiverId = useSelector((state) => state.message.id);
-    // let [receiverId, setReceiverId] = useState('alo');
     const receiverId = useRef(route.params.id).current;
     var stompClient = useRef(null);
     const [uriImage, setUriImage] = useState(null);
@@ -45,9 +42,7 @@ const Chat = ({ navigation, route }) => {
     const [sizeVideo, setSizeVideo] = useState(0);
     const [sizeAudio, setSizeAudio] = useState(0);
     const [durationInSeconds, setdurationInSeconds] = useState(0);
-    //    const [messagesVideo, setMessagesVideo] = useState([]);
-    //     const [isVideoPlayed, setIsVideoPlayed] = useState({});
-    //     const [currentVideoUri, setCurrentVideoUri] = useState(null);
+    const [messLoad, setMessLoad] = useState([]);
 
     let listMember = useRef([]);
 
@@ -75,126 +70,98 @@ const Chat = ({ navigation, route }) => {
         const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
-
-        // if(route.params.nameGroup){
-            getListMember();
-        // }
-        // if (receiverId !== route.params.id) {
-            // dispatch(saveReceiverId(route.params.id));
-        // getMessage();
-        // }
+        if(route.params.nameGroup){
+            getListMember().then(() => {
+            getMessage(sender, { id: route.params.id, members: listMember.current }).then(messages => {
+                setMessLoad(messages);
+            });})
+        } else
+            getMessage(sender, route.params).then(messages => {
+                setMessLoad(messages);
+            });
     }, []);
-    const [messLoad, setMessLoad] = useState([]);
 
     useEffect(() => {
-        loadMessage();
+        dispatch(saveMess(messLoad.reverse()));
     }, [messLoad]);
 
-    const updateMess = async () => {
-        const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${sender.id}`)
-        try {
-            if (result.data) {
-                dispatch(save(result.data));
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     const getListMember = async () => {
-        if(route.params.nameGroup){
         let api = `https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
-        console.log("api get list member", api);
         const result = await axios.get(api)
         try {
             if (result.data){
                 listMember.current = [...result.data];
-                getMessage();
             }
         } catch (error) {
             console.log(error);
         }
-        }else getMessage();
     }
 
-    const getMember = (id) => {
-        return listMember.current.find(item => item.member.id === id);
-    }
+    // const getMember = (id) => {
+    //     return listMember.current.find(item => item.member.id === id);
+    // }
 
-    const getMessage = async () => {
-        let response = null;
-        let api = ''
-        if(route.params.nameGroup)
-            api = `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
-        else 
-            api = `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`
-        console.log("api get message", api);
-        response = await axios.get(api);
-        let messages = []
-        if (response.data.length <= 20) messages = [...response.data]
-        else messages = response.data.slice(-20)
-        messages = messages.map(message => {
-            let date = new Date(message.senderDate);
-            let newMess = {
-                _id: message.id,
-                createdAt: date.setUTCHours(date.getUTCHours() + 7),
-                user: {
-                    _id: message.sender.id,
-                    name: message.sender.id == sender.id ? sender.userName : route.params.nameGroup? getMember(message.sender.id).member.userName : route.params.userName,
-                    avatar: message.sender.id == sender.id ? sender.avt : route.params.nameGroup? getMember(message.sender.id).member.avt : route.params.avt,
-                }
-            }
-            if (message.messageType === 'RETRIEVE')
-                newMess.text = "Tin nhắn đã bị thu hồi!";
-            else if (message.content)
-                newMess.text = message.content
-            else if (message.messageType == 'PNG'
-                || message.messageType == 'JPG'
-                || message.messageType == 'JPEG')
-                newMess.image = message.url
-            else if (message.messageType == 'PDF'
-                || message.messageType == 'DOC'
-                || message.messageType == 'DOCX'
-                || message.messageType == 'XLS'
-                || message.messageType == 'XLSX'
-                || message.messageType == 'PPT'
-                || message.messageType == 'PPTX'
-                || message.messageType == 'RAR'
-                || message.messageType == 'ZIP')
-                newMess.file = message.url
-            else if (message.messageType == 'VIDEO')
-                newMess.video = message.url
-            else if (message.messageType == 'AUDIO')
-                newMess.audio = message.url
-            return newMess;
-        });
-        setMessLoad(messages);
-    }
-
-    function loadMessage(){
-        dispatch(saveMess(messLoad.reverse()));
-    }
+    // const getMessage = async () => {
+    //     let response = null;
+    //     let api = ''
+    //     if(route.params.nameGroup)
+    //         api = `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
+    //     else 
+    //         api = `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${route.params.id}`
+    //     response = await axios.get(api);
+    //     let messages = []
+    //     if (response.data.length <= 20) messages = [...response.data]
+    //     else messages = response.data.slice(-20)
+    //     messages = messages.map(message => {
+    //         let date = new Date(message.senderDate);
+    //         let newMess = {
+    //             _id: message.id,
+    //             createdAt: date.setUTCHours(date.getUTCHours() + 7),
+    //             user: {
+    //                 _id: message.sender.id,
+    //                 name: message.sender.id == sender.id ? sender.userName : route.params.nameGroup? getMember(message.sender.id).member.userName : route.params.userName,
+    //                 avatar: message.sender.id == sender.id ? sender.avt : route.params.nameGroup? getMember(message.sender.id).member.avt : route.params.avt,
+    //             }
+    //         }
+    //         if (message.messageType === 'RETRIEVE')
+    //             newMess.text = "Tin nhắn đã bị thu hồi!";
+    //         else if (message.content)
+    //             newMess.text = message.content
+    //         else if (message.messageType == 'PNG'
+    //             || message.messageType == 'JPG'
+    //             || message.messageType == 'JPEG')
+    //             newMess.image = message.url
+    //         else if (message.messageType == 'PDF'
+    //             || message.messageType == 'DOC'
+    //             || message.messageType == 'DOCX'
+    //             || message.messageType == 'XLS'
+    //             || message.messageType == 'XLSX'
+    //             || message.messageType == 'PPT'
+    //             || message.messageType == 'PPTX'
+    //             || message.messageType == 'RAR'
+    //             || message.messageType == 'ZIP')
+    //             newMess.file = message.url
+    //         else if (message.messageType == 'VIDEO')
+    //             newMess.video = message.url
+    //         else if (message.messageType == 'AUDIO')
+    //             newMess.audio = message.url
+    //         return newMess;
+    //     });
+    //     setMessLoad(messages);
+    // }
 
     function onConnected() {
-        stompClient.current.subscribe('/user/' + sender.id + '/singleChat', onMessageReceived)
-        stompClient.current.subscribe('/user/' + sender.id + '/groupChat', onGroupMessageReceived)
-        stompClient.current.subscribe('/user/' + sender.id + '/retrieveMessage', onRetrieveMessage)
-        // stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
-        stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
-            let message = JSON.parse(payload.body)
-            let members = message.members;
-            let isRemove = members.filter(item => item.id == sender.id && item.memberType == "LEFT_MEMBER");
-            if(route.params.id === message.idGroup && isRemove.length > 0){
-                Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
-                navigation.navigate('ListChat')
-            }
-        })
-    }
-
-    function onGroupMessageReceived(payload){
-        let message = JSON.parse(payload.body)
-        updateMess();
-        addMessage(message, "group")
+        // stompClient.current.subscribe('/user/' + sender.id + '/retrieveMessage', onRetrieveMessage)
+        // // stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
+        // stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload) => {
+        //     let message = JSON.parse(payload.body)
+        //     let members = message.members;
+        //     let isRemove = members.filter(item => item.id == sender.id && item.memberType == "LEFT_MEMBER");
+        //     if (route.params.id === message.idGroup && isRemove.length > 0) {
+        //         Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
+        //         navigation.navigate('ListChat')
+        //     }
+        // })
     }
 
     // function onDeleteResult(payload) {
@@ -203,69 +170,69 @@ const Chat = ({ navigation, route }) => {
     //     hideModal();
     // }
 
-    function onRetrieveMessage(payload) {
-        let message = JSON.parse(payload.body)
-        if (message.messageType === 'RETRIEVE') {
-            const index = [...messages].findIndex((item) => item._id === message.id)
-            if (index === -1) getMessage();
-            if (index !== -1) {
-                let date = new Date(message.senderDate);
-                dispatch(retreiveMess({
-                    index: index, mess: {
-                        _id: message.sender.id,
-                        text: "Tin nhắn đã bị thu hồi!",
-                        createdAt: date.setUTCHours(date.getUTCHours() + 7),
-                        user: {
-                            _id: sender.id,
-                            name: sender.userName,
-                            avatar: sender.avt,
-                        }
-                    }
-                }));
-            }
-            hideModal();
-            updateMess();
-        }
-    }
+    // function onRetrieveMessage(payload) {
+    //     let message = JSON.parse(payload.body)
+    //     if (message.messageType === 'RETRIEVE') {
+    //         const index = [...messages].findIndex((item) => item._id === message.id)
+    //         if (index === -1) getMessage();
+    //         if (index !== -1) {
+    //             let date = new Date(message.senderDate);
+    //             dispatch(retreiveMess({
+    //                 index: index, mess: {
+    //                     _id: message.sender.id,
+    //                     text: "Tin nhắn đã bị thu hồi!",
+    //                     createdAt: date.setUTCHours(date.getUTCHours() + 7),
+    //                     user: {
+    //                         _id: sender.id,
+    //                         name: sender.userName,
+    //                         avatar: sender.avt,
+    //                     }
+    //                 }
+    //             }));
+    //         }
+    //         hideModal();
+    //         // updateMess();
+    //     }
+    // }
 
-    function addMessage(message, type){
-        let date = new Date(message.senderDate);
-        let newMessage = {
-            _id: message.id,
-            createdAt: date.setUTCHours(date.getUTCHours() + 7),
-            user: {
-                _id: message.sender.id,
-                name: message.sender.id === sender.id ? sender.userName : type == "group"? getMember(message.sender.id).member.userName : route.params.userName,
-                avatar: message.sender.id === sender.id ? sender.avt : type == "group"? getMember(message.sender.id).member.avt : route.params.avt,
-            }
-        };
-        if (message.content)
-            newMessage.text = message.content;
-        else {
-            if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
-                newMessage.image = message.url;
-            else if (message.messageType == 'AUDIO')
-                newMessage.audio = message.url;
-            else if (message.messageType == 'VIDEO')
-                newMessage.video = message.url;
-            else if (message.messageType == 'PDF' || message.messageType == 'DOC'
-                || message.messageType == 'DOCX' || message.messageType == 'XLS'
-                || message.messageType == 'XLSX' || message.messageType == 'PPT'
-                || message.messageType == 'PPTX' || message.messageType == 'RAR'
-                || message.messageType == 'ZIP' || message.messageType == 'TXT'
-                || message.messageType == 'JSON' || message.messageType == 'XML'
-                || message.messageType == 'CSV' || message.messageType == 'HTML')
-                newMessage.file = message.url;
-        }
-        dispatch(addMess(newMessage));
-    }
+    // function addMessage(message, type){
+    //     let date = new Date(message.senderDate);
+    //     let newMessage = {
+    //         _id: message.id,
+    //         createdAt: date.setUTCHours(date.getUTCHours() + 7),
+    //         user: {
+    //             _id: message.sender.id,
+    //             name: message.sender.id === sender.id ? sender.userName : type == "group"? getMember(message.sender.id).member.userName : route.params.userName,
+    //             avatar: message.sender.id === sender.id ? sender.avt : type == "group"? getMember(message.sender.id).member.avt : route.params.avt,
+    //         }
+    //     };
+    //     if (message.content)
+    //         newMessage.text = message.content;
+    //     else {
+    //         if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
+    //             newMessage.image = message.url;
+    //         else if (message.messageType == 'AUDIO')
+    //             newMessage.audio = message.url;
+    //         else if (message.messageType == 'VIDEO')
+    //             newMessage.video = message.url;
+    //         else if (message.messageType == 'PDF' || message.messageType == 'DOC'
+    //             || message.messageType == 'DOCX' || message.messageType == 'XLS'
+    //             || message.messageType == 'XLSX' || message.messageType == 'PPT'
+    //             || message.messageType == 'PPTX' || message.messageType == 'RAR'
+    //             || message.messageType == 'ZIP' || message.messageType == 'TXT'
+    //             || message.messageType == 'JSON' || message.messageType == 'XML'
+    //             || message.messageType == 'CSV' || message.messageType == 'HTML')
+    //             newMessage.file = message.url;
+    //     }
+    //     dispatch(addMess(newMessage));
+    // }
 
-    function onMessageReceived(payload) {
-        const message = JSON.parse(payload.body);
-        updateMess();
-        if (message.sender.id === sender.id && message.receiver.id === receiverId)
-            addMessage(message, "single");
-    }
+    // function onMessageReceived(payload) {
+    //     const message = JSON.parse(payload.body);
+    //     updateMess();
+    //     if (message.sender.id === sender.id && message.receiver.id === receiverId)
+    //         addMessage(message, "single");
+    // }
 
     function onError(error) {
         console.log('Could not connect to WebSocket server. Please refresh and try again!');
@@ -322,7 +289,7 @@ const Chat = ({ navigation, route }) => {
             }
             let messageSend = null
             if(route.params.nameGroup)
-                messageSend = { ...chatMessage, idGroup: route.params.id, receiver: undefined}
+                messageSend = { ...chatMessage, receiver: { id: "group_" + route.params.id}}
             else
                 messageSend = { ...chatMessage, idGroup: "", receiver: { id: route.params.id }
             }
@@ -344,17 +311,17 @@ const Chat = ({ navigation, route }) => {
         } else {
             if (mess.trim() !== '') {
                 const id = uuidv4();
-                const newMessage = {
-                    _id: id,
-                    text: mess.trim(),
-                    createdAt: new Date() + "",
-                    user: {
-                        _id: sender.id,
-                        name: sender.userName,
-                        avatar: sender.avt,
-                    }
-                };
-                dispatch(addMess(newMessage));
+                // const newMessage = {
+                //     _id: id,
+                //     text: mess.trim(),
+                //     createdAt: new Date() + "",
+                //     user: {
+                //         _id: sender.id,
+                //         name: sender.userName,
+                //         avatar: sender.avt,
+                //     }
+                // };
+                // dispatch(addMess(newMessage));
                 sendMessage(id, 'Text');
                 // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
                 setMess(''); // Clear the TextInput value after sending
@@ -368,7 +335,6 @@ const Chat = ({ navigation, route }) => {
                 handleSendVideo();
                 setUriVideo(null);
             } else if (audio) {
-                console.log(audio);
                 hadleSendAudio();
                 setAudio(null);
             }
@@ -771,7 +737,6 @@ const Chat = ({ navigation, route }) => {
                             }}
                             onLongPress={(context, message) => {
                                 showModal();
-                                console.log(message);
                                 setMessTarget(message);
                             }}
                             renderMessage={(messageProps) => renderMessage(messageProps)}

@@ -126,7 +126,7 @@ const handleAcceptRequest = (senderId, receiverId) => {
                                     <TouchableOpacity style={styles.buttonAccept} onPress={() => handleAcceptRequest(item.sender.id, item.receiver.id)}>
                                         <Text style={styles.buttonText}>OK</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={styles.buttonReject} onPress={() => handleRejectRequest(item.id)}>
+                                    <TouchableOpacity style={styles.buttonReject} onPress={() => handleRejectRequest(item.sender.id, item.receiver.id)}>
                                         <Text style={styles.buttonText}>Từ chối</Text>
                                     </TouchableOpacity>
                                     </View>

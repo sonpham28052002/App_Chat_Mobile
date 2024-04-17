@@ -20,12 +20,10 @@ const MessageForward = ({ visible, onDismiss, senderId, onSend }) => {
                 let dataConversation = res.data.conversation
                     .filter(item => item.hasOwnProperty('user'))
                     .map(item => item.user);
-                console.log('dataConversation', dataConversation);
                 let set = new Set(dataConversation.map(item => item.id))
                 let dataFriend = res.data.friendList
                     .filter(item => !set.has(item.user.id))
                     .map(item => item.user)
-                console.log('dataFriend', dataFriend);
                 setData([...dataConversation, ...dataFriend].map(item => ({ ...item, checked: false })))
             }
         } catch (error) {

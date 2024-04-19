@@ -4,10 +4,11 @@ import { GiftedChat, Message } from 'react-native-gifted-chat';
 import { TextInput, Modal, Portal, PaperProvider } from 'react-native-paper';
 import { Entypo, FontAwesome, MaterialIcons, FontAwesome6, Ionicons } from '@expo/vector-icons';
 import EmojiPicker, { id } from 'rn-emoji-keyboard'
+import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { save, saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } from '../../../Redux/slice';
+import { save, saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } from '../../../Redux/slice';
 import axios from 'axios';
 // import { onMessageReceive } from '../../../function/socket/onReceiveMessage';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
@@ -24,8 +25,9 @@ const { v4: uuidv4 } = require('uuid');
 const Chat = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const sender = useSelector((state) => state.account);
+    const receiverId = useSelector((state) => state.message.id);
     const messages = useSelector((state) => state.message.messages);
-    const receiverId = useRef(route.params.id).current;
+    // const receiverId = useRef(route.params.id).current;
     var stompClient = useRef(null);
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
@@ -70,19 +72,36 @@ const Chat = ({ navigation, route }) => {
         const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
-        if(route.params.nameGroup){
-            getListMember().then(() => {
-            getMessage(sender, { id: route.params.id, members: listMember.current }).then(messages => {
-                setMessLoad(messages);
-            });})
-        } else
-            getMessage(sender, route.params).then(messages => {
-                setMessLoad(messages);
-            });
-    }, []);
 
+        if (receiverId !== route.params.id) {
+            toggleDialog3();
+            // setVisible3(true)
+            dispatch(saveReceiverId(route.params.id));
+            dispatch(saveMess([]));
+            if (route.params.nameGroup) {
+                getListMember().then(() => {
+                    getMessage(sender, { id: route.params.id, members: listMember.current }).then(messages => {
+                        if(messages.length > 0) setMessLoad(messages);
+                        else {
+                            // toggleDialog3()
+                            setVisible3(false);
+                        };
+                    });
+                })
+            } else
+                getMessage(sender, route.params).then(messages => {
+                    if(messages.length > 0) setMessLoad(messages);
+                    else setVisible3(false);
+                });
+        }
+        }, []);
+        
     useEffect(() => {
-        dispatch(saveMess(messLoad.reverse()));
+        if (messLoad.length > 0){
+            dispatch(saveMess(messLoad.reverse()));
+            toggleDialog3();
+        }
+        // setVisible3(false);
     }, [messLoad]);
 
     const getListMember = async () => {
@@ -291,8 +310,7 @@ const Chat = ({ navigation, route }) => {
             if(route.params.nameGroup)
                 messageSend = { ...chatMessage, receiver: { id: "group_" + route.params.id}}
             else
-                messageSend = { ...chatMessage, idGroup: "", receiver: { id: route.params.id }
-            }
+                messageSend = { ...chatMessage, receiver: { id: route.params.id }}
             stompClient.current.send("/app/private-single-message", {}, JSON.stringify(messageSend));
         }
     }
@@ -543,6 +561,9 @@ const Chat = ({ navigation, route }) => {
     const showModal2 = () => setVisible2(true);
     const hideModal2 = () => setVisible2(false);
 
+    const [visible3, setVisible3] = useState(false);
+    const toggleDialog3 = () => setVisible3(!visible3);
+
     const [visibleMessageForward, setVisibleMessageForward] = useState(false);
     const showModalMessageForward = () => setVisibleMessageForward(true);
     const hideModalMessageForward = () => setVisibleMessageForward(false);
@@ -688,6 +709,9 @@ const Chat = ({ navigation, route }) => {
                         </Modal>
                         <MessageForward visible={visibleMessageForward} onDismiss={hideModalMessageForward} senderId={sender.id} onSend={forwardMessage} />
                         {/* <StipopSender/> */}
+                        <Dialog isVisible={visible3}>
+                            <Dialog.Loading/>
+                        </Dialog>
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChat

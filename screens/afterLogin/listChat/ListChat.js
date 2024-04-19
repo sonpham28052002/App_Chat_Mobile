@@ -35,6 +35,8 @@ const ListChat = ({ navigation }) => {
   //   fetchAccount();
   // }, []);
 
+  const receiverId = useSelector((state) => state.message.id);
+
   const currentUser = useSelector((state) => state.account);
   const [conversations, setConversations] = useState(currentUser.conversation);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -81,8 +83,15 @@ const ListChat = ({ navigation }) => {
 
   const [deleteTimeout, setDeleteTimeout] = useState(null);
   const [restoring, setRestoring] = useState(false);
+
+  let r = useRef('');
+
+useEffect(() => {
+  r.current = receiverId;
+}, [receiverId]);
+
   useEffect(() => {
-    if(!socketConnected){
+    if (!socketConnected) {
       const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
       stompClient.current = Stomp.over(socket);
       stompClient.current.connect({}, onConnected, onError);
@@ -127,11 +136,16 @@ const ListChat = ({ navigation }) => {
     }
     //update message in listchat
     dispatch(addLastMessage({ message: message, index: index }));
-    let newMess = onMessageReceive(message, 
-      { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt }, 
-      currentUser.conversation[index].user)
-    if (newMess)
-      dispatch(addMess(newMess))
+
+    let messageReceiverId = message.receiver.id;
+    if (( message.sender.id === id && messageReceiverId === r.current )
+      || ( message.sender.id === r.current && messageReceiverId === id )){
+      let newMess = onMessageReceive(message,
+        { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
+        currentUser.conversation[index].user)
+      if (newMess)
+        dispatch(addMess(newMess))
+    }
   }
 
   const onGroupMessageReceived = (payload) => {
@@ -142,33 +156,37 @@ const ListChat = ({ navigation }) => {
       index++;
     }
     dispatch(addLastMessage({ message: message, index: index }));
-    let newMess = onMessageReceive(message, 
-      { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt }, 
-      { id: idGroup, members: currentUser.conversation[index].members })
-    if (newMess)
-      dispatch(addMess(newMess))
+
+    if ((message.sender.id === id && idGroup === r.current)
+      || (message.sender.id === r.current && idGroup === id)) {
+      let newMess = onMessageReceive(message,
+        { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
+        { id: idGroup, members: currentUser.conversation[index].members })
+      if (newMess)
+        dispatch(addMess(newMess))
+    }
   }
 
-  
+
   const onRetrieveMessage = (payload) => {
-    // let message = JSON.parse(payload.body)
-    // const index = [...messages].findIndex((item) => item._id === message.id)
+    let message = JSON.parse(payload.body)
+    const index = message.findIndex((item) => item._id === message.id)
     // if (index === -1) getMessage();
-    // if (index !== -1) {
-    //   let date = new Date(message.senderDate);
-    //   dispatch(retreiveMess({
-    //     index: index, mess: {
-    //       _id: message.sender.id,
-    //       text: "Tin nhắn đã bị thu hồi!",
-    //       createdAt: date.setUTCHours(date.getUTCHours() + 7),
-    //       user: {
-    //         _id: sender.id,
-    //         name: sender.userName,
-    //         avatar: sender.avt,
-    //       }
-    //     }
-    //   }));
-    // }
+    if (index !== -1) {
+      let date = new Date(message.senderDate);
+      dispatch(retrieveMess({
+        index: index, mess: {
+          _id: message.sender.id,
+          text: "Tin nhắn đã bị thu hồi!",
+          createdAt: date.setUTCHours(date.getUTCHours() + 7),
+          user: {
+            _id: sender.id,
+            name: sender.userName,
+            avatar: sender.avt,
+          }
+        }
+      }));
+    }
     // hideModal();
   }
 
@@ -178,14 +196,14 @@ const ListChat = ({ navigation }) => {
       console.log('Cuộc trò chuyện đã được xóa thành công:', conversation);
       // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
       // setConversations(updatedConversations);
-       const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
-    try {
-      if (result.data) {
-        dispatch(save(result.data));
+      const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
+      try {
+        if (result.data) {
+          dispatch(save(result.data));
+        }
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
-    }
 
     } else {
       console.log('Xóa cuộc trò chuyện không thành công:', conversation);
@@ -292,7 +310,7 @@ const ListChat = ({ navigation }) => {
     }
 
     stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
-    
+
     const updatedConversations = conversations.filter(conv => {
       if (item.conversationType === "group") {
         return conv.idGroup !== item.idGroup;
@@ -312,7 +330,7 @@ const ListChat = ({ navigation }) => {
     hideModalAddFriend();
   }
 
-  const getMember= (data, id)=>{
+  const getMember = (data, id) => {
     return data.filter(item => item.member.id == id)[0]
   }
 
@@ -358,7 +376,7 @@ const ListChat = ({ navigation }) => {
           scrollEnabled={true}
           data={currentUser.conversation}
           renderItem={({ item }) => (
-            (item.user || (item.status && item.status !== "DISBANDED" && getMember(item.members, id) && getMember(item.members, id).memberType !="LEFT_MEMBER")) &&
+            (item.user || (item.status && item.status !== "DISBANDED" && getMember(item.members, id) && getMember(item.members, id).memberType != "LEFT_MEMBER")) &&
             <View>
               <TouchableOpacity
                 style={{

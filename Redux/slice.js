@@ -43,7 +43,7 @@ const messSlice = createSlice({
       if(state.messages.findIndex(mess => mess._id === action.payload._id) === -1)
         state.messages = [action.payload, ...state.messages];
     },
-    retreiveMess: (state, action) => {
+    retrieveMess: (state, action) => {
       let messages2 = [...state.messages];
       messages2[action.payload.index] = action.payload.mess;
       state.messages = messages2;
@@ -87,7 +87,7 @@ const socketSlice = createSlice({
 });
 
 export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage } = accountSlice.actions;
-export const { saveReceiverId, saveMess, addMess, retreiveMess, deleteMess } = messSlice.actions;
+export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } = messSlice.actions;
 export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;
 export default accountSlice.reducer;

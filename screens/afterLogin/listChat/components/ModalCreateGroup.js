@@ -10,7 +10,7 @@ import ImagePickerComponent from '../../../../components/ImagePickerComponent'
 const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
     const { width, height } = Dimensions.get('window')
     const [groupName, setGroupName] = useState('')
-     const [avtGroup, setAvtGroupName] = useState('')
+     const [avtGroup, setAvtGroupName] = useState(undefined)
     const [data, setData] = useState([])
 
     useEffect(() => {
@@ -21,7 +21,6 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
         const res = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${senderId}`)
         try {
             if (res.data) {
-                console.log('res.data', res.data);
                 setData([...res.data.friendList.map(item => item.user)])
             }
         } catch (error) {

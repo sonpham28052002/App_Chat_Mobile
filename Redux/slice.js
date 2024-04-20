@@ -48,9 +48,6 @@ const messSlice = createSlice({
         state.messages = [action.payload, ...state.messages];
     },
     retrieveMess: (state, action) => {
-      // let messages2 = [...state.messages];
-      // messages2[action.payload.index] = action.payload.mess;
-      // state.messages = messages2;
       let index = state.messages.findIndex(mess => mess._id === action.payload);
       state.messages[index].text = 'Tin nhắn đã bị thu hồi!';
       delete state.messages[index].image;

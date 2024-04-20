@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { save, addLastMessage, addMess, initSocket } from '../../../Redux/slice';
+import { save, addLastMessage, retrieveLastMessage, retrieveMess, addMess, initSocket } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -17,7 +17,6 @@ const ListChat = ({ navigation }) => {
   var stompClient = useRef(null);
   const socketConnected = useSelector((state) => state.socket.connected);
   const dispatch = useDispatch();
-  const id = useSelector((state) => state.account.id);
   // const [account, setAccount] = useState(null);
   // useEffect(() => {
   //   const fetchAccount = async () => {
@@ -34,25 +33,36 @@ const ListChat = ({ navigation }) => {
   //   };
   //   fetchAccount();
   // }, []);
-
-  const receiverId = useSelector((state) => state.message.id);
-
+            
+  // account redux
+  const id = useSelector((state) => state.account.id);
   const currentUser = useSelector((state) => state.account);
-  const [conversations, setConversations] = useState(currentUser.conversation);
+  let conversations = useRef([]);
+  // const [conversations, setConversations] = useState(currentUser.conversation);
+
+  // message redux
+  const receiverId = useSelector((state) => state.message.id);
+  let r = useRef('');
+  const messages = useSelector((state) => state.message.messages);
+
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteMode, setDeleteMode] = useState(false);
   const [isRes, setIsRes] = useState(false);
+
+  // visible modal option (add friend, create group)
   const [visible, setVisible] = useState(false);
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
 
-  const [visibleCreateGroup, setVisibleCreateGroup] = useState(false);
-  const showModalCreateGroup = () => setVisibleCreateGroup(true);
-  const hideModalCreateGroup = () => setVisibleCreateGroup(false);
-
+  // visible modal add friend
   const [visibleAddFriend, setVisibleAddFriend] = useState(false);
   const showModalAddFriend = () => setVisibleAddFriend(true);
   const hideModalAddFriend = () => setVisibleAddFriend(false);
+
+  // visible modal create group
+  const [visibleCreateGroup, setVisibleCreateGroup] = useState(false);
+  const showModalCreateGroup = () => setVisibleCreateGroup(true);
+  const hideModalCreateGroup = () => setVisibleCreateGroup(false);
 
   // // Xóa cuộc trò chuyện
   // const deleteConversationAction = async (userId) => {
@@ -84,11 +94,15 @@ const ListChat = ({ navigation }) => {
   const [deleteTimeout, setDeleteTimeout] = useState(null);
   const [restoring, setRestoring] = useState(false);
 
-  let r = useRef('');
+  
 
-useEffect(() => {
-  r.current = receiverId;
-}, [receiverId]);
+  useEffect(() => {
+    r.current = receiverId;
+  }, [receiverId]);
+
+  useEffect(() => {
+    conversations.current = currentUser.conversation;
+  }, [currentUser.conversation]);
 
   useEffect(() => {
     if (!socketConnected) {
@@ -127,22 +141,28 @@ useEffect(() => {
     updateMess();
   }
 
+  const checkIsChatting = (senderId, messageReceiverId) => {
+    if ((senderId === id && messageReceiverId === r.current)
+      || (senderId === r.current && messageReceiverId === id))
+      return true;
+    return false;
+  }
+
   const onReceiveMessage = (payload) => {
     const message = JSON.parse(payload.body);
     let userId = message.sender.id == id ? message.receiver.id : message.sender.id;
     let index = 0
-    while (index < currentUser.conversation.length && currentUser.conversation[index].user?.id !== userId) {
+    while (index < conversations.current.length && conversations.current[index].user?.id !== userId) {
       index++;
     }
     //update message in listchat
     dispatch(addLastMessage({ message: message, index: index }));
 
-    let messageReceiverId = message.receiver.id;
-    if (( message.sender.id === id && messageReceiverId === r.current )
-      || ( message.sender.id === r.current && messageReceiverId === id )){
+    // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
+    if (checkIsChatting(message.sender.id, message.receiver.id)){
       let newMess = onMessageReceive(message,
         { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
-        currentUser.conversation[index].user)
+        conversations.current[index].user)
       if (newMess)
         dispatch(addMess(newMess))
     }
@@ -152,42 +172,36 @@ useEffect(() => {
     const message = JSON.parse(payload.body);
     let idGroup = message.receiver.id.split('_')[1];
     let index = 0
-    while (index < currentUser.conversation.length && currentUser.conversation[index].idGroup !== idGroup) {
+    while (index < conversations.current.length && conversations.current[index].idGroup !== idGroup) {
       index++;
     }
     dispatch(addLastMessage({ message: message, index: index }));
 
-    if ((message.sender.id === id && idGroup === r.current)
-      || (message.sender.id === r.current && idGroup === id)) {
+    // kiểm tra xem tin nhắn nhận được có phải tin nhắn trong group đang chat hay không
+    if (idGroup === r.current){
       let newMess = onMessageReceive(message,
         { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
-        { id: idGroup, members: currentUser.conversation[index].members })
+        { id: idGroup, members: conversations.current[index].members })
       if (newMess)
         dispatch(addMess(newMess))
     }
   }
 
+  const checkLastMessageIsRetrieve = (id) => {
+    let index = 0
+    while (index < conversations.current.length && conversations.current[index].lastMessage?.id !== id) {
+      index++;
+    }
+    return index === conversations.current.length ? -1 : index;
+  }
 
   const onRetrieveMessage = (payload) => {
     let message = JSON.parse(payload.body)
-    const index = message.findIndex((item) => item._id === message.id)
-    // if (index === -1) getMessage();
-    if (index !== -1) {
-      let date = new Date(message.senderDate);
-      dispatch(retrieveMess({
-        index: index, mess: {
-          _id: message.sender.id,
-          text: "Tin nhắn đã bị thu hồi!",
-          createdAt: date.setUTCHours(date.getUTCHours() + 7),
-          user: {
-            _id: sender.id,
-            name: sender.userName,
-            avatar: sender.avt,
-          }
-        }
-      }));
-    }
-    // hideModal();
+    let index = checkLastMessageIsRetrieve(message.id);
+    if(index !== -1)
+      dispatch(retrieveLastMessage(index));
+
+    dispatch(retrieveMess(message.id));
   }
 
   const onReceiveDeleteConversationResponse = async (message) => {
@@ -212,9 +226,6 @@ useEffect(() => {
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
   }
-
-  let obj = useSelector((state) => state.account);
-  let data = useSelector((state) => state.account.conversation);
 
   const calcTime = (time) => {
     const date = new Date(time);
@@ -280,8 +291,6 @@ useEffect(() => {
     setDeleteTimeout(timeout);
   };
 
-
-
   useEffect(() => {
     return () => {
       clearTimeout(deleteTimeout);
@@ -311,13 +320,13 @@ useEffect(() => {
 
     stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
 
-    const updatedConversations = conversations.filter(conv => {
-      if (item.conversationType === "group") {
-        return conv.idGroup !== item.idGroup;
-      } else {
-        return conv.user.id !== item.user.id;
-      }
-    });
+    // const updatedConversations = conversations.filter(conv => {
+    //   if (item.conversationType === "group") {
+    //     return conv.idGroup !== item.idGroup;
+    //   } else {
+    //     return conv.user.id !== item.user.id;
+    //   }
+    // });
 
     // setConversations(updatedConversations);
 
@@ -374,7 +383,7 @@ useEffect(() => {
       <View>
         <FlatList
           scrollEnabled={true}
-          data={currentUser.conversation}
+          data={conversations.current}
           renderItem={({ item }) => (
             (item.user || (item.status && item.status !== "DISBANDED" && getMember(item.members, id) && getMember(item.members, id).memberType != "LEFT_MEMBER")) &&
             <View>
@@ -404,10 +413,9 @@ useEffect(() => {
                       <TouchableOpacity onPress={() => deleteConversation(item)}>
                         <AntDesign name="delete" size={24} color="red" />
                       </TouchableOpacity>
-
                     }
                     {
-                      item.lastMessage ? item.lastMessage.sender.id == obj.id ?
+                      item.lastMessage ? item.lastMessage.sender.id == id ?
                         <Text style={{ fontSize: 14, color: 'grey' }} numberOfLines={1}>{
                           item.lastMessage.messageType == 'RETRIEVE' ? 'Bạn đã thu hồi một tin nhắn' :
                             item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?

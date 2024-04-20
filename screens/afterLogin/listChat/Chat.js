@@ -408,7 +408,7 @@ const Chat = ({ navigation, route }) => {
         // const fileType = uriImage.substring(uriImage.lastIndexOf(".") + 1);
         sendMessage(id, "Image");
         // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-        dispatch(addMess(newMessage));
+        // dispatch(addMess(newMessage));
     };
     const hadleSendAudio = () => {
         const id = uuidv4();
@@ -424,7 +424,7 @@ const Chat = ({ navigation, route }) => {
         };
         const fileType = audio.substring(audio.lastIndexOf(".") + 1);
         sendMessage(id, "Audio");
-        dispatch(addMess(newMessage));
+        // dispatch(addMess(newMessage));
     };
 
     const handleSendVideo = () => {
@@ -443,7 +443,7 @@ const Chat = ({ navigation, route }) => {
             const fileType = uriVideo.substring(uriVideo.lastIndexOf(".") + 1);
             sendMessage(id, "Video");
             // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-            dispatch(addMess(newMessage));
+            // dispatch(addMess(newMessage));
         }
     };
 
@@ -463,7 +463,7 @@ const Chat = ({ navigation, route }) => {
             };
             sendMessage(id, 'File');
             // setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessage));
-            dispatch(addMess(newMessage));
+            // dispatch(addMess(newMessage));
         } else {
             Alert.alert("Chọn file cần gửi.");
         }

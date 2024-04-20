@@ -1,10 +1,9 @@
 import { View, Text, FlatList, TouchableOpacity, Image, Dimensions } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import { CheckBox } from '@rneui/themed';
 import { TextInput, Modal } from 'react-native-paper'
 
-const MessageForward = ({ visible, onDismiss, senderId, onSend }) => {
+const MessageForward = ({ visible, onDismiss, sender, onSend }) => {
 
     const [data, setData] = useState([])
     const { width, height } = Dimensions.get('window')
@@ -13,23 +12,18 @@ const MessageForward = ({ visible, onDismiss, senderId, onSend }) => {
         getUsersInConversation()
     }, [])
 
-    const getUsersInConversation = async () => {
-        const res = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${senderId}`)
-        try {
-            if (res.data) {
-                let dataConversation = res.data.conversation
-                    .filter(item => item.hasOwnProperty('user'))
-                    .map(item => item.user);
-                let set = new Set(dataConversation.map(item => item.id))
-                let dataFriend = res.data.friendList
-                    .filter(item => !set.has(item.user.id))
-                    .map(item => item.user)
-                setData([...dataConversation, ...dataFriend].map(item => ({ ...item, checked: false })))
-            }
-        } catch (error) {
-            console.log(error)
-        }
-        return res.data
+    const getUsersInConversation = () => {
+        let dataConversation = sender.conversation
+            .map(item => {
+                if(item.user)
+                    return { id: item.user.id, name: item.user.userName, avt: item.user.avt }
+                return { id: item.idGroup, name: item.nameGroup, avt: item.avtGroup }
+            });
+        let set = new Set(dataConversation.map(item => item.id))
+        let dataFriend = sender.friendList
+            .filter(item => !set.has(item.user.id))
+            .map(item => ({ id: item.user.id, name: item.user.userName, avt: item.user.avt }))
+        setData([...dataConversation, ...dataFriend].map(item => ({ ...item, checked: false })))
     }
 
     return (
@@ -57,7 +51,7 @@ const MessageForward = ({ visible, onDismiss, senderId, onSend }) => {
                                 }}
                             />
                             <Image source={{ uri: item.avt }} style={{ width: 50, height: 50 }} />
-                            <Text style={{ fontSize: 20, marginHorizontal: 10 }}>{item.userName}</Text>
+                            <Text style={{ fontSize: 20, marginHorizontal: 10 }}>{item.name}</Text>
                         </TouchableOpacity>
                     )}
                     keyExtractor={(item) => item.id}

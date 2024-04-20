@@ -20,6 +20,10 @@ const accountSlice = createSlice({
       let message = action.payload.message;
       let index = action.payload.index;
       state.conversation[index].lastMessage = message;
+    },
+    retrieveLastMessage: (state, action) => {
+      let index = action.payload;
+      state.conversation[index].lastMessage.messageType = 'RETRIEVE';
     }
   },
 });
@@ -44,9 +48,12 @@ const messSlice = createSlice({
         state.messages = [action.payload, ...state.messages];
     },
     retrieveMess: (state, action) => {
-      let messages2 = [...state.messages];
-      messages2[action.payload.index] = action.payload.mess;
-      state.messages = messages2;
+      let index = state.messages.findIndex(mess => mess._id === action.payload);
+      state.messages[index].text = 'Tin nhắn đã bị thu hồi!';
+      delete state.messages[index].image;
+      delete state.messages[index].file;
+      delete state.messages[index].audio;
+      delete state.messages[index].video;
     },
     deleteMess: (state, action) => {
       let messages3 = [...state.messages];
@@ -86,7 +93,7 @@ const socketSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage } = accountSlice.actions;
+export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } = messSlice.actions;
 export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;

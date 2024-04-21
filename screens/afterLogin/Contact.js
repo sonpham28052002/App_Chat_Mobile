@@ -7,7 +7,7 @@ import axios from 'axios';
 
 export default function ContactScreen({ navigation }) {
   const userId = useSelector(state => state.account.id);
-  const [friendList, setFriendList] = useState([]);
+  const [friendList, setFriendList] = useState(useSelector(state => state.account.friendList));
 
   const getContacts = async () => {
     try {
@@ -84,7 +84,7 @@ export default function ContactScreen({ navigation }) {
         backgroundColor="#006AF5"
         handlePress={() => {
           navigation.navigate('FriendRequests');
-          getContacts(); // Cập nhật friendList khi quay lại từ màn hình FriendRequests
+          getContacts();
         }}
       />
       <ContactAction

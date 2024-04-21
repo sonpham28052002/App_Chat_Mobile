@@ -1,4 +1,4 @@
-import React from 'react';
+import React ,{useEffect} from 'react';
 import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, FlatList, SectionList } from 'react-native';
 import { Icon } from 'react-native-elements';
 import ContactAction from './ContactAction';
@@ -8,8 +8,13 @@ import SectionListGetItemLayout from 'react-native-section-list-get-item-layout'
 
 export default function ContactScreen({ navigation }) {
   const friendList = useSelector(state => state.account.friendList);
+  //  useEffect(() => {
+  //   const getContacts = async () => {
+     
+  //   };
 
-  // Sort and group friendList alphabetically by userName
+  //   getContacts();
+  // }, []);
   const groupedFriendList = friendList.slice().sort((a, b) => a.user.userName.localeCompare(b.user.userName))
     .reduce((acc, item) => {
       const initial = item.user.userName.charAt(0).toUpperCase();
@@ -19,14 +24,11 @@ export default function ContactScreen({ navigation }) {
       acc[initial].push(item);
       return acc;
     }, {});
-
-  // Convert groupedFriendList to SectionList data format
   const sections = Object.keys(groupedFriendList).map(initial => ({
     title: initial,
     data: groupedFriendList[initial],
   }));
 
-  // Render item for SectionList
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => navigation.navigate('Chat', { item })}>
       <View style={styles.friendItemContainer}>

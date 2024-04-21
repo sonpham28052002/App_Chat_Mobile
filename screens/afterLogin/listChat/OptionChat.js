@@ -65,7 +65,7 @@ const OptionChat = ({ navigation, route }) => {
   }, []);
 
   const onConnected = () => {
-    stompClient.current.subscribe('/user/' + id + '/outGroup', (payload)=>{
+    stompClient.current.subscribe('/user/' + account.id + '/outGroup', (payload)=>{
       navigation.navigate("ListChat")
     })
     // stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
@@ -558,7 +558,7 @@ const OptionChat = ({ navigation, route }) => {
             onPress={()=>{
               let datasend = {
                 userId : account.id,
-                idGroup: route.params.idGroup
+                idGroup: route.params.id
               }
               outGroup(datasend)
             }}

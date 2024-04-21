@@ -214,7 +214,9 @@ const ListChat = ({ navigation }) => {
 
     setDeleteTimeout(timeout);
   };
-
+const getMember= (data, id)=>{
+    return data.filter(item => item.member.id == id)[0]
+  }
 
 
   useEffect(() => {
@@ -307,7 +309,7 @@ const ListChat = ({ navigation }) => {
           scrollEnabled={true}
           data={currentUser.conversation}
           renderItem={({ item }) => (
-            (item.user || (item.status && item.status !== "DISBANDED")) &&
+            (item.user || (item.status && item.status !== "DISBANDED"&& getMember(item.members, id) && getMember(item.members, id).memberType !="LEFT_MEMBER")) &&
             <View>
               <TouchableOpacity
                 style={{

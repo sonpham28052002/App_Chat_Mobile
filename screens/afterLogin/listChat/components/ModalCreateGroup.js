@@ -10,7 +10,7 @@ import ImagePickerComponent from '../../../../components/ImagePickerComponent'
 const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
     const { width, height } = Dimensions.get('window')
     const [groupName, setGroupName] = useState('')
-     const [avtGroup, setAvtGroupName] = useState('')
+     const [avtGroup, setAvtGroupName] = useState(undefined)
     const [data, setData] = useState([])
 
     useEffect(() => {

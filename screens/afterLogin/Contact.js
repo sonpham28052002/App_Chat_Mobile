@@ -30,7 +30,8 @@ export default function ContactScreen({ navigation }) {
   }));
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('Chat', { item })}>
+    <TouchableOpacity  onPress={() => navigation.navigate("Chat", item.user ? item.user :
+      { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status })}>
       <View style={styles.friendItemContainer}>
         <View style={styles.friendItem}>
           <Image source={{ uri: item.user ? item.user.avt : item.avtGroup }} style={{ width: 50, height: 50, borderRadius: 25 }} />

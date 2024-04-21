@@ -1,5 +1,5 @@
 import React ,{useEffect} from 'react';
-import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, FlatList, SectionList } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, FlatList, SectionList,Image } from 'react-native';
 import { Icon } from 'react-native-elements';
 import ContactAction from './ContactAction';
 import User from './user/User';
@@ -33,6 +33,7 @@ export default function ContactScreen({ navigation }) {
     <TouchableOpacity onPress={() => navigation.navigate('Chat', { item })}>
       <View style={styles.friendItemContainer}>
         <View style={styles.friendItem}>
+          <Image source={{ uri: item.user ? item.user.avt : item.avtGroup }} style={{ width: 50, height: 50, borderRadius: 25 }} />
           <Text style={styles.userNameText}>{item.user.userName}</Text>
         </View>
         <View style={styles.friendItemContainer}>
@@ -110,6 +111,10 @@ const styles = StyleSheet.create({
     padding: 20,
     // borderBottomWidth: 1,
     // borderBottomColor: '#DDD',
+    flexDirection: 'row',
+    margin: 10,
+    alignContent: 'center',
+    alignItems: 'center',
   },
   empty: {
     flex: 1,
@@ -130,9 +135,10 @@ const styles = StyleSheet.create({
     borderBottomColor: '#DDD',
   },
   userNameText: {
-    fontSize: 16,
+      fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    marginLeft: 20,
   },
   sectionHeader: {
     backgroundColor: '#f0f0f0',

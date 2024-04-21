@@ -1,23 +1,22 @@
 import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView, Platform } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
-import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
+// import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { save, deleteConversation } from '../../../Redux/slice';
+import { save, addLastMessage, retrieveLastMessage, retrieveMess, addMess, deleteMess, initSocket } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
 import ModalAddChat from './components/ModalAddChat';
 import ModalCreateGroup from './components/ModalCreateGroup';
 import ModalAddFriend from './components/ModalAddFriend';
+import { onMessageReceive } from '../../../function/socket/onReceiveMessage';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const ListChat = ({ navigation }) => {
-  // const name = useSelector((state) => state.account.userName);
-  // const avt = useSelector((state) => state.account.avt);
   const { width } = Dimensions.get('window');
   var stompClient = useRef(null);
+  const socketConnected = useSelector((state) => state.socket.connected);
   const dispatch = useDispatch();
-  const id = useSelector((state) => state.account.id);
   // const [account, setAccount] = useState(null);
   // useEffect(() => {
   //   const fetchAccount = async () => {
@@ -34,23 +33,36 @@ const ListChat = ({ navigation }) => {
   //   };
   //   fetchAccount();
   // }, []);
-
+            
+  // account reducer
+  const id = useSelector((state) => state.account.id);
   const currentUser = useSelector((state) => state.account);
+  // const stateConversations = useSelector((state) => state.account.conversation);
   const [conversations, setConversations] = useState(currentUser.conversation);
+
+  // message reducer
+  const receiverId = useSelector((state) => state.message.id);
+  let r = useRef('');
+  const messages = useSelector((state) => state.message.messages);
+
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteMode, setDeleteMode] = useState(false);
   const [isRes, setIsRes] = useState(false);
+
+  // visible modal option (add friend, create group)
   const [visible, setVisible] = useState(false);
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
 
-  const [visibleCreateGroup, setVisibleCreateGroup] = useState(false);
-  const showModalCreateGroup = () => setVisibleCreateGroup(true);
-  const hideModalCreateGroup = () => setVisibleCreateGroup(false);
-
+  // visible modal add friend
   const [visibleAddFriend, setVisibleAddFriend] = useState(false);
   const showModalAddFriend = () => setVisibleAddFriend(true);
   const hideModalAddFriend = () => setVisibleAddFriend(false);
+
+  // visible modal create group
+  const [visibleCreateGroup, setVisibleCreateGroup] = useState(false);
+  const showModalCreateGroup = () => setVisibleCreateGroup(true);
+  const hideModalCreateGroup = () => setVisibleCreateGroup(false);
 
   // // Xóa cuộc trò chuyện
   // const deleteConversationAction = async (userId) => {
@@ -81,14 +93,30 @@ const ListChat = ({ navigation }) => {
 
   const [deleteTimeout, setDeleteTimeout] = useState(null);
   const [restoring, setRestoring] = useState(false);
+
   useEffect(() => {
-    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
-    stompClient.current = Stomp.over(socket);
-    stompClient.current.connect({}, onConnected, onError);
+    r.current = receiverId;
+  }, [receiverId]);
+
+  useEffect(() => {
+    setConversations(currentUser.conversation);
+  }, [currentUser.conversation]);
+
+  useEffect(() => {
+    if (!socketConnected) {
+      const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+      stompClient.current = Stomp.over(socket);
+      stompClient.current.connect({}, onConnected, onError);
+      dispatch(initSocket(true));
+    }
   }, [])
 
   const onConnected = () => {
-    stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
+    stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveMessage)
+    stompClient.current.subscribe('/user/' + id + '/groupChat', onGroupMessageReceived)
+    stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onRetrieveMessage)
+    stompClient.current.subscribe('/user/' + id + '/deleteMessage', onDeleteResult)
+
     stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
     stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
@@ -98,46 +126,97 @@ const ListChat = ({ navigation }) => {
     // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
   }
 
-  const updateMess = async () => {
-    const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
-    try {
-      if (result.data) {
-        dispatch(save(result.data));
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   const onCreateGroup = (message) => {
     updateMess();
   }
 
-  const onReceiveFromSocket = async (payload) => {
-    const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
-    try {
-      if (result.data) {
-        dispatch(save(result.data));
-      }
-    } catch (error) {
-      console.log(error);
+  const checkIsChatting = (senderId, messageReceiverId) => {
+    if(messageReceiverId.indexOf('_') === -1){
+      if ((senderId === id && messageReceiverId === r.current)
+        || (senderId === r.current && messageReceiverId === id))
+        return true;
+      return false;
+    } else{// receriverId is group
+      let idGroup = messageReceiverId.split('_')[1];
+      return idGroup === r.current;
     }
   }
+
+  const onReceiveMessage = (payload) => {
+    const message = JSON.parse(payload.body);
+    let userId = message.sender.id == id ? message.receiver.id : message.sender.id;
+    let index = conversations.findIndex(conv => conv.user && conv.user.id === userId);
+    console.log('index:', index);
+    //update message in listchat
+    dispatch(addLastMessage({ message: message, index: index }));
+
+    // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
+    if (checkIsChatting(message.sender.id, message.receiver.id)){
+      let newMess = onMessageReceive(message,
+        { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
+        conversations[index].user)
+      if (newMess)
+        dispatch(addMess(newMess))
+    }
+  }
+
+  const onGroupMessageReceived = (payload) => {
+    const message = JSON.parse(payload.body);
+    let idGroup = message.receiver.id.split('_')[1];
+    let index = 0
+    while (index < conversations.length && conversations[index].idGroup !== idGroup) {
+      index++;
+    }
+    dispatch(addLastMessage({ message: message, index: index }));
+
+    // kiểm tra xem tin nhắn nhận được có phải tin nhắn trong group đang chat hay không
+    if (checkIsChatting(message.sender.id, message.receiver.id)){
+      let newMess = onMessageReceive(message,
+        { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
+        { id: idGroup, members: conversations[index].members })
+      if (newMess)
+        dispatch(addMess(newMess))
+    }
+  }
+
+  const checkLastMessageIsRetrieve = (id) => {
+    let index = 0
+    while (index < conversations.length && conversations[index].lastMessage?.id !== id) {
+      index++;
+    }
+    return index === conversations.length ? -1 : index;
+  }
+
+  const onRetrieveMessage = (payload) => {
+    let message = JSON.parse(payload.body)
+    let index = checkLastMessageIsRetrieve(message.id);
+    if(index !== -1)
+      dispatch(retrieveLastMessage(index));
+    if(checkIsChatting(message.sender.id, message.receiver.id))
+      dispatch(retrieveMess(message.id));
+  }
+
+  const onDeleteResult = (payload) => {
+    let message = JSON.parse(payload.body)
+    if(checkIsChatting(message.sender.id, message.receiver.id)){
+      dispatch(deleteMess(message.id));
+    }
+  }
+
   const onReceiveDeleteConversationResponse = async (message) => {
-    console.log("DELETE CONVERSATION RESPONSE:", message);
     const conversation = JSON.parse(message.body);
     if (conversation) {
       console.log('Cuộc trò chuyện đã được xóa thành công:', conversation);
       // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
       // setConversations(updatedConversations);
-       const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
-    try {
-      if (result.data) {
-        dispatch(save(result.data));
+      const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
+      try {
+        if (result.data) {
+          dispatch(save(result.data));
+        }
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
-    }
 
     } else {
       console.log('Xóa cuộc trò chuyện không thành công:', conversation);
@@ -146,9 +225,6 @@ const ListChat = ({ navigation }) => {
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
   }
-
-  let obj = useSelector((state) => state.account);
-  let data = useSelector((state) => state.account.conversation);
 
   const calcTime = (time) => {
     const date = new Date(time);
@@ -178,7 +254,6 @@ const ListChat = ({ navigation }) => {
   }
 
   const createGroup = (data) => {
-    // console.log("------------------->", data);
     stompClient.current.send('/app/createGroup', {}, JSON.stringify(data));
     hideModalCreateGroup();
   }
@@ -214,10 +289,6 @@ const ListChat = ({ navigation }) => {
 
     setDeleteTimeout(timeout);
   };
-const getMember= (data, id)=>{
-    return data.filter(item => item.member.id == id)[0]
-  }
-
 
   useEffect(() => {
     return () => {
@@ -247,14 +318,14 @@ const getMember= (data, id)=>{
     }
 
     stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
-    
-    const updatedConversations = conversations.filter(conv => {
-      if (item.conversationType === "group") {
-        return conv.idGroup !== item.idGroup;
-      } else {
-        return conv.user.id !== item.user.id;
-      }
-    });
+
+    // const updatedConversations = conversations.filter(conv => {
+    //   if (item.conversationType === "group") {
+    //     return conv.idGroup !== item.idGroup;
+    //   } else {
+    //     return conv.user.id !== item.user.id;
+    //   }
+    // });
 
     // setConversations(updatedConversations);
 
@@ -265,6 +336,10 @@ const getMember= (data, id)=>{
   const addFriend = (data) => {
     stompClient.current.send('/app/request-add-friend', {}, JSON.stringify(data));
     hideModalAddFriend();
+  }
+
+  const getMember = (data, id) => {
+    return data.filter(item => item.member.id == id)[0]
   }
 
   return (
@@ -307,9 +382,9 @@ const getMember= (data, id)=>{
       <View>
         <FlatList
           scrollEnabled={true}
-          data={currentUser.conversation}
+          data={conversations}
           renderItem={({ item }) => (
-            (item.user || (item.status && item.status !== "DISBANDED"&& getMember(item.members, id) && getMember(item.members, id).memberType !="LEFT_MEMBER")) &&
+            (item.user || (item.status && item.status !== "DISBANDED" && getMember(item.members, id) && getMember(item.members, id).memberType != "LEFT_MEMBER")) &&
             <View>
               <TouchableOpacity
                 style={{
@@ -337,10 +412,9 @@ const getMember= (data, id)=>{
                       <TouchableOpacity onPress={() => deleteConversation(item)}>
                         <AntDesign name="delete" size={24} color="red" />
                       </TouchableOpacity>
-
                     }
                     {
-                      item.lastMessage ? item.lastMessage.sender.id == obj.id ?
+                      item.lastMessage ? item.lastMessage.sender.id == id ?
                         <Text style={{ fontSize: 14, color: 'grey' }} numberOfLines={1}>{
                           item.lastMessage.messageType == 'RETRIEVE' ? 'Bạn đã thu hồi một tin nhắn' :
                             item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?

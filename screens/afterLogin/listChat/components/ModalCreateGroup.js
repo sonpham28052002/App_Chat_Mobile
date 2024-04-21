@@ -21,7 +21,6 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
         const res = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${senderId}`)
         try {
             if (res.data) {
-                console.log('res.data', res.data);
                 setData([...res.data.friendList.map(item => item.user)])
             }
         } catch (error) {

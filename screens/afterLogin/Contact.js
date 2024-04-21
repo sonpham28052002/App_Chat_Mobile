@@ -1,16 +1,40 @@
-import React from 'react';
-import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, FlatList, SectionList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, SectionList, Image } from 'react-native';
 import { Icon } from 'react-native-elements';
 import ContactAction from './ContactAction';
-import User from './user/User';
 import { useSelector } from 'react-redux';
-import SectionListGetItemLayout from 'react-native-section-list-get-item-layout';
+import axios from 'axios';
 
 export default function ContactScreen({ navigation }) {
-  const friendList = useSelector(state => state.account.friendList);
+  const userId = useSelector(state => state.account.id);
+  const [friendList, setFriendList] = useState(useSelector(state => state.account.friendList));
 
-  // Sort and group friendList alphabetically by userName
-  const groupedFriendList = friendList.slice().sort((a, b) => a.user.userName.localeCompare(b.user.userName))
+  const getContacts = async () => {
+    try {
+      const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
+      if (userRes.data) {
+        setFriendList(userRes.data.friendList);
+      }
+    } catch (error) {
+      console.error('Error fetching friend list:', error);
+    }
+  };
+
+  useEffect(() => {
+    getContacts();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getContacts();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const groupedFriendList = friendList
+    .slice()
+    .sort((a, b) => a.user.userName.localeCompare(b.user.userName))
     .reduce((acc, item) => {
       const initial = item.user.userName.charAt(0).toUpperCase();
       if (!acc[initial]) {
@@ -20,17 +44,17 @@ export default function ContactScreen({ navigation }) {
       return acc;
     }, {});
 
-  // Convert groupedFriendList to SectionList data format
   const sections = Object.keys(groupedFriendList).map(initial => ({
     title: initial,
     data: groupedFriendList[initial],
   }));
 
-  // Render item for SectionList
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('Chat', { item })}>
+    <TouchableOpacity onPress={() => navigation.navigate("Chat", item.user ? item.user :
+      { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status })}>
       <View style={styles.friendItemContainer}>
         <View style={styles.friendItem}>
+          <Image source={{ uri: item.user ? item.user.avt : item.avtGroup }} style={{ width: 50, height: 50, borderRadius: 25 }} />
           <Text style={styles.userNameText}>{item.user.userName}</Text>
         </View>
         <View style={styles.friendItemContainer}>
@@ -58,7 +82,10 @@ export default function ContactScreen({ navigation }) {
         type="material"
         title="Lời mời kết bạn"
         backgroundColor="#006AF5"
-        handlePress={() => navigation.navigate('FriendRequests')}
+        handlePress={() => {
+          navigation.navigate('FriendRequests');
+          getContacts();
+        }}
       />
       <ContactAction
         name="phone-square"
@@ -108,6 +135,10 @@ const styles = StyleSheet.create({
     padding: 20,
     // borderBottomWidth: 1,
     // borderBottomColor: '#DDD',
+    flexDirection: 'row',
+    margin: 10,
+    alignContent: 'center',
+    alignItems: 'center',
   },
   empty: {
     flex: 1,
@@ -131,6 +162,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    marginLeft: 20,
   },
   sectionHeader: {
     backgroundColor: '#f0f0f0',

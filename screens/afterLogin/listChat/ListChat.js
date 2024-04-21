@@ -315,7 +315,7 @@ const ListChat = ({ navigation }) => {
       console.error("Invalid Item:", item);
       return;
     }
-
+  console.log('con:', con);
     stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
 
     // const updatedConversations = conversations.filter(conv => {

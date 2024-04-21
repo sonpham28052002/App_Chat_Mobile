@@ -137,6 +137,9 @@ const OptionChat = ({ navigation, route }) => {
       console.log("get image file link error", error);
     }
   }
+  const hadleProfile = () => {
+navigation.navigate("UserDetailAddFriend",{user:route.params})
+  }
   return (
     <View style={styles.container}>
       <ScrollView style={{ width: "100%", height: "100%" }}>
@@ -191,7 +194,7 @@ const OptionChat = ({ navigation, route }) => {
               </View>
             ) : (
               <View style={styles.ViewItemTop}>
-                <TouchableOpacity style={styles.ViewButtonTop}>
+                <TouchableOpacity style={styles.ViewButtonTop} onPress={hadleProfile}>
                   <Feather name="user" size={24} color="black" />
                 </TouchableOpacity>
 
@@ -558,7 +561,7 @@ const OptionChat = ({ navigation, route }) => {
             onPress={()=>{
               let datasend = {
                 userId : account.id,
-                idGroup: route.params.idGroup
+                idGroup: route.params.id
               }
               outGroup(datasend)
             }}

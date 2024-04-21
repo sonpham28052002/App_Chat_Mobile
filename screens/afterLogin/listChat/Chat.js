@@ -452,8 +452,33 @@ const Chat = ({ navigation, route }) => {
                             contentContainerStyle={{ backgroundColor: 'white', padding: 20, width: width * 0.8, marginHorizontal: width * 0.1 }}
                         >
                             {messTarget &&
-                                <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text>
+                                <View>
+                                    <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text>
+                                </View>
                             }
+                            <View style={{ flexDirection: 'row', 
+                                        borderBottomWidth: 1, borderBottomColor: 'lightgray',
+                                        borderTopWidth: 1, borderTopColor: 'lightgray',
+                                        paddingVertical: 5,
+                                        marginVertical: 10,
+                                        justifyContent: 'space-between', 
+                                        width: width * 0.7 }}>
+                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ fontSize: 30 }}>😄</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ fontSize: 30 }}>❤️</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ fontSize: 30 }}>😥</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ fontSize: 30 }}>😡</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ fontSize: 30 }}>👍</Text>
+                                </TouchableOpacity>
+                            </View>
                             {messTarget && messTarget.user._id == sender.id &&
                                 <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
                                     onPress={() => {

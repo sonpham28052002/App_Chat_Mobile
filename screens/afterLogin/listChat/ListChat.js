@@ -146,7 +146,6 @@ const ListChat = ({ navigation }) => {
     const message = JSON.parse(payload.body);
     let userId = message.sender.id == id ? message.receiver.id : message.sender.id;
     let index = conversations.findIndex(conv => conv.user && conv.user.id === userId);
-    console.log('index:', index);
     //update message in listchat
     dispatch(addLastMessage({ message: message, index: index }));
 

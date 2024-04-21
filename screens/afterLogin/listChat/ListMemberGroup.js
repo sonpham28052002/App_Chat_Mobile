@@ -148,9 +148,9 @@ function TatCa({ route }) {
 
   return (
     <View style={styles.container}>
-      <Text style={{ fontSize: 18, color: "blue" }}>
-        {/* Thành viên ({route.params.members.length}) */}
-      </Text>
+      {/* <Text style={{ fontSize: 18, color: "blue" }}>
+        Thành viên ({route.params.members.length})
+      </Text> */}
       <FlatList data={dataMember} renderItem={renderItem} />
       {memberType != "MEMBER" && <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center'}}><ButtonCustom width={50} title="+" backgroundColor="cyan" onPress={()=>setVisible(true)}/></View>}
       <Modal visible={visible} onDismiss={()=>setVisible(false)}

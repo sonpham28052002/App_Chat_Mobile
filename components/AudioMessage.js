@@ -45,7 +45,7 @@ const AudioMessage = ({ audioUri, sender, onLongPress }) => {
         const interval = setInterval(async () => {
             const status = await sound.getStatusAsync();
             if (status.isLoaded) {
-                setCurrentTime(status.positionMillis / 1000); // Update current time every second
+                setCurrentTime(status.positionMillis / 1000);
             }
         }, 1000);
 

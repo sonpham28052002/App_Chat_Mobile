@@ -33,6 +33,10 @@ const UserDetailAddFriend = ({ route }) => {
     };
   return (
     <View style={styles.container}>
+        <Image
+                  source={{ uri: user.coverImage }}
+                  style={styles.coverImage}
+                />
           <Image
                   source={{ uri: user.avt }}
                   style={styles.avatar}
@@ -72,6 +76,12 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 3,
     borderColor: "white",
+  },
+    coverImage: {
+    width: "100%",
+    height: "60%",
+    position: "absolute",
+    zIndex: -1,
   },
 });
 

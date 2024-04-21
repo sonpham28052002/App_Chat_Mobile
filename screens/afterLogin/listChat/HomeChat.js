@@ -8,7 +8,7 @@ import TabHome from '../tabHome/TabHome';
 import CreateMessager from '../listChat/CreateMessager'
 import { useDispatch } from 'react-redux';
 // import CreateMessager from './CreateMessager';
-
+import UserDetailAddFriend from '../user/UserDetailAddFriend';
 const Stack = createStackNavigator();
 
 
@@ -31,6 +31,7 @@ const HomeChat = ({ navigation, route }) => {
         }}
         />
       <Stack.Screen name="ScanQR" component={ScanQR} options={{ headerShown: false }} />
+       <Stack.Screen name="UserDetailAddFriend" component={UserDetailAddFriend} options={{ headerShown: false }} />
       {/* <Stack.Screen name="EditProfile" component={EditProfile} options={{ headerShown: false }} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen name="UserProfile" component={UserProfile} /> */}

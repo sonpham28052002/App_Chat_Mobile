@@ -558,7 +558,7 @@ const OptionChat = ({ navigation, route }) => {
             onPress={()=>{
               let datasend = {
                 userId : account.id,
-                idGroup: route.params.idGroup
+                idGroup: route.params.id
               }
               outGroup(datasend)
             }}

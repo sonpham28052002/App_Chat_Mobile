@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, FlatList, SectionList } from 'react-native';
+import React ,{useEffect} from 'react';
+import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, FlatList, SectionList,Image } from 'react-native';
 import { Icon } from 'react-native-elements';
 import ContactAction from './ContactAction';
 import User from './user/User';
@@ -8,8 +8,13 @@ import SectionListGetItemLayout from 'react-native-section-list-get-item-layout'
 
 export default function ContactScreen({ navigation }) {
   const friendList = useSelector(state => state.account.friendList);
+  //  useEffect(() => {
+  //   const getContacts = async () => {
+     
+  //   };
 
-  // Sort and group friendList alphabetically by userName
+  //   getContacts();
+  // }, []);
   const groupedFriendList = friendList.slice().sort((a, b) => a.user.userName.localeCompare(b.user.userName))
     .reduce((acc, item) => {
       const initial = item.user.userName.charAt(0).toUpperCase();
@@ -19,18 +24,17 @@ export default function ContactScreen({ navigation }) {
       acc[initial].push(item);
       return acc;
     }, {});
-
-  // Convert groupedFriendList to SectionList data format
   const sections = Object.keys(groupedFriendList).map(initial => ({
     title: initial,
     data: groupedFriendList[initial],
   }));
 
-  // Render item for SectionList
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('Chat', { item })}>
+    <TouchableOpacity  onPress={() => navigation.navigate("Chat", item.user ? item.user :
+      { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status })}>
       <View style={styles.friendItemContainer}>
         <View style={styles.friendItem}>
+          <Image source={{ uri: item.user ? item.user.avt : item.avtGroup }} style={{ width: 50, height: 50, borderRadius: 25 }} />
           <Text style={styles.userNameText}>{item.user.userName}</Text>
         </View>
         <View style={styles.friendItemContainer}>
@@ -108,6 +112,10 @@ const styles = StyleSheet.create({
     padding: 20,
     // borderBottomWidth: 1,
     // borderBottomColor: '#DDD',
+    flexDirection: 'row',
+    margin: 10,
+    alignContent: 'center',
+    alignItems: 'center',
   },
   empty: {
     flex: 1,
@@ -128,9 +136,10 @@ const styles = StyleSheet.create({
     borderBottomColor: '#DDD',
   },
   userNameText: {
-    fontSize: 16,
+      fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    marginLeft: 20,
   },
   sectionHeader: {
     backgroundColor: '#f0f0f0',

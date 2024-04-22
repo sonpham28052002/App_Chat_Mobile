@@ -10,7 +10,7 @@ import ImagePickerComponent from '../../../../components/ImagePickerComponent'
 const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
     const { width, height } = Dimensions.get('window')
     const [groupName, setGroupName] = useState('')
-     const [avtGroup, setAvtGroupName] = useState(undefined)
+    const [avtGroup, setAvtGroupName] = useState(undefined)
     const [data, setData] = useState([])
 
     useEffect(() => {
@@ -91,7 +91,7 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
                     idGroup: uuidv4(),
                     avtGroup: avtGroup,
                     conversationType: "group",
-                    nameGroup: groupName,
+                    nameGroup: groupName? groupName : "<<No name>>",
                     status: "ACTIVE",
                     members: arr
                 }

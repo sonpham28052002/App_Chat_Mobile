@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 // import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { save, addLastMessage, retrieveLastMessage, retrieveMess, addMess, deleteMess, initSocket } from '../../../Redux/slice';
+import { save, addLastMessage, retrieveLastMessage, addLastConversation, retrieveMess, addMess, deleteMess, initSocket } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -11,6 +11,7 @@ import ModalAddChat from './components/ModalAddChat';
 import ModalCreateGroup from './components/ModalCreateGroup';
 import ModalAddFriend from './components/ModalAddFriend';
 import { onMessageReceive } from '../../../function/socket/onReceiveMessage';
+import { getConversation } from '../../../function/getLastConversationByUserId';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const ListChat = ({ navigation }) => {
   const { width } = Dimensions.get('window');
@@ -37,13 +38,12 @@ const ListChat = ({ navigation }) => {
   // account reducer
   const id = useSelector((state) => state.account.id);
   const currentUser = useSelector((state) => state.account);
-  // const stateConversations = useSelector((state) => state.account.conversation);
   const [conversations, setConversations] = useState(currentUser.conversation);
+  let conversationsRef = useRef(conversations);
 
   // message reducer
   const receiverId = useSelector((state) => state.message.id);
   let r = useRef('');
-  const messages = useSelector((state) => state.message.messages);
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteMode, setDeleteMode] = useState(false);
@@ -103,6 +103,10 @@ const ListChat = ({ navigation }) => {
   }, [currentUser.conversation]);
 
   useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  useEffect(() => {
     if (!socketConnected) {
       const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
       stompClient.current = Stomp.over(socket);
@@ -116,9 +120,9 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/groupChat', onGroupMessageReceived)
     stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onRetrieveMessage)
     stompClient.current.subscribe('/user/' + id + '/deleteMessage', onDeleteResult)
+    stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
 
     stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
-    stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
@@ -126,8 +130,9 @@ const ListChat = ({ navigation }) => {
     // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
   }
 
-  const onCreateGroup = (message) => {
-    updateMess();
+  const onCreateGroup = (payload) => {
+    const conversation = JSON.parse(payload.body);
+    dispatch(addLastConversation(conversation));
   }
 
   const checkIsChatting = (senderId, messageReceiverId) => {
@@ -146,34 +151,44 @@ const ListChat = ({ navigation }) => {
     const message = JSON.parse(payload.body);
     let userId = message.sender.id == id ? message.receiver.id : message.sender.id;
     let index = conversations.findIndex(conv => conv.user && conv.user.id === userId);
-    console.log('index:', index);
     //update message in listchat
-    dispatch(addLastMessage({ message: message, index: index }));
-
-    // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
-    if (checkIsChatting(message.sender.id, message.receiver.id)){
-      let newMess = onMessageReceive(message,
-        { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
-        conversations[index].user)
-      if (newMess)
-        dispatch(addMess(newMess))
+    if( index === -1 ){
+      getConversation(id).then(conv => {
+        dispatch(addLastConversation(conv));
+        // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
+        if (checkIsChatting(message.sender.id, message.receiver.id)){
+          let newMess = onMessageReceive(message,
+            { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
+            conv.user)
+          if (newMess)
+            dispatch(addMess(newMess))
+        }
+      })
+        // conversation.current = getConversation(id);
+    } else {
+      dispatch(addLastMessage({ message: message, index: index }));
+      // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
+      if (checkIsChatting(message.sender.id, message.receiver.id)) {
+        let newMess = onMessageReceive(message,
+          { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
+          conversations[index].user)
+        if (newMess)
+          dispatch(addMess(newMess))
+      }
     }
   }
 
   const onGroupMessageReceived = (payload) => {
     const message = JSON.parse(payload.body);
     let idGroup = message.receiver.id.split('_')[1];
-    let index = 0
-    while (index < conversations.length && conversations[index].idGroup !== idGroup) {
-      index++;
-    }
+    let index = conversationsRef.current.findIndex(conv => conv.idGroup === idGroup);
     dispatch(addLastMessage({ message: message, index: index }));
 
     // kiểm tra xem tin nhắn nhận được có phải tin nhắn trong group đang chat hay không
     if (checkIsChatting(message.sender.id, message.receiver.id)){
       let newMess = onMessageReceive(message,
         { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
-        { id: idGroup, members: conversations[index].members })
+        { id: idGroup, members: conversationsRef.current[index].members })
       if (newMess)
         dispatch(addMess(newMess))
     }

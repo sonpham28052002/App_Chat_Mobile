@@ -5,6 +5,7 @@ import { Entypo, Feather, MaterialIcons, EvilIcons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { updateAvatar } from "../../../Redux/slice";
 import { CommonActions } from '@react-navigation/native';
+import { initSocket } from "../../../Redux/slice";
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const UserProfile = ({ navigation }) => {
     const name = useSelector((state) => state.account.userName);
@@ -51,6 +52,7 @@ const UserProfile = ({ navigation }) => {
             { cancelable: false }
         );
     }
+    dispatch(initSocket(false));
 };
 
 

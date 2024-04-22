@@ -24,6 +24,9 @@ const accountSlice = createSlice({
     retrieveLastMessage: (state, action) => {
       let index = action.payload;
       state.conversation[index].lastMessage.messageType = 'RETRIEVE';
+    },
+    addLastConversation: (state, action) => {
+      state.conversation.push(action.payload);
     }
   },
 });
@@ -93,7 +96,7 @@ const socketSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage } = accountSlice.actions;
+export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage, addLastConversation } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } = messSlice.actions;
 export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;

@@ -5,7 +5,6 @@ const getMember = (members, id) => {
 }
 
 const getMessage = async (sender, receiver) => {
-    console.log(receiver);
     let response = null;
     let api = ''
     let isGroup = receiver.members ? true : false // kiểm tra xem đang lấy tin nhắn group hay cá nhân

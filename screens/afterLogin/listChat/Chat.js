@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text, Linking } from 'react-native';
-import { GiftedChat, Message } from 'react-native-gifted-chat';
-import { TextInput, Modal, Portal, PaperProvider } from 'react-native-paper';
-import { Entypo, FontAwesome, MaterialIcons, FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { Message } from 'react-native-gifted-chat';
+import { Modal, Portal, PaperProvider } from 'react-native-paper';
+import { Entypo, FontAwesome } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
 import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
@@ -10,15 +10,16 @@ import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveReceiverId, saveMess } from '../../../Redux/slice';
 import axios from 'axios';
-// import { onMessageReceive } from '../../../function/socket/onReceiveMessage';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import AudioRecorder from '../../../components/AudioRecorder';
 import VideoMessage from '../../../components/VideoMesssage';
 import AudioMessage from '../../../components/AudioMessage';
 import MessageForward from './components/MessageForward';
 import { getMessage } from '../../../function/socket/loadMessage';
+import ModalOperationMessage from './components/ModalOperationMessage';
+import GiftedChatComponent from './components/GiftedChatComponent';
+import FileMessage from '../../../components/FileMessage';
+import { convertMessageGiftedChatToMessage } from '../../../function/convertMessageGiftedChatToMessage';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 
@@ -29,7 +30,6 @@ const Chat = ({ navigation, route }) => {
     const [mess, setMess] = useState('');
     const textInputRef = useRef(null);
     const [position, setPosition] = useState({ start: 0, end: 0 });
-    const [colorEmoji, setColorEmoji] = useState('black');
     const [showEmoji, setShowEmoji] = useState(false);
     const [messLoad, setMessLoad] = useState([]);
 
@@ -101,7 +101,6 @@ const Chat = ({ navigation, route }) => {
 
         if (receiverId !== route.params.id) {
             toggleDialog3();
-            // setVisible3(true)
             dispatch(saveReceiverId(route.params.id));
             dispatch(saveMess([]));
             if (route.params.nameGroup) {
@@ -109,7 +108,6 @@ const Chat = ({ navigation, route }) => {
                     getMessage(sender, { id: route.params.id, members: listMember.current }).then(messages => {
                         if(messages.length > 0) setMessLoad(messages);
                         else {
-                            // toggleDialog3()
                             setVisible3(false);
                         };
                     });
@@ -147,7 +145,6 @@ const Chat = ({ navigation, route }) => {
     }
 
     function onConnected() {
-        // stompClient.current.subscribe('/user/' + sender.id + '/deleteMessage', onDeleteResult)
         stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
             let message = JSON.parse(payload.body)
             let members = message.members;
@@ -158,18 +155,6 @@ const Chat = ({ navigation, route }) => {
             }
         })
     }
-
-    function onGroupMessageReceived(payload){
-        let message = JSON.parse(payload.body)
-        updateMess();
-        addMessage(message, "group")
-    }
-
-    // function onDeleteResult(payload) {
-    //     let message = JSON.parse(payload.body)
-    //     dispatch(deleteMess(message.id));
-    //     hideModal();
-    // }
 
     function onError(error) {
         console.log('Could not connect to WebSocket server. Please refresh and try again!');
@@ -235,7 +220,7 @@ const Chat = ({ navigation, route }) => {
 
     const forwardMessage = (data) => {
         let dataSend = data.filter(item => item.checked);
-        let dataMessage = convertMessageGiftedChatToMessage(messTarget);
+        let dataMessage = convertMessageGiftedChatToMessage(messTarget, sender.id, route.params.id, getFileExtension);
         let listMessage = dataSend.map(item => ({ ...dataMessage, sender:{ id: sender.id }, receiver: item.id.indexOf('-') === -1? { id: item.id } : { id: "group_" + item.id}}));
         stompClient.current.send("/app/forward-message", {}, JSON.stringify(listMessage));
         hideModalMessageForward();
@@ -297,81 +282,6 @@ const Chat = ({ navigation, route }) => {
         return uri.substring(uri.lastIndexOf(".") + 1);
     };
 
-    const FileMessage = ({ currentMessage }) => {
-        const fileExtension = getFileExtension(currentMessage.file);
-        let iconName;
-        let colorIcon;
-        switch (fileExtension) {
-            case 'pdf':
-                iconName = 'file-pdf-box';
-                colorIcon = '#F28585';
-                break;
-            case 'doc':
-            case 'docx':
-                iconName = 'file-word';
-                colorIcon = 'blue';
-                break;
-            case 'xls':
-            case 'xlsx':
-                iconName = 'file-excel';
-                colorIcon = '#0A7641';
-                break;
-            case 'ppt':
-            case 'pptx':
-                iconName = 'file-powerpoint';
-                colorIcon = '#D34C2C';
-                break;
-            case 'mov':
-            case 'mp4':
-            case 'mp3':
-                iconName = 'file-video';
-                break;
-            default:
-                iconName = 'file';
-                colorIcon = '#111111';
-        }
-        const uri = currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)
-        const type = uri.substring(uri.lastIndexOf(".") + 1);
-        const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
-        return (
-            <View style={[styles.fileMessageContainer, {
-                marginLeft: currentMessage.user._id !== sender.id ? 53 : width - 252,
-                backgroundColor: currentMessage.user._id !== sender.id ? 'white' : '#1E90FF',
-                borderTopLeftRadius: 20, borderTopRightRadius: 20,
-                borderBottomLeftRadius: currentMessage.user._id !== sender.id ? 0 : 20,
-                borderBottomRightRadius: currentMessage.user._id !== sender.id ? 20 : 0,
-                width: width - 150
-            }]}>
-                <TouchableOpacity style={{ flexDirection: 'row', width: width - 220, justifyContent: 'space-between', alignItems: 'center' }}
-                    onLongPress={() => {
-                        showModal()
-                        setMessTarget(currentMessage)
-                    }}
-                >
-                    <TouchableOpacity onPress={() => Linking.openURL(currentMessage.file)}>
-                        <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
-                    </TouchableOpacity>
-                    <Text numberOfLines={2}
-                        style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{titleFile}</Text>
-                    {/* <Text style={{ color: currentMessage.user._id !== sender.id ? 'black' : 'white', }}
-                    >{currentMessage.fileSize}</Text> */}
-                </TouchableOpacity>
-                {/* <Text style={{color:'#111111',fontSize:10}}>{currentMessage.file.substring(currentMessage.file.lastIndexOf("/") + 1)}</Text> */}
-                {/* <Text style={{
-                    fontSize: 11, marginLeft: 10,
-                    color: currentMessage.user._id !== sender.id ? 'grey' : 'white',
-                    textAlign: currentMessage.user._id !== sender.id ? 'left' : 'right'
-                }}>{parseInt((currentMessage.file.substring(currentMessage.file.lastIndexOf("_")+1) / 1024).toFixed(2))}KB</Text> */}
-                <Text style={{
-                    color: 'grey', fontSize: 11, marginLeft: 10,
-                    color: currentMessage.user._id !== sender.id ? 'grey' : 'white',
-                    textAlign: currentMessage.user._id !== sender.id ? 'left' : 'right'
-                }}>{new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
-            </View>
-        );
-    };
-
     const handleFocusText = () => {
         if (textInputRef.current) {
             textInputRef.current.focus();
@@ -381,7 +291,12 @@ const Chat = ({ navigation, route }) => {
     const renderMessage = (messageProps) => {
         const { currentMessage } = messageProps;
         if (currentMessage.file) {
-            return <FileMessage {...messageProps} currentMessage={currentMessage} />;
+            return <FileMessage currentMessage={currentMessage} fileExtension={getFileExtension(currentMessage.file)} senderId={sender.id}
+                onLongPress={() => {
+                    showModal()
+                    setMessTarget(currentMessage)
+                }}
+            />;
         } else if (currentMessage.text) {
             return (
                 <Message {...messageProps} />
@@ -409,43 +324,6 @@ const Chat = ({ navigation, route }) => {
         return null;
     };
 
-    function convertMessageGiftedChatToMessage(giftedMessage) {
-        let chatMessage = {
-            id: giftedMessage._id,
-            senderDate: new Date(giftedMessage.createdAt)
-        };
-        chatMessage.sender = { id: giftedMessage.user._id}
-        chatMessage.receiver = giftedMessage.user._id === sender.id?
-            { id: route.params.id } : { id: sender.id }
-        if (giftedMessage.text) {
-            chatMessage.content = giftedMessage.text
-            chatMessage.messageType = "Text"
-        }
-        else { // image, file, video, audio
-            const u = giftedMessage.image ? giftedMessage.image : giftedMessage.file ? giftedMessage.file : giftedMessage.video ? giftedMessage.video : giftedMessage.audio;
-            const uri = u.substring(u.lastIndexOf("/") + 1);
-            const type = uri.substring(uri.lastIndexOf(".") + 1);
-            // const size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
-            // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
-            // chatMessage.size = size;
-            // chatMessage.titleFile = titleFile;
-            if (giftedMessage.image) {
-                chatMessage.messageType = type.toUpperCase();
-                chatMessage.url = giftedMessage.image;
-            } else if (giftedMessage.file) {
-                chatMessage.messageType = getFileExtension(giftedMessage.file).toUpperCase();
-                chatMessage.url = giftedMessage.file;
-            } else if (giftedMessage.video) {
-                chatMessage.messageType = "VIDEO";
-                chatMessage.url = giftedMessage.video;
-            } else if (giftedMessage.audio) {
-                chatMessage.messageType = "AUDIO";
-                chatMessage.url = giftedMessage.audio;
-            }
-        }
-        return chatMessage;
-    }
-
     return (
         <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
             <KeyboardAvoidingView style={{ flex: 1 }}
@@ -454,80 +332,31 @@ const Chat = ({ navigation, route }) => {
             >
                 <PaperProvider>
                     <Portal style={{ justifyContent: 'center', alignItems: 'center' }}>
-                        <Modal visible={visible} onDismiss={hideModal}
-                            contentContainerStyle={{ backgroundColor: 'white', padding: 20, width: width * 0.8, marginHorizontal: width * 0.1 }}
-                        >
-                            {messTarget &&
-                                <View>
-                                    <Text style={{ fontSize: 20, marginBottom: 10 }}>{messTarget.text}</Text>
-                                </View>
-                            }
-                            <View style={{ flexDirection: 'row', 
-                                        borderBottomWidth: 1, borderBottomColor: 'lightgray',
-                                        borderTopWidth: 1, borderTopColor: 'lightgray',
-                                        paddingVertical: 5,
-                                        marginVertical: 10,
-                                        justifyContent: 'space-between', 
-                                        width: width * 0.7 }}>
-                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 30 }}>😄</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 30 }}>❤️</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 30 }}>😥</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 30 }}>😡</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 30 }}>👍</Text>
-                                </TouchableOpacity>
-                            </View>
-                            {messTarget && messTarget.user._id == sender.id &&
-                                <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
-                                    onPress={() => {
-                                        if (stompClient.current) {
-                                            let messSend = convertMessageGiftedChatToMessage(messTarget)
-                                            if(route.params.nameGroup)
-                                                messSend = { ...messSend, receiver: { id: "group_"+route.params.id } }
-                                            stompClient.current.send("/app/retrieve-message", {},
-                                                JSON.stringify(messSend));
-                                        }
-                                    }}
-                                >
-                                    <FontAwesome6 name="arrows-rotate" size={40} color="red" />
-                                    <Text style={{ fontSize: 20, marginLeft: 5 }}>Thu hồi tin nhắn</Text>
-                                </TouchableOpacity>}
-                            <TouchableOpacity style={{
-                                width: '100%', flexDirection: 'row', alignItems: 'center',
-                                marginVertical: 10
+                        <ModalOperationMessage visible={visible} onDismiss={hideModal} messTarget={messTarget} senderId={sender.id} 
+                            onPressRecall={() => {
+                                if (stompClient.current) {
+                                    let messSend = convertMessageGiftedChatToMessage(messTarget, sender.id, route.params.id, getFileExtension)
+                                    if(route.params.nameGroup)
+                                        messSend = { ...messSend, receiver: { id: "group_"+route.params.id } }
+                                    stompClient.current.send("/app/retrieve-message", {},
+                                        JSON.stringify(messSend));
+                                }
                             }}
-                                onPress={() => {
-                                    hideModal();
-                                    showModalMessageForward();
-                                }}
-                            >
-                                <Ionicons name="arrow-undo" size={40} color="black" />
-                                <Text style={{ fontSize: 20, marginLeft: 5 }}>Chuyển tiếp tin nhắn</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
-                                onPress={() => {
-                                    if (stompClient.current) {
-                                        let deleteMessage = convertMessageGiftedChatToMessage(messTarget)
-                                        delete deleteMessage.senderDate
-                                        let idGroup = route.params.id
-                                        let ownerId = sender.id
-                                        stompClient.current.send("/app/delete-message", {},
-                                            JSON.stringify({ ...deleteMessage, idGroup, ownerId }));
-                                    }
-                                }}
-                            >
-                                <MaterialIcons name="delete" size={40} color="red" />
-                                <Text style={{ fontSize: 20, marginLeft: 5 }}>Xoá tin nhắn</Text>
-                            </TouchableOpacity>
-                        </Modal>
+                            onPressForward={() => {
+                                hideModal();
+                                showModalMessageForward();
+                            }}
+                            onPressDelete={() => {
+                                if (stompClient.current) {
+                                    let deleteMessage = convertMessageGiftedChatToMessage(messTarget, sender.id, route.params.id, getFileExtension)
+                                    delete deleteMessage.senderDate
+                                    let idGroup = route.params.nameGroup? route.params.id : ''
+                                    let ownerId = sender.id
+                                    stompClient.current.send("/app/delete-message", {},
+                                        JSON.stringify({ ...deleteMessage, idGroup, ownerId }));
+                                }
+                            }}
+                        />
                         <Modal visible={visible2} onDismiss={hideModal2}
                             contentContainerStyle={{
                                 backgroundColor: 'white',
@@ -547,46 +376,11 @@ const Chat = ({ navigation, route }) => {
                         </Dialog>
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
-                        <GiftedChat
-                            renderInputToolbar={(props) =>
-                                <View style={{ flexDirection: 'row', width: width, backgroundColor: 'white', alignItems: 'center' }}>
-                                    <View style={{ flexDirection: 'row', paddingHorizontal: 10, width: width - 45, height: 80, justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                                setShowEmoji(!showEmoji);
-                                                handleFocusText();
-                                            }}
-                                        >
-                                            <Entypo name="emoji-happy" size={35} color={colorEmoji} />
-                                        </TouchableOpacity>
-                                        <View style={{ marginHorizontal: 10, width: width - 180 }}>
-                                            <TextInput placeholder="Tin nhắn" style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
-                                                value={mess}
-                                                onChangeText={text => {
-                                                    setMess(text);
-                                                }}
-                                                selection={position}
-                                                ref={textInputRef}
-                                                onSelectionChange={event => setPosition(event.nativeEvent.selection)}
-                                            />
-                                        </View>
-                                        <TouchableOpacity style={{ flexDirection: 'row', width: 75, justifyContent: 'space-between' }}
-                                            onPress={showModal2}
-                                        >
-                                            <Entypo name="dots-three-horizontal" size={35} color="black" />
-                                            <AudioRecorder onSelectAudio={handleAudioSelect} />
-                                        </TouchableOpacity>
-                                    </View>
-                                    <TouchableOpacity
-                                        onPress={handleSend}
-                                        style={{ width: 45, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' }}
-                                    >
-                                        <MaterialIcons name="send" size={35} color="cyan" />
-                                    </TouchableOpacity>
-                                </View>
-                            }
-                            messages={messages}
-                            // onSend={handleSend}
+                        <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef}
+                            onPress={() => {
+                                setShowEmoji(!showEmoji);
+                                handleFocusText();
+                            }}
                             user={{
                                 _id: sender.id,
                                 name: sender.userName,
@@ -597,6 +391,10 @@ const Chat = ({ navigation, route }) => {
                                 setMessTarget(message);
                             }}
                             renderMessage={(messageProps) => renderMessage(messageProps)}
+                            onSelectionChange={event => setPosition(event.nativeEvent.selection)}
+                            onPressModal2={showModal2}
+                            onSelectAudio={handleAudioSelect}
+                            handleSend={handleSend}
                         />
                     </View>
                 </PaperProvider>
@@ -617,22 +415,12 @@ const Chat = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
     fileMessageContainer: {
-        // alignItems: 'center',
-        // alignContent: 'flex-end',
-        // justifyContent: 'flex-end',
         borderRadius: 5,
         paddingRight: 10,
         paddingVertical: 10,
         paddingLeft: 5,
-        // margin: 5,
         marginBottom: 5,
-        //backgroundColor: '#1E90FF',
-    },
-    fileMessageText: {
-        fontSize: 16,
-        marginBottom: 10,
     }
 });
-
 
 export default Chat;

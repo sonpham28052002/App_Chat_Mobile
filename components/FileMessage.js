@@ -1,4 +1,4 @@
-import { View, Text, Dimensions, TouchableOpacity } from 'react-native'
+import { View, Text, Dimensions, TouchableOpacity, Linking } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -45,8 +45,8 @@ const FileMessage = ({ currentMessage, fileExtension, senderId, onLongPress }) =
 
     return (
         <View style={{
-            borderRadius: 5, paddingRight: 10, paddingVertical: 10, paddingLeft: 5, marginBottom: 5,
-            marginLeft: currentMessage.user._id !== senderId ? 53 : width - 252,
+            borderRadius: 5, paddingRight: 10, paddingVertical: 10, paddingLeft: 5,
+            marginLeft: currentMessage.user._id !== senderId ? 0 : width - 252,
             backgroundColor: currentMessage.user._id !== senderId ? 'white' : '#1E90FF',
             borderTopLeftRadius: 20, borderTopRightRadius: 20,
             borderBottomLeftRadius: currentMessage.user._id !== senderId ? 0 : 20,
@@ -60,14 +60,16 @@ const FileMessage = ({ currentMessage, fileExtension, senderId, onLongPress }) =
                     <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
                 </TouchableOpacity>
                 <Text numberOfLines={2}
-                    style={{ color: currentMessage.user._id !== senderId ? 'black' : 'white'}}
+                    style={{ color: currentMessage.user._id !== senderId ? 'black' : 'white' }}
                 >{titleFile}</Text>
             </TouchableOpacity>
             <Text style={{
                 color: 'grey', fontSize: 11, marginLeft: 10,
                 color: currentMessage.user._id !== senderId ? 'grey' : 'white',
                 textAlign: currentMessage.user._id !== senderId ? 'left' : 'right'
-            }}>{new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</Text>
+            }}>
+                {new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
+            </Text>
         </View>
     );
 }

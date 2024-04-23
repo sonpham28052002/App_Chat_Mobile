@@ -139,7 +139,7 @@ const OptionChat = ({ navigation, route }) => {
     }
   }
   const hadleProfile = () => {
-navigation.navigate("UserDetailAddFriend",{user:route.params})
+    navigation.navigate("UserDetailAddFriend",{user:route.params})
   }
   return (
     <View style={styles.container}>

@@ -4,7 +4,7 @@ import { Modal } from 'react-native-paper';
 import ButtonCustom from '../../../../components/button';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 
-const ModalAddChat = ({visible, onDismiss, handleShowModalAddFriend, handleShowModalCreateGroup}) => {
+const ModalAddChat = ({ visible, onDismiss, handleShowModalAddFriend, handleShowModalCreateGroup }) => {
     const { width, height } = Dimensions.get('window')
     return (
         <Modal visible={visible} onDismiss={onDismiss}

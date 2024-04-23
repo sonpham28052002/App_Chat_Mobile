@@ -7,7 +7,7 @@ import axios from 'axios';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 import ImagePickerComponent from '../../../../components/ImagePickerComponent'
-const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
+const ModalCreateGroup = ({ visible, onDismiss, senderId, onPress }) => {
     const { width, height } = Dimensions.get('window')
     const [groupName, setGroupName] = useState('')
     const [avtGroup, setAvtGroupName] = useState(undefined)

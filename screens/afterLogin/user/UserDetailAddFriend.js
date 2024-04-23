@@ -5,7 +5,7 @@ import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
 
-const UserDetailAddFriend = ({ route,navigation }) => {
+const UserDetailAddFriend = ({ route, navigation }) => {
   const currentUser = useSelector((state) => state.account);
   const [userFriend, setUserFriend] = useState([]);
   const [isFriend, setIsFriend] = useState(true);
@@ -16,8 +16,16 @@ const UserDetailAddFriend = ({ route,navigation }) => {
     try {
       const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${user.id}`);
       if (userRes.data) {
-        setUserFriend(userRes.data)
-      const isFriend = currentUser.friendList.some(friend => friend.user.id === user.id);
+        const formattedPhone = `0${userRes.data.phone.substring(2)}`;
+        const formattedDob = userRes.data.dob.split('-').reverse().join('-');
+        
+        setUserFriend({
+          ...userRes.data,
+          phone: formattedPhone,
+          dob: formattedDob
+        });
+
+        const isFriend = currentUser.friendList.some(friend => friend.user.id === user.id);
         setIsFriend(isFriend ? true : false);
       }
     } catch (error) {
@@ -33,7 +41,7 @@ const UserDetailAddFriend = ({ route,navigation }) => {
     const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
     stompClient.current = Stomp.over(socket);
     stompClient.current.connect({}, onConnected, onError);
-  }, [])
+  }, []);
 
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
@@ -67,25 +75,52 @@ const UserDetailAddFriend = ({ route,navigation }) => {
           source={{ uri: user.avt }}
           style={styles.avatar}
         />
+        <Text style={styles.userName}>{user.userName}</Text>
       </View>
       <View style={styles.textContainer}>
-        <Text style={styles.userName}>{user.userName}</Text>
         {isFriend ? (
-        <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Chat", user)}>
-          <Text style={styles.addButtonText}>Nhắn tin</Text>
-        </TouchableOpacity>
-      ) : (
-         <View style={styles.container2}>
-         <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Chat", user)}>
-          <Text style={styles.addButtonText}>Nhắn tin</Text>
-        </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddFriend}>
-            <Text style={styles.addButtonText}>Gửi yêu cầu kết bạn</Text>
+          <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Chat", user)}>
+            <Text style={styles.addButtonText}>Nhắn tin</Text>
           </TouchableOpacity>
+        ) : (
+            <View style={styles.container2}>
+              <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Chat", user)}>
+                <Text style={styles.addButtonText}>Nhắn tin</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.addButton} onPress={handleAddFriend}>
+                <Text style={styles.addButtonText}>Gửi yêu cầu kết bạn</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+      </View>
+      <View style={styles.profile}>
+        <View style={styles.profileItem}>
+          <Text style={styles.label}>Số điện thoại:</Text>
+          <View style={styles.infoContainer}>
+            <Text style={styles.info}>{userFriend.phone}</Text>
+          </View>
         </View>
-      )}
+        <View style={styles.profileItem}>
+          <Text style={styles.label}>Giới tính:</Text>
+          <View style={styles.infoContainer}>
+            <Text style={styles.info}>{userFriend.gender}</Text>
+          </View>
+        </View>
+        <View style={styles.profileItem}>
+          <Text style={styles.label}>Sinh nhật:</Text>
+          <View style={styles.infoContainer}>
+            <Text style={styles.info}>{userFriend.dob}</Text>
+          </View>
+        </View>
+        <View style={styles.profileItem}>
+          <Text style={styles.label}>Tiểu sử:</Text>
+          <View style={styles.infoContainer}>
+            <Text style={styles.info}>{userFriend.bio}</Text>
+          </View>
+        </View>
       </View>
     </View>
+
   );
 };
 
@@ -94,37 +129,44 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
   },
-    container2: {
+  container2: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '60%',
     marginTop: 10,
   },
-  avatarContainer: {
-    position: 'absolute',
-    top: '40%',
-    width: '100%',
-    justifyContent: 'center',
+  profile: {
     alignItems: 'center',
+    width: '80%',
+    marginTop: 20,
+  },
+  profileItem: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    borderColor: '#006AF5',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 20,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginTop: '20%',
   },
   textContainer: {
-    top: '10%',
-    justifyContent: 'flex-end',
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 10,
   },
   userName: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginTop: 10,
   },
   addButton: {
     backgroundColor: '#006AF5',
     padding: 10,
     borderRadius: 5,
+    marginBottom: 10,
   },
   addButtonText: {
     color: 'white',
@@ -143,6 +185,16 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     zIndex: -1,
+  },
+  label: {
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  infoContainer: {
+    flex: 1,
+  },
+  info: {
+    flex: 1,
   },
 });
 

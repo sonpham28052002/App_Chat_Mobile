@@ -4,7 +4,8 @@ import { useSelector } from 'react-redux';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
-
+import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 const UserDetailAddFriend = ({ route, navigation }) => {
   const currentUser = useSelector((state) => state.account);
   const [userFriend, setUserFriend] = useState([]);
@@ -80,15 +81,24 @@ const UserDetailAddFriend = ({ route, navigation }) => {
       <View style={styles.textContainer}>
         {isFriend ? (
           <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Chat", user)}>
-            <Text style={styles.addButtonText}>Nhắn tin</Text>
+               <View style={{flexDirection:'row',borderWidth:1,borderRadius:10,padding:10,borderColor: '#99CCFF',backgroundColor:"#99CCFF"}}>
+                 <Text style={styles.addButtonText}>Nhắn tin</Text>
+                 <Ionicons name="chatbox-ellipses-outline" size={24} color="#006AF5" />
+                </View>
           </TouchableOpacity>
         ) : (
             <View style={styles.container2}>
               <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Chat", user)}>
-                <Text style={styles.addButtonText}>Nhắn tin</Text>
+                <View style={{flexDirection:'row',borderWidth:1,borderRadius:10,padding:10,borderColor: '#99CCFF',backgroundColor:"#99CCFF"}}>
+                 <Text style={styles.addButtonText}>Nhắn tin</Text>
+                 <Ionicons name="chatbox-ellipses-outline" size={24} color="#006AF5" />
+                </View>
               </TouchableOpacity>
               <TouchableOpacity style={styles.addButton} onPress={handleAddFriend}>
-                <Text style={styles.addButtonText}>Gửi yêu cầu kết bạn</Text>
+                  <View style={{flexDirection:'row',borderWidth:1,borderRadius:10,padding:10,borderColor: '#006AF5',}}>
+                {/* <Text style={styles.addButtonText}>Gửi yêu cầu kết bạn</Text> */}
+                <AntDesign name="adduser" size={24} color="#006AF5" />
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -163,14 +173,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   addButton: {
-    backgroundColor: '#006AF5',
+   // backgroundColor: '#006AF5',
     padding: 10,
     borderRadius: 5,
     marginBottom: 10,
   },
   addButtonText: {
-    color: 'white',
+    color: '#006AF5',
     fontWeight: 'bold',
+    fontSize: 18,
   },
   avatar: {
     width: 100,

@@ -12,6 +12,7 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
     const [groupName, setGroupName] = useState('')
     const [avtGroup, setAvtGroupName] = useState(undefined)
     const [data, setData] = useState([])
+    const [error, setError] = useState('')
 
     useEffect(() => {
         getUsersInConversation()
@@ -63,7 +64,7 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
             <TextInput style={{ backgroundColor: 'white', width: '100%' }} 
                 placeholder='Tìm kiếm' placeholderTextColor={'gray'}
             />
-                <View style={{ height: height * 0.8 - 350 }}>
+                <View style={{ height: height * 0.8 - 380 }}>
                 <FlatList data={data}
                     renderItem={({ item }) => (
                         <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 5, alignItems: 'center' }}>
@@ -80,22 +81,28 @@ const ModalCreateGroup = ({visible, onDismiss, senderId, onPress}) => {
                     keyExtractor={(item) => item.id}
                 />
             </View>
+            <View style={{ height: 30 }}>
+            { error ? <Text style={{ color: 'red', fontSize: 16 }}>{error}</Text> : null }
+            </View>
             <ButtonCustom title='Tạo group' backgroundColor='cyan' border={true} onPress={()=> {
                 let dataSelect = data.filter(item => item.checked)
-                let arr = []
-                for (let i = 0; i < dataSelect.length; i++) {
-                    arr.push({member: { id: dataSelect[i].id }, memberType: "MEMBER"})
-                }
-                arr.push({member: { id: senderId }, memberType: "GROUP_LEADER"})
-                let dataSend = {
-                    idGroup: uuidv4(),
-                    avtGroup: avtGroup,
-                    conversationType: "group",
-                    nameGroup: groupName? groupName : "<<No name>>",
-                    status: "ACTIVE",
-                    members: arr
-                }
-                onPress(dataSend)
+                if(dataSelect.length < 1) setError('Chọn ít nhất 1 người để tạo group')
+                else if(groupName.trim() === '') setError('Nhập tên group')
+                else {
+                    let arr = []
+                    for (let i = 0; i < dataSelect.length; i++) {
+                        arr.push({member: { id: dataSelect[i].id }, memberType: "MEMBER"})
+                    }
+                    arr.push({member: { id: senderId }, memberType: "GROUP_LEADER"})
+                    let dataSend = {
+                        idGroup: uuidv4(),
+                        avtGroup: avtGroup,
+                        conversationType: "group",
+                        nameGroup: groupName,
+                        status: "ACTIVE",
+                        members: arr
+                    }
+                    onPress(dataSend)}
             }}/>
         </Modal>
     )

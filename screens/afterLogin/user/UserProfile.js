@@ -21,44 +21,43 @@ const UserProfile = ({ navigation }) => {
         }
     }, [isFocused]);
 
- const handleLogout = async () => {
-    const logoutAsyncStorage = async () => {
-        try {
-            // await AsyncStorage.setItem('isLoggedIn', 'false');
-            navigation.navigate('Login');
-        } catch (error) {
-            console.error('Lỗi khi lưu trạng thái đăng nhập:', error);
+    const handleLogout = async () => {
+        const logoutAsyncStorage = async () => {
+            try {
+                // await AsyncStorage.setItem('isLoggedIn', 'false');
+                dispatch(initSocket(false));
+                navigation.navigate('Login');
+            } catch (error) {
+                console.error('Lỗi khi lưu trạng thái đăng nhập:', error);
+            }
+        };
+
+        if (Platform.OS === 'web') {
+            if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                await logoutAsyncStorage();
+            }
+        } else {
+            Alert.alert(
+                'Xác nhận',
+                'Bạn có chắc chắn muốn đăng xuất?',
+                [
+                    {
+                        text: 'Hủy',
+                        style: 'cancel',
+                    },
+                    {
+                        text: 'Đăng xuất',
+                        onPress: logoutAsyncStorage,
+                    },
+                ],
+                { cancelable: false }
+            );
         }
     };
 
-    if (Platform.OS === 'web') {
-        if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-            await logoutAsyncStorage();
-        }
-    } else {
-        Alert.alert(
-            'Xác nhận',
-            'Bạn có chắc chắn muốn đăng xuất?',
-            [
-                {
-                    text: 'Hủy',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Đăng xuất',
-                    onPress: logoutAsyncStorage,
-                },
-            ],
-            { cancelable: false }
-        );
-    }
-    dispatch(initSocket(false));
-};
-
-
     return (
         <SafeAreaView style={styles.safeArea}>
-            { Platform.OS == "android" && <View style={{height: 30}}/>}
+            {Platform.OS == "android" && <View style={{ height: 30 }} />}
             <ScrollView style={styles.scrollView}>
                 <View style={styles.searchContainer}>
                     <EvilIcons name="search" size={40} color="white" />

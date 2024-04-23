@@ -6,7 +6,7 @@ const ButtonCustom = (props) => {
     <TouchableOpacity style={{
         backgroundColor: props.backgroundColor,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: props.alignItems? props.alignItems : 'center',
         borderWidth: props.border? 0 : 1,
         borderRadius: 10,
         width: props.width? props.width : '100%',
@@ -16,7 +16,7 @@ const ButtonCustom = (props) => {
         >
         <Text style={{
             fontSize: 20, 
-            fontWeight: 'bold',
+            fontWeight: props.fontWeight? props.fontWeight : 'bold',
             color: props.color? props.color:'black',
             }}>{props.title}</Text>
     </TouchableOpacity>

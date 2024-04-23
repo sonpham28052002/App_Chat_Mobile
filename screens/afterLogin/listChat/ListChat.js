@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 // import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { save, addLastMessage, retrieveLastMessage, addLastConversation, retrieveMess, addMess, deleteMess, initSocket } from '../../../Redux/slice';
+import { save, addLastMessage, retrieveLastMessage, addLastConversation, retrieveMess, addMess, deleteMess, deleteConv, initSocket } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -17,6 +17,7 @@ const ListChat = ({ navigation }) => {
   const { width } = Dimensions.get('window');
   var stompClient = useRef(null);
   const socketConnected = useSelector((state) => state.socket.connected);
+  const [isConnected, setIsConnected] = useState(false);
   const dispatch = useDispatch();
   // const [account, setAccount] = useState(null);
   // useEffect(() => {
@@ -111,9 +112,17 @@ const ListChat = ({ navigation }) => {
       const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
       stompClient.current = Stomp.over(socket);
       stompClient.current.connect({}, onConnected, onError);
+      setIsConnected(true);
       dispatch(initSocket(true));
     }
   }, [])
+
+  useEffect(() => {
+    if(!socketConnected && isConnected){
+      stompClient.current.disconnect(() => console.log('Socket disconnected'));
+      setIsConnected(false);
+    }
+  }, [socketConnected])
 
   const onConnected = () => {
     stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveMessage)
@@ -123,9 +132,9 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
 
     stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
-    stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
-    stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onCreateGroup)
-    stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
+    // stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
+    // stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onCreateGroup)
+    // stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
     // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
     // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
   }
@@ -220,22 +229,24 @@ const ListChat = ({ navigation }) => {
 
   const onReceiveDeleteConversationResponse = async (message) => {
     const conversation = JSON.parse(message.body);
-    if (conversation) {
-      console.log('Cuộc trò chuyện đã được xóa thành công:', conversation);
-      // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
-      // setConversations(updatedConversations);
-      const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
-      try {
-        if (result.data) {
-          dispatch(save(result.data));
-        }
-      } catch (error) {
-        console.log(error);
-      }
+    if(conversation.idGroup)
+      dispatch(deleteConv(conversation.idGroup));
+    else dispatch(deleteConv(conversation.user.id));
+    // if (conversation) {
+    //   // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
+    //   // setConversations(updatedConversations);
+    //   const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
+    //   try {
+    //     if (result.data) {
+    //       dispatch(save(result.data));
+    //     }
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
 
-    } else {
-      console.log('Xóa cuộc trò chuyện không thành công:', conversation);
-    }
+    // } else {
+    //   console.log('Xóa cuộc trò chuyện không thành công:', conversation);
+    // }
   }
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
@@ -331,7 +342,6 @@ const ListChat = ({ navigation }) => {
       console.error("Invalid Item:", item);
       return;
     }
-  console.log('con:', con);
     stompClient.current.send('/app/deleteConversation', {}, JSON.stringify(con));
 
     // const updatedConversations = conversations.filter(conv => {
@@ -407,7 +417,7 @@ const ListChat = ({ navigation }) => {
                   flex: 1
                 }}
                 onPress={() => navigation.navigate("Chat", item.user ? item.user :
-                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status })}
+                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members })}
                 onLongPress={() => {
                   setSelectedItem(item);
                   setDeleteMode(true);
@@ -462,16 +472,8 @@ const ListChat = ({ navigation }) => {
                     </View>
                   </View>
                 </View>
-                {/* {deleteMode && (
-          <TouchableOpacity onPress={() => setDeleteMode(false)}>
-            <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
-              <Text style={{ color: 'white' }}>Hủy Xóa</Text>
-            </View>
-          </TouchableOpacity>
-        )} */}
               </TouchableOpacity>
               {deleteMode && selectedItem === item && (
-
                 <View style={{}}>
                   {/* <TouchableOpacity onPress={restoreConversation}>
                     <View style={{ backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', height: 50 }}>
@@ -485,11 +487,6 @@ const ListChat = ({ navigation }) => {
                     </View>
                   </TouchableOpacity>
                 </View>
-                // <TouchableOpacity onPress={() => setDeleteMode(false)}>
-                //   <View style={{ backgroundColor: 'grey', alignItems: 'center', justifyContent: 'center', height: 50 }}>
-                //     <Text style={{ color: 'white' }}>Hủy Xóa</Text>
-                //   </View>
-                // </TouchableOpacity>
               )}
             </View>
 

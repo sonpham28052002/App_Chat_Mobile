@@ -27,6 +27,15 @@ const accountSlice = createSlice({
     },
     addLastConversation: (state, action) => {
       state.conversation.push(action.payload);
+    },
+    deleteConv: (state, action) => {
+      let id = action.payload;
+      let conversations = [...state.conversation];
+      if(id.indexOf('-') !== -1) // id là id của group
+        conversations = conversations.filter(conv => conv.idGroup !== id);
+      else // id là id của user
+        conversations = conversations.filter(conv => conv.user.id !== id);
+      state.conversation = conversations;
     }
   },
 });
@@ -96,9 +105,9 @@ const socketSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage, addLastConversation } = accountSlice.actions;
+export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage, addLastConversation, deleteConv } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } = messSlice.actions;
-export const { deleteConversation } = chatSlice.actions;
+// export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;

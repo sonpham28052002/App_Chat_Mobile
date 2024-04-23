@@ -32,16 +32,10 @@ import { useSelector, useDispatch } from "react-redux";
 const OptionChat = ({ navigation, route }) => {
   const [showModal, setShowModal] = useState(false);
   const account = useSelector((state) => state.account);
-  const message = useSelector((state) => state.message.messages);
   const [isGroup, setIsGroup] = useState(false);
   const [dataMember, setDataMember] = useState([]);
   const [member, setMember] = useState("");
   var stompClient = useRef(null);
-  const [messageRender, setMessageRender] = useState(message);
-
-useEffect(() => {
-  setMessageRender(message);
-}, [message]);
 
   function getMember() {
     axios
@@ -63,8 +57,7 @@ useEffect(() => {
       getMember();
       setIsGroup(true);
     } else {
-      // getImageFileLink();
-      getImageFileLinkGroup();
+      getImageFileLink();
       setIsGroup(false);
     }
     const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
@@ -90,13 +83,12 @@ useEffect(() => {
   // get danh sách 4 ảnh file đầu tiên của group chat
   const [firtFourImageGroup, setFirtFourImageGroup] = useState([]);
   async function getImageFileLinkGroup() {
-    // try {
-    //   const res = await axios.get(
-    //     `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
-    //   );
-    //   if (res.data) {
-      let messageTemp = [...messageRender]
-        let sort = messageTemp.sort(
+    try {
+      const res = await axios.get(
+        `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
+      );
+      if (res.data) {
+        let sort = res.data.sort(
           (a, b) => new Date(a.senderDate) - new Date(b.senderDate)
         );
         let image = sort.filter((item) => {
@@ -108,10 +100,10 @@ useEffect(() => {
           );
         });
         setFirtFourImageGroup(image.slice(0, 4));
-      // }
-    // } catch (error) {
-    //   console.log("get image file link group error", error);
-    // }
+      }
+    } catch (error) {
+      console.log("get image file link group error", error);
+    }
   }
 
   const outGroup = (data) => {
@@ -121,31 +113,31 @@ useEffect(() => {
   // biến lưu trữ danh sách tin nhắn dạng file image sort theo thời gian gửi
 
   const [firtFourImage, setFirtFourImage] = useState([]);
-  // async function getImageFileLink() {
-  //   try {
-  //     const res = await axios.get(
-  //       `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.id}`
-  //     );
+  async function getImageFileLink() {
+    try {
+      const res = await axios.get(
+        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.id}`
+      );
 
-  //     if (res.data) {
-  //       const sort = res.data.sort(
-  //         (a, b) => new Date(a.senderDate) - new Date(b.senderDate)
-  //       );
-  //       const image = sort.filter((item) => {
-  //         return (
-  //           item.messageType === "PNG" ||
-  //           item.messageType === "JPEG" ||
-  //           item.messageType === "JPG" ||
-  //           item.messageType === "VIDEO"
-  //         );
-  //       });
-  //       setFirtFourImage(image.slice(0, 4));
-  //       // setImageSortByTime(sort);
-  //     }
-  //   } catch (error) {
-  //     console.log("get image file link error", error);
-  //   }
-  // }
+      if (res.data) {
+        const sort = res.data.sort(
+          (a, b) => new Date(a.senderDate) - new Date(b.senderDate)
+        );
+        const image = sort.filter((item) => {
+          return (
+            item.messageType === "PNG" ||
+            item.messageType === "JPEG" ||
+            item.messageType === "JPG" ||
+            item.messageType === "VIDEO"
+          );
+        });
+        setFirtFourImage(image.slice(0, 4));
+        // setImageSortByTime(sort);
+      }
+    } catch (error) {
+      console.log("get image file link error", error);
+    }
+  }
   const hadleProfile = () => {
 navigation.navigate("UserDetailAddFriend",{user:route.params})
   }

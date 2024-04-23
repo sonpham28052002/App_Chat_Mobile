@@ -227,8 +227,8 @@ const ListChat = ({ navigation }) => {
     }
   }
 
-  const onReceiveDeleteConversationResponse = async (message) => {
-    const conversation = JSON.parse(message.body);
+  const onReceiveDeleteConversationResponse = async (payload) => {
+    const conversation = JSON.parse(payload.body);
     if(conversation.idGroup)
       dispatch(deleteConv(conversation.idGroup));
     else dispatch(deleteConv(conversation.user.id));

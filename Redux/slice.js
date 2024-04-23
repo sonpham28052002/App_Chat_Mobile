@@ -34,7 +34,7 @@ const accountSlice = createSlice({
       if(id.indexOf('-') !== -1) // id là id của group
         conversations = conversations.filter(conv => conv.idGroup !== id);
       else // id là id của user
-        conversations = conversations.filter(conv => conv.user.id !== id);
+        conversations = conversations.filter(conv => conv.idGroup || (conv.user && conv.user.id !== id));
       state.conversation = conversations;
     }
   },

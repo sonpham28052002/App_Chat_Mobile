@@ -288,42 +288,6 @@ const Chat = ({ navigation, route }) => {
         }
     };
 
-    const renderMessage = (messageProps) => {
-        const { currentMessage } = messageProps;
-        if (currentMessage.file) {
-            return <FileMessage currentMessage={currentMessage} fileExtension={getFileExtension(currentMessage.file)} senderId={sender.id}
-                onLongPress={() => {
-                    showModal()
-                    setMessTarget(currentMessage)
-                }}
-            />;
-        } else if (currentMessage.text) {
-            return (
-                <Message {...messageProps} />
-            );
-        } else if (currentMessage.image) {
-            return (
-                <Message {...messageProps} />
-            );
-        } else if (currentMessage.video) {
-            return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == sender.id ? true : false}
-                onLongPress={(message) => {
-                    showModal();
-                    setMessTarget(message);
-                }}
-            />;
-        } else if (currentMessage.audio) {
-            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} sender={currentMessage.user._id == sender.id ? true : false}
-                onLongPress={(message) => {
-                    showModal();
-                    setMessTarget(message);
-                }}
-                durationInSeconds={currentMessage.durationInSeconds}
-            />;
-        }
-        return null;
-    };
-
     return (
         <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
             <KeyboardAvoidingView style={{ flex: 1 }}
@@ -376,7 +340,8 @@ const Chat = ({ navigation, route }) => {
                         </Dialog>
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
-                        <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef}
+                        <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef} 
+                            senderId={sender.id} fileExtension={getFileExtension}
                             onPress={() => {
                                 setShowEmoji(!showEmoji);
                                 handleFocusText();
@@ -390,7 +355,7 @@ const Chat = ({ navigation, route }) => {
                                 showModal();
                                 setMessTarget(message);
                             }}
-                            renderMessage={(messageProps) => renderMessage(messageProps)}
+                            // renderMessage={(messageProps) => renderMessage(messageProps)}
                             onSelectionChange={event => setPosition(event.nativeEvent.selection)}
                             onPressModal2={showModal2}
                             onSelectAudio={handleAudioSelect}
@@ -412,15 +377,5 @@ const Chat = ({ navigation, route }) => {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    fileMessageContainer: {
-        borderRadius: 5,
-        paddingRight: 10,
-        paddingVertical: 10,
-        paddingLeft: 5,
-        marginBottom: 5,
-    }
-});
 
 export default Chat;

@@ -232,21 +232,6 @@ const ListChat = ({ navigation }) => {
     if(conversation.idGroup)
       dispatch(deleteConv(conversation.idGroup));
     else dispatch(deleteConv(conversation.user.id));
-    // if (conversation) {
-    //   // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
-    //   // setConversations(updatedConversations);
-    //   const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
-    //   try {
-    //     if (result.data) {
-    //       dispatch(save(result.data));
-    //     }
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-
-    // } else {
-    //   console.log('Xóa cuộc trò chuyện không thành công:', conversation);
-    // }
   }
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');

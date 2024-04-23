@@ -1,13 +1,35 @@
-import { View, TouchableOpacity, Dimensions } from 'react-native'
+import { View, TouchableOpacity, Dimensions, Text, Image } from 'react-native'
 import { TextInput } from 'react-native-paper';
 import React from 'react'
-import { GiftedChat } from 'react-native-gifted-chat';
+import { GiftedChat, Message } from 'react-native-gifted-chat';
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import AudioRecorder from '../../../../components/AudioRecorder';
+import FileMessage from '../../../../components/FileMessage';
+import VideoMessage from '../../../../components/VideoMesssage';
+import AudioMessage from '../../../../components/AudioMessage';
+import MessageCustom from '../../../../components/MessageCustom';
+import ImageMessage from '../../../../components/ImageMessage';
 
-const GiftedChatComponent = ({ onPress, messages, user, onLongPress, renderMessage, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend }) => {
+const GiftedChatComponent = ({ onPress, messages, senderId, user, onLongPress, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend, fileExtension }) => {
     const { width } = Dimensions.get('window')
-    
+    const renderBubble = (props) => {
+        const { currentMessage } = props;
+        const onLongPressMessage = () => {
+            onLongPress(null, currentMessage)
+        }
+        if (currentMessage.file)
+            return <FileMessage currentMessage={currentMessage} fileExtension={fileExtension(currentMessage.file)} senderId={senderId} onLongPress={onLongPressMessage}/>
+        if (currentMessage.video)
+            return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == senderId ? true : false} onLongPress={onLongPressMessage} />;
+        if (currentMessage.audio)
+            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} sender={currentMessage.user._id == senderId ? true : false} onLongPress={onLongPressMessage} durationInSeconds={currentMessage.durationInSeconds} />;
+        if (currentMessage.text)
+            return <MessageCustom currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false}/>
+        if (currentMessage.image)
+            return <ImageMessage currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false}/>
+        return null
+    }
+
     return (
         <GiftedChat
             renderInputToolbar={(props) =>
@@ -41,7 +63,8 @@ const GiftedChatComponent = ({ onPress, messages, user, onLongPress, renderMessa
             messages={messages}
             user={user}
             onLongPress={onLongPress}
-            renderMessage={renderMessage}
+            // renderMessage={renderMessage}
+            renderBubble={renderBubble}
         />
     )
 }

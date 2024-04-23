@@ -4,7 +4,7 @@ const accountSlice = createSlice({
   name: 'account',
   initialState: {
     conversation: [],
-      //  friendList: [],
+    friendList: [],
   },
   reducers: {
     save: (state, action) => {
@@ -12,6 +12,15 @@ const accountSlice = createSlice({
     },
     updateAvatar: (state, action) => {
       Object.assign(state, action.payload);
+    },
+    updateNickName: (state, action) => {
+      const { userId, newNickName } = action.payload;
+      const friend = state.friendList.find(friend => friend.user.id === userId);
+      console.log(friend);
+      if (friend) {
+        friend.nickName = newNickName;
+        console.log(friend);
+      }
     },
     addToFriendList: (state, action) => {
       state.friendList.push(action.payload);
@@ -105,7 +114,7 @@ const socketSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage, addLastConversation, deleteConv } = accountSlice.actions;
+export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage, addLastConversation, deleteConv,updateNickName } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } = messSlice.actions;
 // export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;

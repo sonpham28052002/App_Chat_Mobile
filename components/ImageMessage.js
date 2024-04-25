@@ -24,7 +24,7 @@ const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
                 <Image source={{ uri: currentMessage.image }} style={{ width: 200, height: 200, borderRadius: 20}} />
             </TouchableOpacity>
             <Text style={{
-                color: 'grey', fontSize: 11,
+                fontSize: 11,
                 color: !isSender ? 'grey' : 'white',
                 textAlign: !isSender ? 'left' : 'right'
             }}>

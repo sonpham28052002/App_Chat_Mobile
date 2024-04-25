@@ -10,7 +10,7 @@ import AudioMessage from '../../../../components/AudioMessage';
 import MessageCustom from '../../../../components/MessageCustom';
 import ImageMessage from '../../../../components/ImageMessage';
 
-const GiftedChatComponent = ({ onPress, messages, senderId, user, onLongPress, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend, fileExtension }) => {
+const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, user, onLongPress, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend, fileExtension }) => {
     const { width } = Dimensions.get('window')
     const renderBubble = (props) => {
         const { currentMessage } = props;
@@ -22,7 +22,9 @@ const GiftedChatComponent = ({ onPress, messages, senderId, user, onLongPress, m
         if (currentMessage.video)
             return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == senderId ? true : false} onLongPress={onLongPressMessage} />;
         if (currentMessage.audio)
-            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} sender={currentMessage.user._id == senderId ? true : false} onLongPress={onLongPressMessage} durationInSeconds={currentMessage.durationInSeconds} />;
+            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} isSender={currentMessage.user._id == senderId ? true : false} onLongPress={onLongPressMessage} durationInSeconds={currentMessage.durationInSeconds} />;
+        if (currentMessage.system)
+            return <Text>System</Text>
         if (currentMessage.text)
             return <MessageCustom currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false}/>
         if (currentMessage.image)
@@ -33,6 +35,9 @@ const GiftedChatComponent = ({ onPress, messages, senderId, user, onLongPress, m
     return (
         <GiftedChat
             renderInputToolbar={(props) =>
+                (!status || status == "ACTIVE" || 
+                ( status == "READ_ONLY" && (memberType == "DEPUTY_LEADER" || memberType == "GROUP_LEADER")) ||
+                ( status == "CHANGE_IMAGE_AND_NAME_ONLY" && (memberType == "DEPUTY_LEADER" || memberType == "GROUP_LEADER")))?
                 <View style={{ flexDirection: 'row', width: width, backgroundColor: 'white', alignItems: 'center' }}>
                     <View style={{ flexDirection: 'row', paddingHorizontal: 10, width: width - 45, height: 80, justifyContent: 'space-between', alignItems: 'center' }}>
                         <TouchableOpacity onPress={onPress}>
@@ -58,6 +63,9 @@ const GiftedChatComponent = ({ onPress, messages, senderId, user, onLongPress, m
                     >
                         <MaterialIcons name="send" size={35} color="cyan" />
                     </TouchableOpacity>
+                </View> :
+                <View style={{ height: 80, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 10}}>
+                    <Text style={{ textAlign: 'center', fontSize: 18, color: 'lightgrey' }}>Chỉ trưởng nhóm và phó nhóm mới được gửi tin nhắn!</Text>
                 </View>
             }
             messages={messages}

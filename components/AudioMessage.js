@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text, Animated, Dimensions } from 'react-native
 import { MaterialIcons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 
-const AudioMessage = ({ audioUri, sender, onLongPress }) => {
+const AudioMessage = ({ audioUri, isSender, onLongPress }) => {
     const [sound, setSound] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState(0);
@@ -42,45 +42,35 @@ const AudioMessage = ({ audioUri, sender, onLongPress }) => {
     }, [audioUri]);
 
     useEffect(() => {
-        const interval = setInterval(async () => {
-            const status = await sound.getStatusAsync();
-            if (status.isLoaded) {
-                setCurrentTime(status.positionMillis / 1000);
-            }
-        }, 1000);
-
+        let interval
+        if (isPlaying) {
+            interval = setInterval(() => {
+                setCurrentTime(prevSeconds => prevSeconds + 1);
+            }, 1000);
+        } else {
+            clearInterval(interval);
+        }
         return () => clearInterval(interval);
-    }, [sound]);
+    }, [isPlaying]);
 
-    const { width } = Dimensions.get('window');
+    useEffect(() => {
+        if(currentTime >= duration/1000) {
+            setIsPlaying(false);
+            setCurrentTime(0);
+            setPosition(0);
+            stopSound();
+        }
+    }, [currentTime]);
 
     const playSound = async () => {
         try {
             if (!sound) return;
-
-            const status = await sound.getStatusAsync();
-            if (status.isLoaded) {
-                if (!status.isPlaying) {
-                    const newPosition = position > duration ? 0 : position;
-                    await sound.setPositionAsync(newPosition);
-                    await sound.playAsync();
-                    setIsPlaying(true);
-                    Animated.timing(animation, {
-                        toValue: 1,
-                        duration: (duration - newPosition) * 1000,
-                        useNativeDriver: true
-                    }).start();
-                } else {
-                    console.log('Sound is already playing.');
-                }
-            } else {
-                console.error('Error playing sound: Sound is not loaded.');
-            }
+            await sound.playAsync();
+            setIsPlaying(true);
         } catch (error) {
             console.error('Error playing sound', error);
         }
     };
-
 
     const stopSound = async () => {
         try {
@@ -89,19 +79,12 @@ const AudioMessage = ({ audioUri, sender, onLongPress }) => {
                 await sound.setPositionAsync(0);
                 setIsPlaying(false);
                 setPosition(0);
-                Animated.timing(animation).stop();
-                animation.setValue(0);
+                setCurrentTime(0);
             }
         } catch (error) {
             console.error('Error stopping sound', error);
         }
     };
-
-    const progressBarWidth = animation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-        extrapolate: 'clamp'
-    });
 
     const formatTime = (timeInSeconds) => {
         const minutes = Math.floor(timeInSeconds / 60);
@@ -109,23 +92,31 @@ const AudioMessage = ({ audioUri, sender, onLongPress }) => {
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     };
 
+    const { width } = Dimensions.get('window');
+
     return (
-        <View style={{ flexDirection: 'column', alignItems: 'center', marginLeft: '50%', borderRadius: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{
+            borderRadius: 5, paddingVertical: 10, paddingHorizontal: 10,
+            marginLeft: !isSender ? 0 : width - 252,
+            backgroundColor: !isSender ? 'white' : '#1E90FF',
+            borderTopLeftRadius: 20, borderTopRightRadius: 20,
+            borderBottomLeftRadius: !isSender ? 0 : 20,
+            borderBottomRightRadius: !isSender ? 20 : 0,
+            width: 150
+        }}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onLongPress={onLongPress}>
                 <TouchableOpacity onPress={isPlaying ? stopSound : playSound}>
                     <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={35} color="black" />
                 </TouchableOpacity>
-                <Text>{`${formatTime(currentTime)} / ${formatTime(duration / 1000)}`}</Text>
-            </View>
-            <View style={{ width: '100%', height: 10, backgroundColor: 'lightgray' }}>
-                <Animated.View
-                    style={{
-                        height: '100%',
-                        backgroundColor: 'green',
-                        transform: [{ scaleX: progressBarWidth }]
-                    }}
-                />
-            </View>
+                <Text style={{ color: !isSender ? 'black' : 'white' }}>{`${formatTime(currentTime)} / ${formatTime(duration / 1000)}`}</Text>
+            </TouchableOpacity>
+            <Text style={{
+                fontSize: 11,
+                color: !isSender ? 'grey' : 'white',
+                textAlign: !isSender ? 'left' : 'right'
+            }}>
+                {new Date(audioUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
+            </Text>
         </View>
     );
 };

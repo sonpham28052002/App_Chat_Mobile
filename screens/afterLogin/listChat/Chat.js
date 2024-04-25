@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text, Linking } from 'react-native';
-import { Message } from 'react-native-gifted-chat';
+import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text, Linking } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
 import { Entypo, FontAwesome } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
@@ -12,13 +11,10 @@ import { saveReceiverId, saveMess } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
-import VideoMessage from '../../../components/VideoMesssage';
-import AudioMessage from '../../../components/AudioMessage';
 import MessageForward from './components/MessageForward';
 import { getMessage } from '../../../function/socket/loadMessage';
 import ModalOperationMessage from './components/ModalOperationMessage';
 import GiftedChatComponent from './components/GiftedChatComponent';
-import FileMessage from '../../../components/FileMessage';
 import { convertMessageGiftedChatToMessage } from '../../../function/convertMessageGiftedChatToMessage';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
@@ -341,7 +337,7 @@ const Chat = ({ navigation, route }) => {
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef} 
-                            senderId={sender.id} fileExtension={getFileExtension}
+                            status={route.params.status? route.params.status : null} memberType={route.params.memberType? route.params.memberType : null} senderId={sender.id} fileExtension={getFileExtension}
                             onPress={() => {
                                 setShowEmoji(!showEmoji);
                                 handleFocusText();

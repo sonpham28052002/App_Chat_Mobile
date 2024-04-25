@@ -130,13 +130,11 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onRetrieveMessage)
     stompClient.current.subscribe('/user/' + id + '/deleteMessage', onDeleteResult)
     stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
-
     stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
+
+    stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onremoveMemberInGroup)
     // stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
-    // stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onCreateGroup)
     // stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
-    // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
-    // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
   }
 
   const onCreateGroup = (payload) => {
@@ -233,6 +231,11 @@ const ListChat = ({ navigation }) => {
       dispatch(deleteConv(conversation.idGroup));
     else dispatch(deleteConv(conversation.user.id));
   }
+
+  const onremoveMemberInGroup = (payload) => {
+
+  }
+
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
   }
@@ -402,7 +405,7 @@ const ListChat = ({ navigation }) => {
                   flex: 1
                 }}
                 onPress={() => navigation.navigate("Chat", item.user ? item.user :
-                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members })}
+                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members, memberType: getMember(item.members, id).memberType})}
                 onLongPress={() => {
                   setSelectedItem(item);
                   setDeleteMode(true);

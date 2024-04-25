@@ -27,7 +27,7 @@ const MessageCustom = ({ currentMessage, isSender, onLongPress }) => {
                 <Text style={{ color: !isSender ? 'black' : 'white' }}>{currentMessage.text}</Text>
             </TouchableOpacity>
             <Text style={{
-                color: 'grey', fontSize: 11,
+                fontSize: 11,
                 color: !isSender ? 'grey' : 'white',
                 textAlign: !isSender ? 'left' : 'right'
             }}>

@@ -64,7 +64,7 @@ const FileMessage = ({ currentMessage, fileExtension, senderId, onLongPress }) =
                 >{titleFile}</Text>
             </TouchableOpacity>
             <Text style={{
-                color: 'grey', fontSize: 11, marginLeft: 10,
+                fontSize: 11, marginLeft: 10,
                 color: currentMessage.user._id !== senderId ? 'grey' : 'white',
                 textAlign: currentMessage.user._id !== senderId ? 'left' : 'right'
             }}>

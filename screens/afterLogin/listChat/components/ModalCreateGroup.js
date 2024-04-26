@@ -7,6 +7,8 @@ import axios from 'axios';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 import ImagePickerComponent from '../../../../components/ImagePickerComponent'
+import host from '../../../../configHost'
+
 const ModalCreateGroup = ({ visible, onDismiss, senderId, onPress }) => {
     const { width, height } = Dimensions.get('window')
     const [groupName, setGroupName] = useState('')
@@ -19,7 +21,7 @@ const ModalCreateGroup = ({ visible, onDismiss, senderId, onPress }) => {
     }, [])
 
     const getUsersInConversation = async () => {
-        const res = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${senderId}`)
+        const res = await axios.get(`${host}users/getUserById?id=${senderId}`)
         try {
             if (res.data) {
                 setData([...res.data.friendList.map(item => item.user)])

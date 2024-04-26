@@ -5,8 +5,9 @@ import SockJS from 'sockjs-client';
 import { over } from 'stompjs';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
-import { addToFriendList, save } from '../../../Redux/slice';
+import { save } from '../../../Redux/slice';
 import { useSelector, useDispatch } from 'react-redux';
+import host from '../../../configHost';
 
 const FriendRequests = () => {
     // const [uniqueFriendRequests, setUniqueFriendRequests] = useState({});
@@ -18,7 +19,7 @@ const FriendRequests = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+        const socket = new SockJS(`${host}ws`);
         stompClient.current = over(socket);
         stompClient.current.connect({},onConnected,(error) => { console.error('Error connecting to WebSocket server:', error); }
         );
@@ -46,7 +47,7 @@ const FriendRequests = () => {
     }
 
     const loadUser = async () => {
-        let result = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountById?id=${currentUser.id}`);
+        let result = await axios.get(`${host}account/getAccountById?id=${currentUser.id}`);
         try {
             if (result.data) {
               dispatch(save(result.data));
@@ -57,7 +58,7 @@ const FriendRequests = () => {
     }
 
     const fetchFriendRequests = () => {
-        axios.get(`https://deploybackend-production.up.railway.app/users/getFriendRequestListByOwnerId?owner=${currentUser.id}`)
+        axios.get(`${host}users/getFriendRequestListByOwnerId?owner=${currentUser.id}`)
             .then(response => {
                 setData(response.data);
             })

@@ -3,13 +3,14 @@ import { SafeAreaView, View, Text, TouchableOpacity, Image, StyleSheet, Dimensio
 import * as ImagePicker from "expo-image-picker";
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
-import { save, updateAvatar, updateUser } from "../../../Redux/slice";
+import { save, updateAvatar } from "../../../Redux/slice";
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { Feather } from '@expo/vector-icons';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; 
-import { FontAwesome5 } from '@expo/vector-icons';
+import host from '../../../configHost'
+
 const ButtonEditUserProfile = ({ navigation }) => {
     const userNewData = useSelector((state) => state.account);
   const { avt, userName, phone, gender, dob, bio,coverImage } = userNewData;
@@ -104,7 +105,7 @@ const [userNewUpdate,setUserNewUpdate]=useState(userNewData)
       });
       formData.append('name', filename);
 
-      const response = await axios.post('https://deploybackend-production.up.railway.app/azure/changeImage', formData, {
+      const response = await axios.post(`${host}azure/changeImage`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -117,7 +118,7 @@ const [userNewUpdate,setUserNewUpdate]=useState(userNewData)
 
       const updatedUserData = { ...userNewData, avt: response.data };
 
-      const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUserData);
+      const updateUserResponse = await axios.put(`${host}users/updateUser`, updatedUserData);
       dispatch(save(updatedUserData));
     } catch (error) {
       console.error('Lỗi upload ảnh', error);
@@ -165,7 +166,7 @@ const [userNewUpdate,setUserNewUpdate]=useState(userNewData)
       bio: bioUpdate,
     };
 
-    const response = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUserData);
+    const response = await axios.put(`${host}users/updateUser`, updatedUserData);
 
     if (response && response.status === 200) {
       dispatch(save(updatedUserData));

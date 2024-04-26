@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import * as Contacts from 'expo-contacts';
 import axios from 'axios'; 
 import { useSelector, useDispatch } from 'react-redux';
+import host from '../../../configHost';
 
 const User = ({ navigation }) => {
   const [contacts, setContacts] = useState([]);
@@ -16,7 +17,7 @@ const User = ({ navigation }) => {
   useEffect(() => {
     const fetchAccountList = async () => {
       try {        
-        const userRes = await axios.get('https://deploybackend-production.up.railway.app/account/all');
+        const userRes = await axios.get(`${host}account/all`);
         if (userRes.data && Array.isArray(userRes.data)) {
           setAccountList(userRes.data);
           const ids = userRes.data.map(account => account.id);
@@ -116,7 +117,7 @@ useEffect(() => {
       const account = accountList.find(account => account.phone === formattedPhoneNumberWithPrefix);
       if (account) {
         const accountId = account.id;
-        const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${accountId}`);
+        const userRes = await axios.get(`${host}users/getUserById?id=${accountId}`);
         if (userRes.data) {
           navigation.navigate('UserDetailAddFriend',{user: userRes.data})
         } else {
@@ -138,7 +139,7 @@ useEffect(() => {
       const account = accountList.find(account => account.phone === formattedPhoneNumberWithPrefix);
       if (account) {
         const accountId = account.id;
-        const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${accountId}`);
+        const userRes = await axios.get(`${host}users/getUserById?id=${accountId}`);
         if (userRes.data) {
           navigation.navigate('Chat',userRes.data)
         } else {

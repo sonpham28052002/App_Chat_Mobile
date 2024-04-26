@@ -1,11 +1,10 @@
 import { View, ScrollView, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import React, { useState, useEffect } from 'react'
 // import { firebaseConfig } from "../../config/firebase.js";
-import firebase from "firebase/compat/app";
 // import CountryPicker from "react-native-country-picker-modal";
 import PhoneNumber from "libphonenumber-js";
 import axios from 'axios';
-import PhoneInputText from '../../components/PhoneInputText';
+import host from "../../configHost";
 
 const ForgotPassword = ({ navigation }) => {
   const [sdt, setsdt] = useState("");
@@ -26,7 +25,7 @@ const ForgotPassword = ({ navigation }) => {
       const phoneNumber = PhoneNumber.isPossibleNumber(sdt, countryCode);
       if (phoneNumber) {
         const formatPhone = '84' + sdt.replace(/^0/, '');
-        const res = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${formatPhone}`);
+        const res = await axios.get(`${host}account/getAccountByPhone?phone=${formatPhone}`);
         if (res.data) {
           // console.log("res", res.data.id);
           navigation.navigate('AuthenOtp', { sdt: formatPhone, id: res.data.id });

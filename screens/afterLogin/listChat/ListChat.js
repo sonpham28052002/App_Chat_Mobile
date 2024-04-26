@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 // import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { save, addLastMessage, retrieveLastMessage, addLastConversation, retrieveMess, addMess, deleteMess, deleteConv, initSocket } from '../../../Redux/slice';
+import { addLastMessage, retrieveLastMessage, addLastConversation, retrieveMess, addMess, deleteMess, deleteConv, initSocket } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -12,7 +12,9 @@ import ModalCreateGroup from './components/ModalCreateGroup';
 import ModalAddFriend from './components/ModalAddFriend';
 import { onMessageReceive } from '../../../function/socket/onReceiveMessage';
 import { getConversation } from '../../../function/getLastConversationByUserId';
+import host from '../../../configHost'
 // import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const ListChat = ({ navigation }) => {
   const { width } = Dimensions.get('window');
   var stompClient = useRef(null);
@@ -80,7 +82,7 @@ const ListChat = ({ navigation }) => {
   //     });
   //     setConversations(updatedConversations);
   //     const updatedUser = { ...currentUser, conversation: updatedConversations };
-  //     const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
+  //     const updateUserResponse = await axios.put('${host}users/updateUser', updatedUser);
 
   //     if (updateUserResponse.status === 200) {
   //       // dispatch(deleteConversationAction(userId));
@@ -109,7 +111,7 @@ const ListChat = ({ navigation }) => {
 
   useEffect(() => {
     if (!socketConnected) {
-      const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+      const socket = new SockJS(`${host}ws`);
       stompClient.current = Stomp.over(socket);
       stompClient.current.connect({}, onConnected, onError);
       setIsConnected(true);
@@ -130,13 +132,11 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onRetrieveMessage)
     stompClient.current.subscribe('/user/' + id + '/deleteMessage', onDeleteResult)
     stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
-
     stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
+
+    stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onremoveMemberInGroup)
     // stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
-    // stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onCreateGroup)
     // stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
-    // stompClient.current.subscribe('/user/' + id + '/retrieveMessage', onReceiveFromSocket)
-    // stompClient.current.subscribe('/user/' + id + '/deleteMessage', onReceiveFromSocket)
   }
 
   const onCreateGroup = (payload) => {
@@ -232,22 +232,12 @@ const ListChat = ({ navigation }) => {
     if(conversation.idGroup)
       dispatch(deleteConv(conversation.idGroup));
     else dispatch(deleteConv(conversation.user.id));
-    // if (conversation) {
-    //   // const updatedConversations = conversations.filter(conv => conv.ownerId.idGroup !== conversation.ownerId.idGroup);
-    //   // setConversations(updatedConversations);
-    //   const result = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`)
-    //   try {
-    //     if (result.data) {
-    //       dispatch(save(result.data));
-    //     }
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-
-    // } else {
-    //   console.log('Xóa cuộc trò chuyện không thành công:', conversation);
-    // }
   }
+
+  const onremoveMemberInGroup = (payload) => {
+
+  }
+
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
   }
@@ -417,7 +407,7 @@ const ListChat = ({ navigation }) => {
                   flex: 1
                 }}
                 onPress={() => navigation.navigate("Chat", item.user ? item.user :
-                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members })}
+                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members, memberType: getMember(item.members, id).memberType})}
                 onLongPress={() => {
                   setSelectedItem(item);
                   setDeleteMode(true);

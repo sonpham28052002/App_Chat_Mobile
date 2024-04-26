@@ -6,13 +6,14 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useSelector } from 'react-redux';
 import SockJS from 'sockjs-client';
 import { over } from 'stompjs';
+import host from '../../../configHost'
 
 const finderWidth = 280;
 const finderHeight = 230;
 const { width, height } = Dimensions.get('window');
 const viewMinX = (width - finderWidth) / 2;
 const viewMinY = (height - finderHeight) / 2;
-const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+const socket = new SockJS(`${host}ws`);
  const stompClient = over(socket);
  stompClient.connect(
       {},

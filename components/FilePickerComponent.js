@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system'; 
 import axios from 'axios';
+import host from '../configHost'
 
 const FilePickerComponent = ({ onSelectFile }) => {
     const selectFile = async () => {
@@ -61,7 +62,7 @@ const FilePickerComponent = ({ onSelectFile }) => {
             });
             formData.append('name', name);
             const response = await axios.post(
-                'https://deploybackend-production.up.railway.app/azure/upload',
+                `${host}azure/upload`,
                 formData,
                 {
                     headers: {

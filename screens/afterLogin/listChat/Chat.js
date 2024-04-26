@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text, Linking } from 'react-native';
-import { Message } from 'react-native-gifted-chat';
+import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text, Linking } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
 import { Entypo, FontAwesome } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
@@ -12,14 +11,12 @@ import { saveReceiverId, saveMess } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
-import VideoMessage from '../../../components/VideoMesssage';
-import AudioMessage from '../../../components/AudioMessage';
 import MessageForward from './components/MessageForward';
 import { getMessage } from '../../../function/socket/loadMessage';
 import ModalOperationMessage from './components/ModalOperationMessage';
 import GiftedChatComponent from './components/GiftedChatComponent';
-import FileMessage from '../../../components/FileMessage';
 import { convertMessageGiftedChatToMessage } from '../../../function/convertMessageGiftedChatToMessage';
+import host from '../../../configHost'
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 
@@ -95,7 +92,7 @@ const Chat = ({ navigation, route }) => {
             )
         });
 
-        const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+        const socket = new SockJS(`${host}ws`);
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
 
@@ -133,7 +130,7 @@ const Chat = ({ navigation, route }) => {
     }, [messages]);
 
     const getListMember = async () => {
-        let api = `https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
+        let api = `${host}messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
         const result = await axios.get(api)
         try {
             if (result.data){
@@ -288,42 +285,6 @@ const Chat = ({ navigation, route }) => {
         }
     };
 
-    const renderMessage = (messageProps) => {
-        const { currentMessage } = messageProps;
-        if (currentMessage.file) {
-            return <FileMessage currentMessage={currentMessage} fileExtension={getFileExtension(currentMessage.file)} senderId={sender.id}
-                onLongPress={() => {
-                    showModal()
-                    setMessTarget(currentMessage)
-                }}
-            />;
-        } else if (currentMessage.text) {
-            return (
-                <Message {...messageProps} />
-            );
-        } else if (currentMessage.image) {
-            return (
-                <Message {...messageProps} />
-            );
-        } else if (currentMessage.video) {
-            return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == sender.id ? true : false}
-                onLongPress={(message) => {
-                    showModal();
-                    setMessTarget(message);
-                }}
-            />;
-        } else if (currentMessage.audio) {
-            return <AudioMessage key={currentMessage._id} audioUri={currentMessage} sender={currentMessage.user._id == sender.id ? true : false}
-                onLongPress={(message) => {
-                    showModal();
-                    setMessTarget(message);
-                }}
-                durationInSeconds={currentMessage.durationInSeconds}
-            />;
-        }
-        return null;
-    };
-
     return (
         <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
             <KeyboardAvoidingView style={{ flex: 1 }}
@@ -376,7 +337,8 @@ const Chat = ({ navigation, route }) => {
                         </Dialog>
                     </Portal>
                     <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
-                        <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef}
+                        <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef} 
+                            status={route.params.status? route.params.status : null} memberType={route.params.memberType? route.params.memberType : null} senderId={sender.id} fileExtension={getFileExtension}
                             onPress={() => {
                                 setShowEmoji(!showEmoji);
                                 handleFocusText();
@@ -390,7 +352,7 @@ const Chat = ({ navigation, route }) => {
                                 showModal();
                                 setMessTarget(message);
                             }}
-                            renderMessage={(messageProps) => renderMessage(messageProps)}
+                            // renderMessage={(messageProps) => renderMessage(messageProps)}
                             onSelectionChange={event => setPosition(event.nativeEvent.selection)}
                             onPressModal2={showModal2}
                             onSelectAudio={handleAudioSelect}
@@ -412,15 +374,5 @@ const Chat = ({ navigation, route }) => {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    fileMessageContainer: {
-        borderRadius: 5,
-        paddingRight: 10,
-        paddingVertical: 10,
-        paddingLeft: 5,
-        marginBottom: 5,
-    }
-});
 
 export default Chat;

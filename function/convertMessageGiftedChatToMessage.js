@@ -14,6 +14,11 @@ const convertMessageGiftedChatToMessage = (giftedMessage, senderId, receiverId, 
         const u = giftedMessage.image ? giftedMessage.image : giftedMessage.file ? giftedMessage.file : giftedMessage.video ? giftedMessage.video : giftedMessage.audio;
         const uri = u.substring(u.lastIndexOf("/") + 1);
         const type = uri.substring(uri.lastIndexOf(".") + 1);
+        const title = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
+        const size = uri.substring(uri.lastIndexOf("_") + 1, uri.indexOf("."));
+
+        chatMessage.titleFile = title;
+        chatMessage.size = (parseInt(size) / 1024).toFixed(2);
         if (giftedMessage.image) {
             chatMessage.messageType = type.toUpperCase();
             chatMessage.url = giftedMessage.image;

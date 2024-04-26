@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, SafeAreaView, Platform, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { TextInput } from 'react-native-paper';
 import PhoneInput from "react-native-phone-input";
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
-import { save } from "../../../Redux/slice";
-import 'react-native-get-random-values';
-const { v4: uuidv4 } = require('uuid');
+import host from '../../../configHost'
 
 const CreateMessager = ({ navigation }) => {
     const [data, setData] = useState([]);
@@ -28,13 +25,13 @@ const CreateMessager = ({ navigation }) => {
 
     const searchUser = async () => {
         try {
-            const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${text}`);
+            const accountRes = await axios.get(`${host}account/getAccountByPhone?phone=${text}`);
             console.log(accountRes.data);
             if (accountRes.data) {
                 setData([accountRes.data]);
                 setError(null);
                 const userId = accountRes.data.id;
-                const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
+                const userRes = await axios.get(`${host}users/getUserById?id=${userId}`);
                 if (userRes.data) {
                     const newUser = {
                         id: userRes.data.id,

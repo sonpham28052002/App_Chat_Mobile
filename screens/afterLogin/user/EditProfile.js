@@ -1,18 +1,18 @@
 import React, { useState,useEffect } from "react";
-import { SafeAreaView, View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, Platform, Alert,ScrollView } from "react-native";
+import { SafeAreaView, View, Text, TouchableOpacity, Image, StyleSheet, Platform, Alert, ScrollView } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import axios from 'axios'; 
 import { useSelector, useDispatch } from 'react-redux';
 import {save, updateAvatar } from "../../../Redux/slice";
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { Fontisto } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import profileImage from '../../../assets/profile.png';
-import { Audio } from 'expo-av';
 import ButtonWithAudio from '../../../components/ButtonWithAudio';
 import { Feather } from '@expo/vector-icons';
+import host from '../../../configHost'
+
 const EditProfile = ({navigation}) => {
   const coverImage= useSelector((state) => state.account.coverImage);
   const name = useSelector((state) => state.account.userName);
@@ -78,7 +78,7 @@ const EditProfile = ({navigation}) => {
       });
       formData.append('name', filename);
     // console.log("FormData",formData);
-      const response = await axios.post('https://deploybackend-production.up.railway.app/azure/changeImage', formData, {
+      const response = await axios.post(`${host}azure/changeImage`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -91,7 +91,7 @@ const EditProfile = ({navigation}) => {
       // Cập nhật dữ liệu người dùng chỉ với trường avt
       const updatedUserData = { ...userNewData, avt: response.data };
       //update dữ liệu về backend
-    const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUserData);
+    const updateUserResponse = await axios.put(`${host}users/updateUser`, updatedUserData);
     dispatch(save(updatedUserData))
     } catch (error) {
     //  console.error('Lỗi upload ảnh', error);

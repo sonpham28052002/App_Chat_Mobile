@@ -1,4 +1,5 @@
 import axios from "axios";
+import host from '../../configHost'
 
 const getMember = (members, id) => {
     return members.find(item => item.member.id === id);
@@ -9,9 +10,9 @@ const getMessage = async (sender, receiver) => {
     let api = ''
     let isGroup = receiver.members ? true : false // kiểm tra xem đang lấy tin nhắn group hay cá nhân
     if (!isGroup) // lấy tin nhắn cá nhân
-        api = `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${receiver.id}`
+        api = `${host}users/getMessageByIdSenderAndIsReceiver?idSender=${sender.id}&idReceiver=${receiver.id}`
     else // lấy tin nhắn group
-        api = `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${receiver.id}`
+        api = `${host}messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${receiver.id}`
     console.log(api);
     response = await axios.get(api);
     let messages = []

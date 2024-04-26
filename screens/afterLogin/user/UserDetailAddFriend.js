@@ -7,7 +7,8 @@ import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-import { save, updateNickName } from "../../../Redux/slice";
+import { updateNickName } from "../../../Redux/slice";
+import host from '../../../configHost'
 
 const UserDetailAddFriend = ({ route, navigation }) => {
   const currentUser = useSelector((state) => state.account);
@@ -22,7 +23,7 @@ const UserDetailAddFriend = ({ route, navigation }) => {
 
   const getContacts = async () => {
     try {
-      const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${user.id}`);
+      const userRes = await axios.get(`${host}users/getUserById?id=${user.id}`);
       if (userRes.data) {
         const formattedPhone = `0${userRes.data.phone.substring(2)}`;
         const formattedDob = userRes.data.dob.split('-').reverse().join('-');
@@ -50,7 +51,7 @@ const UserDetailAddFriend = ({ route, navigation }) => {
   }, [currentUser.friendList]);
 
   useEffect(() => {
-    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+    const socket = new SockJS(`${host}ws`);
     stompClient.current = Stomp.over(socket);
     stompClient.current.connect({}, onConnected, onError);
   }, []);

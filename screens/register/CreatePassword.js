@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import InputPassword from '../../components/InputPassword';
 import { checkValidName, checkValidPassword } from '../../function/checkValid';
 import { validname, validPassword } from '../../regex/valid';
+import host from '../../configHost'
 
 const CreatePassword = ({ navigation, route }) => {
 
@@ -25,7 +26,7 @@ const CreatePassword = ({ navigation, route }) => {
         return true;
     }
     function handleRegister() {
-        fetch('https://deploybackend-production.up.railway.app/account/registerAccount', {
+        fetch(`${host}account/registerAccount`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -53,7 +54,7 @@ const CreatePassword = ({ navigation, route }) => {
     }
 
     function handleInsertUser(data) {
-        fetch('https://deploybackend-production.up.railway.app/users/insertUser', {
+        fetch(`${host}users/insertUser`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

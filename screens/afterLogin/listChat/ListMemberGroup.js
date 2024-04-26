@@ -10,27 +10,15 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  ScrollView,
-  SectionList,
   FlatList,
   Dimensions
 } from "react-native";
-import {
-  EvilIcons,
-  MaterialIcons,
-  Ionicons,
-  SimpleLineIcons,
-  Entypo,
-  FontAwesome,
-  Feather,
-  AntDesign,
-  FontAwesome6,
-  FontAwesome5,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 import axios from "axios";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import host from '../../../configHost'
+
 const Tab = createMaterialTopTabNavigator();
 function TatCa({ route }) {
   const account = useSelector((state) => state.account);
@@ -106,7 +94,7 @@ function TatCa({ route }) {
   var stompClient = useRef(null);
 
   useEffect(() => {
-    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+    const socket = new SockJS(`${host}ws`);
     stompClient.current = Stomp.over(socket);
     stompClient.current.connect({}, onConnected, onError);
   }, []);
@@ -136,7 +124,7 @@ function TatCa({ route }) {
   }
 
   const loadAllMember = async () =>{
-    const result = await axios.get(`https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.idGroup}`)
+    const result = await axios.get(`${host}messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.idGroup}`)
     try{
       if(result.data){
         setDataMember(result.data)

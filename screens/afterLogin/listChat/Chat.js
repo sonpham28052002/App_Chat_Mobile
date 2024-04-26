@@ -16,6 +16,7 @@ import { getMessage } from '../../../function/socket/loadMessage';
 import ModalOperationMessage from './components/ModalOperationMessage';
 import GiftedChatComponent from './components/GiftedChatComponent';
 import { convertMessageGiftedChatToMessage } from '../../../function/convertMessageGiftedChatToMessage';
+import host from '../../../configHost'
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 
@@ -91,7 +92,7 @@ const Chat = ({ navigation, route }) => {
             )
         });
 
-        const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+        const socket = new SockJS(`${host}ws`);
         stompClient.current = Stomp.over(socket);
         stompClient.current.connect({}, onConnected, onError);
 
@@ -129,7 +130,7 @@ const Chat = ({ navigation, route }) => {
     }, [messages]);
 
     const getListMember = async () => {
-        let api = `https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
+        let api = `${host}messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
         const result = await axios.get(api)
         try {
             if (result.data){

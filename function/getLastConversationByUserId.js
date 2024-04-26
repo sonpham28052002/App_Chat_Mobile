@@ -1,9 +1,9 @@
 import axios from "axios";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import host from "../configHost";
 
 const getLastConversationByUserId = async (id) => {
     let response = null;
-    let api = `https://deploybackend-production.up.railway.app/users/getUserById?id=${id}`;
+    let api = `${host}users/getUserById?id=${id}`;
     response = await axios.get(api);
     let conversation = {}
     try{

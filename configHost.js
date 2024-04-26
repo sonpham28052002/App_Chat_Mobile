@@ -1,0 +1,1 @@
+export default REACT_APP_HOST="https://deploybackend-production.up.railway.app/"

@@ -5,30 +5,14 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  ScrollView,
   SectionList,
-  Modal,
 } from "react-native";
-import {
-  EvilIcons,
-  MaterialIcons,
-  Ionicons,
-  SimpleLineIcons,
-  Entypo,
-  FontAwesome,
-  Feather,
-  AntDesign,
-  FontAwesome6,
-  FontAwesome5,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-import { Video, ResizeMode } from "expo-av";
+import { Video } from "expo-av";
 import axios from "axios";
-import { icon } from "@fortawesome/fontawesome-svg-core";
-import { Button } from "react-native-web";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { ro } from "rn-emoji-keyboard";
+import host from "../../../configHost";
+
 const Tab = createMaterialTopTabNavigator();
 function Anh({ route }) {
   const account = useSelector((state) => state.account);
@@ -36,7 +20,7 @@ function Anh({ route }) {
   async function getImageFileLink() {
     try {
       const res = await axios.get(
-        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.account.id}`
+        `${host}users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.account.id}`
 
       );
       if (res.data) {
@@ -138,7 +122,7 @@ function File({route}) {
   async function getFileFileLink() {
     try {
       const res = await axios.get(
-        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.account.id}`
+        `${host}users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.account.id}`
       );
       if (res.data) {
         const sortedData = res.data.sort(

@@ -4,14 +4,10 @@ import axios from 'axios';
 // import store from "../../Redux/Redux";
 import { useDispatch } from 'react-redux';
 import { save } from "../../Redux/slice";
-import PhoneInputText from "../../components/PhoneInputText";
 import PhoneInput from "react-native-phone-input";
-import { Entypo } from '@expo/vector-icons';
-import LoginOtp from "./LoginOtp";
-import LoginController from "./LoginController";
-import Home from '../afterLogin/listChat/HomeChat'
 import InputPassword from "../../components/InputPassword";
 import { LinearGradient } from 'expo-linear-gradient'
+import host from "../../configHost"
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -30,10 +26,10 @@ const Login = ({ navigation }) => {
 
     try {
       // Gọi API để kiểm tra tài khoản
-      const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountPhoneAndPassword?phone=${phoneNumberWithoutPlus}&password=${password}`);
+      const accountRes = await axios.get(`${host}account/getAccountPhoneAndPassword?phone=${phoneNumberWithoutPlus}&password=${password}`);
       if (accountRes.data) {
         const userId = accountRes.data.id;
-        const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
+        const userRes = await axios.get(`${host}users/getUserById?id=${userId}`);
         if (userRes.data) {
           const account=userRes.data
           dispatch(save(userRes.data));

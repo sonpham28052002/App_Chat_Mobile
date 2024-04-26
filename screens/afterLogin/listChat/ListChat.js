@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 // import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { save, addLastMessage, retrieveLastMessage, addLastConversation, retrieveMess, addMess, deleteMess, deleteConv, initSocket } from '../../../Redux/slice';
+import { addLastMessage, retrieveLastMessage, addLastConversation, retrieveMess, addMess, deleteMess, deleteConv, initSocket } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -12,7 +12,9 @@ import ModalCreateGroup from './components/ModalCreateGroup';
 import ModalAddFriend from './components/ModalAddFriend';
 import { onMessageReceive } from '../../../function/socket/onReceiveMessage';
 import { getConversation } from '../../../function/getLastConversationByUserId';
+import host from '../../../configHost'
 // import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const ListChat = ({ navigation }) => {
   const { width } = Dimensions.get('window');
   var stompClient = useRef(null);
@@ -80,7 +82,7 @@ const ListChat = ({ navigation }) => {
   //     });
   //     setConversations(updatedConversations);
   //     const updatedUser = { ...currentUser, conversation: updatedConversations };
-  //     const updateUserResponse = await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', updatedUser);
+  //     const updateUserResponse = await axios.put('${host}users/updateUser', updatedUser);
 
   //     if (updateUserResponse.status === 200) {
   //       // dispatch(deleteConversationAction(userId));
@@ -109,7 +111,7 @@ const ListChat = ({ navigation }) => {
 
   useEffect(() => {
     if (!socketConnected) {
-      const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+      const socket = new SockJS(`${host}ws`);
       stompClient.current = Stomp.over(socket);
       stompClient.current.connect({}, onConnected, onError);
       setIsConnected(true);

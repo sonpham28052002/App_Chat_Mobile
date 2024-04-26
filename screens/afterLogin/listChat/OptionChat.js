@@ -6,28 +6,24 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  SectionList,
   Modal,
 } from "react-native";
-import { Video, ResizeMode } from "expo-av";
-
+import { Video } from "expo-av";
 import {
-  EvilIcons,
   MaterialIcons,
   Ionicons,
   SimpleLineIcons,
   Entypo,
-  FontAwesome,
   Feather,
   AntDesign,
-  FontAwesome6,
   FontAwesome5,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from "axios";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import host from '../../../configHost'
 
 const OptionChat = ({ navigation, route }) => {
   const [showModal, setShowModal] = useState(false);
@@ -40,7 +36,7 @@ const OptionChat = ({ navigation, route }) => {
   function getMember() {
     axios
       .get(
-        `https://deploybackend-production.up.railway.app/messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
+        `${host}messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
       )
       .then((res) => {
       setDataMember(res.data);
@@ -60,7 +56,7 @@ const OptionChat = ({ navigation, route }) => {
       getImageFileLink();
       setIsGroup(false);
     }
-    const socket = new SockJS('https://deploybackend-production.up.railway.app/ws');
+    const socket = new SockJS(`${host}ws`);
     stompClient.current = Stomp.over(socket);
     stompClient.current.connect({}, onConnected, onError);
   }, []);
@@ -85,7 +81,7 @@ const OptionChat = ({ navigation, route }) => {
   async function getImageFileLinkGroup() {
     try {
       const res = await axios.get(
-        `https://deploybackend-production.up.railway.app/messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
+        `${host}messages/getMessageAndMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
       );
       if (res.data) {
         let sort = res.data.sort(
@@ -116,7 +112,7 @@ const OptionChat = ({ navigation, route }) => {
   async function getImageFileLink() {
     try {
       const res = await axios.get(
-        `https://deploybackend-production.up.railway.app/users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.id}`
+        `${host}users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.id}`
       );
 
       if (res.data) {

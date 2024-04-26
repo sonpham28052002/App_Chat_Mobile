@@ -26,7 +26,7 @@ const ChangePassword = ({ navigation }) => {
 
   const changePassword = async () => {
     try {
-      const res = await axios.put(`https://deploybackend-production.up.railway.app/account/updatePasswordAccount?phone=${phone}&passwordOld=${oldPassword}&passwordNew=${newPassword}`);
+      const res = await axios.put(`${host}account/updatePasswordAccount?phone=${phone}&passwordOld=${oldPassword}&passwordNew=${newPassword}`);
       if (res.data) {
         Alert.alert("Đổi mật khẩu thành công!")
         navigation.navigate('UserProfile')

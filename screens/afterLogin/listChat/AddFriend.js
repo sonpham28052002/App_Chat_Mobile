@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Dimensions, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import PhoneInput from "react-native-phone-input";
 import axios from 'axios';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import 'react-native-get-random-values';
 import QRCode from 'react-native-qrcode-svg';
+import host from '../../../configHost'
 
 const AddFriend = ({ onPress }) => {
     // const [data, setData] = useState();
@@ -28,7 +29,7 @@ const AddFriend = ({ onPress }) => {
 
     const searchUser = async () => {
         try {
-            const accountRes = await axios.get(`https://deploybackend-production.up.railway.app/account/getAccountByPhone?phone=${text}`);
+            const accountRes = await axios.get(`${host}account/getAccountByPhone?phone=${text}`);
             if (accountRes.data) {
                 receiverId.current = accountRes.data.id;
                 setPhone(accountRes.data.phone);

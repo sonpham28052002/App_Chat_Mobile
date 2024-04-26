@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Platform, Alert, TouchableOpacity, Text } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import { SimpleLineIcons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system'; 
+import * as FileSystem from 'expo-file-system';
+import host from '../configHost'
 
 const ImagePickerComponent = ({ onSelectImage ,buttonText}) => {
     const [isVideo, setIsVideo] = useState(false);
@@ -101,7 +101,7 @@ const ImagePickerComponent = ({ onSelectImage ,buttonText}) => {
             });
             formData.append('name', filename);
 
-            const response = await axios.post('https://deploybackend-production.up.railway.app/azure/changeImage', formData, {
+            const response = await axios.post(`${host}azure/changeImage`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

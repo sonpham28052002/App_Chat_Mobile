@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeChat from '../listChat/HomeChat';
-import Contact from '../Contact';
 import HomeUser from '../user/HomeUser';
 import ContactHome from '../user/ContactHome'
 import { save } from '../../../Redux/slice';
 import axios from 'axios';
+import host from '../../../configHost';
 
 const Tab = createMaterialBottomTabNavigator();
 
@@ -21,7 +21,7 @@ const TabHome = ({ route }) => {
       try {
         if (route.params && route.params.id) {
           // Gọi API để lấy thông tin người dùng nếu có
-          const response = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${route.params.id}`);
+          const response = await axios.get(`${host}users/getUserById?id=${route.params.id}`);
           dispatch(save(response.data)); 
         }
       } catch (error) {

@@ -4,6 +4,7 @@ import { Icon } from 'react-native-elements';
 import ContactAction from './ContactAction';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import host from '../../configHost'
 
 export default function ContactScreen({ navigation }) {
   const userId = useSelector(state => state.account.id);
@@ -11,7 +12,7 @@ export default function ContactScreen({ navigation }) {
 
   const getContacts = async () => {
     try {
-      const userRes = await axios.get(`https://deploybackend-production.up.railway.app/users/getUserById?id=${userId}`);
+      const userRes = await axios.get(`${host}users/getUserById?id=${userId}`);
       if (userRes.data) {
         setFriendList(userRes.data.friendList);
       }

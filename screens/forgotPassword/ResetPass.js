@@ -8,6 +8,7 @@ import {
   Button,
   StyleSheet
 } from "react-native";
+import host from "../../configHost";
 
 const ForgotPassword = ({ navigation, route }) => {
   const [mkMoi, setMkMoi] = useState("");
@@ -31,7 +32,7 @@ const ForgotPassword = ({ navigation, route }) => {
       setNotification("Mật khẩu không khớp");
     } else {
       setNotification("");
-      fetch(`https://deploybackend-production.up.railway.app/account/forgotPasswordAccount?id=${route.params.id}&passwordNew=${mkMoi}`, {
+      fetch(`${host}account/forgotPasswordAccount?id=${route.params.id}&passwordNew=${mkMoi}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

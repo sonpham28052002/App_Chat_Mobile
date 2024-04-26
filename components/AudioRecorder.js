@@ -4,6 +4,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system'; 
+import host from '../configHost'
+
 const AudioRecorder = ({ onSelectAudio }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [recording, setRecording] = useState(null);
@@ -76,7 +78,7 @@ const AudioRecorder = ({ onSelectAudio }) => {
             });
             formData.append('name', filename);
             console.log("FormData", formData);
-            const response = await axios.post('https://deploybackend-production.up.railway.app/azure/changeImage', formData, {
+            const response = await axios.post(`${host}azure/changeImage`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

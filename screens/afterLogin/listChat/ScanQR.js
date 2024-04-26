@@ -39,7 +39,7 @@ export default function ScanQR({ navigation }) {
   const name = useSelector((state) => state.account.userName);
   const avt = useSelector((state) => state.account.avt);
   const [userScan, setUserScan] = useState(false);
-  
+
   useEffect(() => {
     const timer = setInterval(() => {
       if (timeLeft > 0 && scanned) {
@@ -49,15 +49,16 @@ export default function ScanQR({ navigation }) {
 
     return () => clearInterval(timer);
   }, [timeLeft, scanned]);
-useEffect(() => {
-  (async () => {
-    const { status } = await BarCodeScanner.requestPermissionsAsync();
-    setHasPermission(status === 'granted');
-    if (status === 'granted' && !userScan) { 
-      setCameraVisible(true);
-    }
-  })();
-}, [userScan]);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === 'granted');
+      if (status === 'granted' && !userScan) { 
+        setCameraVisible(true);
+      }
+    })();
+  }, [userScan]);
 
 
   useEffect(() => {
@@ -92,6 +93,7 @@ useEffect(() => {
           const userRes = await axios.get(`${host}users/getUserById?id=${data}`);
           if (userRes.data) {
             navigation.navigate('UserDetailAddFriend', { user: userRes.data });
+            setUserScan(false)
           } else {
             Alert.alert('Người dùng không tồn tại');
           }
@@ -99,18 +101,7 @@ useEffect(() => {
         }
         console.log('gửi lần 1 thành công');
         setFirstDataSent(true);
-        if (Platform.OS === 'ios') {
-          authResult = await LocalAuthentication.authenticateAsync({
-            promptMessage: 'Xác thực bằng Face ID hoặc Vân tay để đăng nhập',
-          });
-        }
-        if (Platform.OS === 'android') {
-          authResult = await LocalAuthentication.authenticateAsync({
-            promptMessage: 'Xác thực bằng vân tay hoặc password để đăng nhập',
-          });
-        }
-        setAuthenticationResult(authResult.success)
-        console.log(authResult.success);
+        setShowConfirmation(false);
       }
     }
   };
@@ -150,20 +141,6 @@ useEffect(() => {
           <BarcodeMask edgeColor="#62B1F6" showAnimatedLine />
         </BarCodeScanner>
       )}
-
-      {showConfirmation && (
-        <View style={styles.container}>
-          <Text style={styles.maintext}>Xác nhận đăng nhập</Text>
-          {scanned && timeLeft > 0 && <Text style={styles.timerText}>Thời gian còn lại: {timeLeft} giây</Text>}
-          {authenticationResult ? (
-            <Button title={'Đăng nhập'} onPress={() => console.log('Đăng nhập thành công')} disabled={!canLogin} />
-          ) : (
-            <Text style={{ fontSize: 16, marginBottom: 20 }}>Xác thực không thành công.</Text>
-          )}
-          <Button title={'Quay lại'} onPress={() => (navigation.goBack(), handleScanAgain())} />
-        </View>
-      )}
-      {scanned && timeLeft === 0 && <Button title="Quét lại" onPress={handleScanAgain} />}
     </View>
   );
 }

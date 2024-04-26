@@ -25,6 +25,10 @@ const accountSlice = createSlice({
     addToFriendList: (state, action) => {
       state.friendList.push(action.payload);
     },
+     removeFriend: (state, action) => {
+      const userId = action.payload;
+      state.friendList = state.friendList.filter(friend => friend.user.id !== userId);
+    },
     addLastMessage: (state, action) => {
       let message = action.payload.message;
       let index = action.payload.index;
@@ -114,7 +118,7 @@ const socketSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage, addLastConversation, deleteConv,updateNickName } = accountSlice.actions;
+export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage, addLastConversation, deleteConv,updateNickName,removeFriend } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } = messSlice.actions;
 // export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;

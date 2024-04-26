@@ -77,15 +77,29 @@ const UserDetailAddFriend = ({ route, navigation }) => {
     }
   };
 
-  const update = () => {
-    if (!newNickName) return Alert.alert('Cập nhật không thành công');
-    dispatch(updateNickName({ userId: user.id, newNickName }));
-    setModalVisible(false);
-    Alert.alert('Cập nhật tên gợi nhớ ' + newNickName +' thành công');
+  const update = async () => {
+    if (!newNickName) {
+      Alert.alert('Cập nhật không thành công');
+      return;
+    }
+    
+    try {
+      dispatch(updateNickName({ userId: user.id, newNickName }));
+      // await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', currentUser);
+      // console.log('User updated:', currentUser);
+      setModalVisible(false);
+      Alert.alert('Cập nhật tên gợi nhớ ' + newNickName + ' thành công');
+    } catch (error) {
+      console.log('Error updating user:', error);
+      Alert.alert('Cập nhật không thành công');
+    }
   }
 
   return (
     <View style={styles.container}>
+     <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate("UserOptionsScreen", { user: user })}>
+        <Ionicons name="ellipsis-vertical" size={24} color="black" />
+      </TouchableOpacity>
       <Modal
         animationType="slide"
         transparent={true}
@@ -128,6 +142,9 @@ const UserDetailAddFriend = ({ route, navigation }) => {
           style={styles.avatar}
         />
         <View style={{ flexDirection: 'row' }}>
+          {/* <TouchableOpacity onPress={() => navigation.navigate("UserOptionsScreen")}>
+            <Ionicons name="ellipsis-vertical" size={24} color="black" />
+          </TouchableOpacity> */}
           <Text style={styles.userName}>{isFriend ? nickName : user.userName}</Text>
           {isFriend && (
             <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -307,6 +324,11 @@ const styles = StyleSheet.create({
   info: {
     flex: 1,
   },
+  optionButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+  }
 });
 
 export default UserDetailAddFriend;

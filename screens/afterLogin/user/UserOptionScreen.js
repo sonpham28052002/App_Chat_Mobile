@@ -63,7 +63,9 @@ var stompClient = useRef(null);
                 dispatch(removeFriend(user.id));
                 navigation.goBack()
               },
+             style: 'destructive',
             },
+      
           ],
           { cancelable: false }
         );

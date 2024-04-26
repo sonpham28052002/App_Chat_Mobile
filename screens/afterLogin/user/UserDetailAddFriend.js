@@ -76,12 +76,24 @@ const UserDetailAddFriend = ({ route, navigation }) => {
     }
   };
 
-  const update = () => {
-    if (!newNickName) return Alert.alert('Cập nhật không thành công');
-    dispatch(updateNickName({ userId: user.id, newNickName }));
-    setModalVisible(false);
-    Alert.alert('Cập nhật tên gợi nhớ ' + newNickName +' thành công');
+const update = async () => {
+  if (!newNickName) {
+    Alert.alert('Cập nhật không thành công');
+    return;
   }
+  
+  try {
+    dispatch(updateNickName({ userId: user.id, newNickName }));
+    // await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', currentUser);
+    // console.log('User updated:', currentUser);
+    setModalVisible(false);
+    Alert.alert('Cập nhật tên gợi nhớ ' + newNickName + ' thành công');
+  } catch (error) {
+    console.log('Error updating user:', error);
+    Alert.alert('Cập nhật không thành công');
+  }
+}
+
 
   return (
     <View style={styles.container}>

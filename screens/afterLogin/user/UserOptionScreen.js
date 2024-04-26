@@ -1,12 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Switch, StyleSheet } from 'react-native';
-
-const UserOptionsScreen = ({navigation,route}) => {
+import React, { useState,useEffect,useRef } from 'react';
+import { View, Text, TouchableOpacity, Switch, StyleSheet,Alert } from 'react-native';
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
+import host from '../../../configHost'
+import { useSelector, useDispatch } from 'react-redux';
+import { removeFriend } from "../../../Redux/slice";
+const UserOptionsScreen = ({ navigation, route }) => {
   const [isBestFriend, setIsBestFriend] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [isReported, setIsReported] = useState(false);
+const currentUser = useSelector((state) => state.account);
   const { user } = route.params;
+    const dispatch = useDispatch();
+var stompClient = useRef(null);
+  useEffect(() => {
+    const socket = new SockJS(`${host}ws`);
+    stompClient.current = Stomp.over(socket);
+    stompClient.current.connect({}, onConnected, onError);
+  }, []);
+
+  const onError = (error) => {
+    console.log('Could not connect to WebSocket server. Please refresh and try again!');
+  }
+
+  const onConnected = () => {
+  }
   const toggleBestFriend = () => {
     setIsBestFriend(previousState => !previousState);
   };
@@ -22,12 +41,45 @@ const UserOptionsScreen = ({navigation,route}) => {
   const toggleReported = () => {
     setIsReported(previousState => !previousState);
   };
+    const handleDeleteFriend = async () => {
+    try {
+      const confirmDelete = () => {
+        Alert.alert(
+          'Xóa bạn',
+          'Bạn có chắc chắn muốn xóa bạn này?',
+          [
+            {
+              text: 'Hủy',
+              style: 'cancel',
+            },
+            {
+              text: 'Xóa',
+              onPress: () => {
+                const mes = {
+                  ownerId: currentUser.id,
+                  userId: user.id
+                };
+                stompClient.current.send("/app/unfriend", {}, JSON.stringify(mes));
+                dispatch(removeFriend(user.id));
+                navigation.goBack()
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      };
 
+      confirmDelete();
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+    }
+  };
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>{user.userName}</Text>
+        <Text style={styles.backButtonText}>←</Text>
       </TouchableOpacity>
+      <Text style={styles.userName}>{user.userName}</Text>
       <TouchableOpacity style={styles.optionButton}>
         <Text style={styles.optionText}>Thông tin</Text>
       </TouchableOpacity>
@@ -74,7 +126,7 @@ const UserOptionsScreen = ({navigation,route}) => {
           value={isReported}
         />
       </TouchableOpacity>
-           <TouchableOpacity style={styles.optionButton}>
+      <TouchableOpacity style={styles.optionButton} onPress={handleDeleteFriend}>
         <Text style={[styles.optionText, { color: 'red' }]}>Xóa bạn</Text>
       </TouchableOpacity>
     </View>
@@ -94,9 +146,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   backButtonText: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
     color: 'black',
+  },
+  userName: {
+    fontSize: 24,
+    marginBottom: 20,
   },
   optionButton: {
     width: '90%',

@@ -97,7 +97,7 @@ const UserDetailAddFriend = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.navigate("UserOptionsScreen", { user: user })}>
+     <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate("UserOptionsScreen", { user: user })}>
         <Ionicons name="ellipsis-vertical" size={24} color="black" />
       </TouchableOpacity>
       <Modal

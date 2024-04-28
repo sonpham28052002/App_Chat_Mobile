@@ -26,7 +26,7 @@ const UserDetailAddFriend = ({ route, navigation }) => {
       const userRes = await axios.get(`${host}users/getUserById?id=${user.id}`);
       if (userRes.data) {
         const formattedPhone = `0${userRes.data.phone.substring(2)}`;
-        const formattedDob = userRes.data.dob.split('-').reverse().join('-');
+        const formattedDob = userRes.data.dob ? userRes.data.dob.split('-').reverse().join('-') : null;
 
         setUserFriend({
           ...userRes.data,
@@ -95,6 +95,15 @@ const UserDetailAddFriend = ({ route, navigation }) => {
     }
   }
 
+  const renderUserInfo = (label, value, defaultValue = 'Chưa cập nhật') => (
+    <View style={styles.profileItem}>
+      <Text style={styles.label}>{label}:</Text>
+      <View style={styles.infoContainer}>
+        <Text style={styles.info}>{value ? value : defaultValue}</Text>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
      <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate("UserOptionsScreen", { user: user })}>
@@ -142,9 +151,6 @@ const UserDetailAddFriend = ({ route, navigation }) => {
           style={styles.avatar}
         />
         <View style={{ flexDirection: 'row' }}>
-          {/* <TouchableOpacity onPress={() => navigation.navigate("UserOptionsScreen")}>
-            <Ionicons name="ellipsis-vertical" size={24} color="black" />
-          </TouchableOpacity> */}
           <Text style={styles.userName}>{isFriend ? nickName : user.userName}</Text>
           {isFriend && (
             <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -178,30 +184,10 @@ const UserDetailAddFriend = ({ route, navigation }) => {
         )}
       </View>
       <View style={styles.profile}>
-        <View style={styles.profileItem}>
-          <Text style={styles.label}>Số điện thoại:</Text>
-          <View style={styles.infoContainer}>
-            <Text style={styles.info}>{userFriend.phone}</Text>
-          </View>
-        </View>
-        <View style={styles.profileItem}>
-          <Text style={styles.label}>Giới tính:</Text>
-          <View style={styles.infoContainer}>
-            <Text style={styles.info}>{userFriend.gender}</Text>
-          </View>
-        </View>
-        <View style={styles.profileItem}>
-          <Text style={styles.label}>Sinh nhật:</Text>
-          <View style={styles.infoContainer}>
-            <Text style={styles.info}>{userFriend.dob}</Text>
-          </View>
-        </View>
-        <View style={styles.profileItem}>
-          <Text style={styles.label}>Tiểu sử:</Text>
-          <View style={styles.infoContainer}>
-            <Text style={styles.info}>{userFriend.bio}</Text>
-          </View>
-        </View>
+        {renderUserInfo('Số điện thoại', userFriend.phone)}
+        {renderUserInfo('Giới tính', userFriend.gender)}
+        {renderUserInfo('Sinh nhật', userFriend.dob)}
+        {renderUserInfo('Tiểu sử', userFriend.bio)}
       </View>
     </View>
   );

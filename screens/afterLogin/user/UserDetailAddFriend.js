@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, TextInput, Modal, ActivityIndicator } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
@@ -17,6 +17,7 @@ const UserDetailAddFriend = ({ route, navigation }) => {
   const [nickName, setNickName] = useState('');
   const [newNickName, setNewNickName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true); // State để theo dõi trạng thái loading
   const dispatch = useDispatch();
   var stompClient = useRef(null);
   const { user } = route.params;
@@ -40,9 +41,11 @@ const UserDetailAddFriend = ({ route, navigation }) => {
           setNickName(friend.nickName);
           setNewNickName(friend.nickName);
         }
+        setLoading(false); // Đã load xong dữ liệu, đặt trạng thái loading thành false
       }
     } catch (error) {
       console.error('Error fetching friend list:', error);
+      setLoading(false); // Nếu có lỗi, cũng cần đặt trạng thái loading thành false
     }
   };
 
@@ -103,6 +106,15 @@ const UserDetailAddFriend = ({ route, navigation }) => {
       </View>
     </View>
   );
+
+  if (loading) {
+    // Nếu đang loading, hiển thị component ActivityIndicator
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -195,6 +207,11 @@ const UserDetailAddFriend = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

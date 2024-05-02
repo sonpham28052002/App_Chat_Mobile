@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, TextInput, Modal, ActivityIndicator } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
@@ -17,6 +17,7 @@ const UserDetailAddFriend = ({ route, navigation }) => {
   const [nickName, setNickName] = useState('');
   const [newNickName, setNewNickName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true); // State để theo dõi trạng thái loading
   const dispatch = useDispatch();
   var stompClient = useRef(null);
   const { user } = route.params;
@@ -26,7 +27,7 @@ const UserDetailAddFriend = ({ route, navigation }) => {
       const userRes = await axios.get(`${host}users/getUserById?id=${user.id}`);
       if (userRes.data) {
         const formattedPhone = `0${userRes.data.phone.substring(2)}`;
-        const formattedDob = userRes.data.dob.split('-').reverse().join('-');
+        const formattedDob = userRes.data.dob ? userRes.data.dob.split('-').reverse().join('-') : null;
 
         setUserFriend({
           ...userRes.data,
@@ -40,9 +41,11 @@ const UserDetailAddFriend = ({ route, navigation }) => {
           setNickName(friend.nickName);
           setNewNickName(friend.nickName);
         }
+        setLoading(false); // Đã load xong dữ liệu, đặt trạng thái loading thành false
       }
     } catch (error) {
       console.error('Error fetching friend list:', error);
+      setLoading(false); // Nếu có lỗi, cũng cần đặt trạng thái loading thành false
     }
   };
 
@@ -95,6 +98,24 @@ const UserDetailAddFriend = ({ route, navigation }) => {
     }
   }
 
+  const renderUserInfo = (label, value, defaultValue = 'Chưa cập nhật') => (
+    <View style={styles.profileItem}>
+      <Text style={styles.label}>{label}:</Text>
+      <View style={styles.infoContainer}>
+        <Text style={styles.info}>{value ? value : defaultValue}</Text>
+      </View>
+    </View>
+  );
+
+  if (loading) {
+    // Nếu đang loading, hiển thị component ActivityIndicator
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
      <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate("UserOptionsScreen", { user: user })}>
@@ -142,9 +163,6 @@ const UserDetailAddFriend = ({ route, navigation }) => {
           style={styles.avatar}
         />
         <View style={{ flexDirection: 'row' }}>
-          {/* <TouchableOpacity onPress={() => navigation.navigate("UserOptionsScreen")}>
-            <Ionicons name="ellipsis-vertical" size={24} color="black" />
-          </TouchableOpacity> */}
           <Text style={styles.userName}>{isFriend ? nickName : user.userName}</Text>
           {isFriend && (
             <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -178,30 +196,10 @@ const UserDetailAddFriend = ({ route, navigation }) => {
         )}
       </View>
       <View style={styles.profile}>
-        <View style={styles.profileItem}>
-          <Text style={styles.label}>Số điện thoại:</Text>
-          <View style={styles.infoContainer}>
-            <Text style={styles.info}>{userFriend.phone}</Text>
-          </View>
-        </View>
-        <View style={styles.profileItem}>
-          <Text style={styles.label}>Giới tính:</Text>
-          <View style={styles.infoContainer}>
-            <Text style={styles.info}>{userFriend.gender}</Text>
-          </View>
-        </View>
-        <View style={styles.profileItem}>
-          <Text style={styles.label}>Sinh nhật:</Text>
-          <View style={styles.infoContainer}>
-            <Text style={styles.info}>{userFriend.dob}</Text>
-          </View>
-        </View>
-        <View style={styles.profileItem}>
-          <Text style={styles.label}>Tiểu sử:</Text>
-          <View style={styles.infoContainer}>
-            <Text style={styles.info}>{userFriend.bio}</Text>
-          </View>
-        </View>
+        {renderUserInfo('Số điện thoại', userFriend.phone)}
+        {renderUserInfo('Giới tính', userFriend.gender)}
+        {renderUserInfo('Sinh nhật', userFriend.dob)}
+        {renderUserInfo('Tiểu sử', userFriend.bio)}
       </View>
     </View>
   );
@@ -209,6 +207,11 @@ const UserDetailAddFriend = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

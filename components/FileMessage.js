@@ -53,6 +53,12 @@ const FileMessage = ({ currentMessage, fileExtension, senderId, onLongPress }) =
             borderBottomRightRadius: currentMessage.user._id !== senderId ? 20 : 0,
             width: width - 150
         }}>
+            { currentMessage.replyMessage &&
+                <TouchableOpacity style={{ borderLeftWidth: 4, marginLeft: 10, borderLeftColor: '#70faf3', paddingLeft: 5 }}>
+                    <Text style={{ fontSize: 11, fontWeight: 700 }}>{currentMessage.replyMessage.userName}</Text>
+                    <Text style={{ color: 'grey', fontSize: 11 }} numberOfLines={1}>{currentMessage.replyMessage.content}</Text>
+                </TouchableOpacity>
+            }
             <TouchableOpacity style={{ flexDirection: 'row', width: width - 220, justifyContent: 'space-between', alignItems: 'center' }}
                 onLongPress={onLongPress}
             >

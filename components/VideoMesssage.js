@@ -22,10 +22,15 @@ const VideoMessage = React.memo(({ videoUri, sender, onLongPress }) => {
       borderTopLeftRadius: 20, borderTopRightRadius: 20,
       borderBottomRightRadius: !sender ? 20 : 0,
       borderBottomLeftRadius: !sender ? 0 : 20,
-      height: 180
     }}
       onLongPress={() => onLongPress(videoUri)}
     >
+      { videoUri.replyMessage &&
+        <TouchableOpacity style={{ marginVertical: 5, borderLeftWidth: 4, borderLeftColor: '#70faf3', paddingLeft: 5 }}>
+          <Text style={{ fontSize: 11, fontWeight: 700 }}>{videoUri.replyMessage.userName}</Text>
+          <Text style={{ color: 'grey', fontSize: 11 }} numberOfLines={1}>{videoUri.replyMessage.content}</Text>
+        </TouchableOpacity>
+      }
       <View style={{ width: 200, height: 150, paddingTop: 5, justifyContent: 'center'}}>
         <WebView
           key={key}

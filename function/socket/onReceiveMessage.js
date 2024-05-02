@@ -6,7 +6,6 @@ const getMember = (id) => {
 }
 
 function addMessage(message, type){
-    console.log("->>>>>>>>>>>>>>>>>", getMember('jgfqCBTFdEgDmpHHXaNHdZV8B982'));
     let date = new Date(message.senderDate);
     let newMessage = {
         _id: message.id,

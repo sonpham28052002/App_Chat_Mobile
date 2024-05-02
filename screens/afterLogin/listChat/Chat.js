@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text, Linking } from 'react-native';
+import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
 import { Entypo, FontAwesome } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
@@ -17,6 +17,7 @@ import ModalOperationMessage from './components/ModalOperationMessage';
 import GiftedChatComponent from './components/GiftedChatComponent';
 import { convertMessageGiftedChatToMessage } from '../../../function/convertMessageGiftedChatToMessage';
 import host from '../../../configHost'
+import { useFocusEffect } from '@react-navigation/native';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 
@@ -29,6 +30,12 @@ const Chat = ({ navigation, route }) => {
     const [position, setPosition] = useState({ start: 0, end: 0 });
     const [showEmoji, setShowEmoji] = useState(false);
     const [messLoad, setMessLoad] = useState([]);
+
+    // message when long press
+    const [messTarget, setMessTarget] = useState();
+
+    // message when reply
+    const [messageReply, setMessageReply] = useState(null);
 
     // account reducer
     const sender = useSelector((state) => state.account);
@@ -68,12 +75,9 @@ const Chat = ({ navigation, route }) => {
     const showModalMessageForward = () => setVisibleMessageForward(true);
     const hideModalMessageForward = () => setVisibleMessageForward(false);
 
-    // message when long press
-    const [messTarget, setMessTarget] = useState();
-
     useEffect(() => {
         navigation.setOptions({
-            title: route.params.userName? route.params.userName: route.params.nameGroup,
+            title: route.params.userName ? route.params.userName : route.params.nameGroup,
             headerRight: () => (
                 <View style={{
                     width: 120,
@@ -103,7 +107,7 @@ const Chat = ({ navigation, route }) => {
             if (route.params.nameGroup) {
                 getListMember().then(() => {
                     getMessage(sender, { id: route.params.id, members: listMember.current }).then(messages => {
-                        if(messages.length > 0) setMessLoad(messages);
+                        if (messages.length > 0) setMessLoad(messages);
                         else {
                             setVisible3(false);
                         };
@@ -111,18 +115,27 @@ const Chat = ({ navigation, route }) => {
                 })
             } else
                 getMessage(sender, route.params).then(messages => {
-                    if(messages.length > 0) setMessLoad(messages);
+                    if (messages.length > 0) setMessLoad(messages);
                     else setVisible3(false);
                 });
         }
-        }, []);
-        
+    }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            return () => {
+                if (stompClient.current) {
+                    stompClient.current.disconnect();
+                }
+            }
+        }, [])
+    );
+
     useEffect(() => {
         if (messLoad.length > 0){
             dispatch(saveMess(messLoad.reverse()));
             toggleDialog3();
         }
-        // setVisible3(false);
     }, [messLoad]);
 
     useEffect(() => {
@@ -162,6 +175,8 @@ const Chat = ({ navigation, route }) => {
             var chatMessage = {
                 id: id,
                 sender: { id: sender.id },
+                replyMessage: messageReply? convertMessageGiftedChatToMessage(messageReply, sender.id, route.params.id, getFileExtension) : null,
+                reply: messageReply? convertMessageGiftedChatToMessage(messageReply, sender.id, route.params.id, getFileExtension) : null
             };
             if (mess && type === 'Text') {
                 chatMessage.content = mess
@@ -317,6 +332,11 @@ const Chat = ({ navigation, route }) => {
                                         JSON.stringify({ ...deleteMessage, idGroup, ownerId }));
                                 }
                             }}
+                            onPressReply={() => {
+                                setMessageReply(messTarget);
+                                handleFocusText();
+                                hideModal();
+                            }}
                         />
                         <Modal visible={visible2} onDismiss={hideModal2}
                             contentContainerStyle={{
@@ -336,9 +356,9 @@ const Chat = ({ navigation, route }) => {
                             <Dialog.Loading/>
                         </Dialog>
                     </Portal>
-                    <View style={{ height: height - 95, backgroundColor: 'lightgray', marginBottom: 25 }}>
+                    <View style={{ height: height - 80, backgroundColor: 'lightgray', marginBottom: 25 }}>
                         <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef} 
-                            status={route.params.status? route.params.status : null} memberType={route.params.memberType? route.params.memberType : null} senderId={sender.id} fileExtension={getFileExtension}
+                            onCloseReply={()=>{setMessageReply(null)}} messageReply={messageReply} status={route.params.status? route.params.status : null} memberType={route.params.memberType? route.params.memberType : null} senderId={sender.id} fileExtension={getFileExtension}
                             onPress={() => {
                                 setShowEmoji(!showEmoji);
                                 handleFocusText();

@@ -8,6 +8,7 @@ import PhoneInput from "react-native-phone-input";
 import InputPassword from "../../components/InputPassword";
 import { LinearGradient } from 'expo-linear-gradient'
 import host from "../../configHost"
+import { visibleModal } from "../../Redux/slice";
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -23,7 +24,6 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     let found = false;
-
     try {
       // Gọi API để kiểm tra tài khoản
       const accountRes = await axios.get(`${host}account/getAccountPhoneAndPassword?phone=${phoneNumberWithoutPlus}&password=${password}`);

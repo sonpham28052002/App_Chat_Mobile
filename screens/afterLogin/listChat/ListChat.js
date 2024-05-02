@@ -3,7 +3,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 // import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { addLastMessage, retrieveLastMessage, addLastConversation, retrieveMess, addMess, deleteMess, deleteConv, initSocket } from '../../../Redux/slice';
+import { addLastMessage, retrieveLastMessage, addLastConversation, deleteConv, 
+  retrieveMess, addMess, deleteMess, initSocket, visibleModal, notify, addFriendRequest } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -133,6 +134,8 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/deleteMessage', onDeleteResult)
     stompClient.current.subscribe('/user/' + id + '/createGroup', onCreateGroup)
     stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
+    stompClient.current.subscribe('/user/' + id + '/requestAddFriend', onRequestAddFriend)
+    stompClient.current.subscribe('/user/' + id + '/acceptAddFriend', onAcceptAddFriend)
 
     stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onremoveMemberInGroup)
     // stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
@@ -157,12 +160,22 @@ const ListChat = ({ navigation }) => {
   }
 
   const onReceiveMessage = (payload) => {
+    dispatch(visibleModal(true));
     const message = JSON.parse(payload.body);
     let userId = message.sender.id == id ? message.receiver.id : message.sender.id;
     let index = conversations.findIndex(conv => conv.user && conv.user.id === userId);
     //update message in listchat
     if( index === -1 ){
       getConversation(id).then(conv => {
+        dispatch(notify({ userName: conv.user.userName, avt: conv.user.avt,
+          content: message.messageType === "Text"? message.content : 
+          message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
+          message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" || 
+          message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" || 
+          message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
+          message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
+          type: 'single-chat'
+        }));
         dispatch(addLastConversation(conv));
         // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
         if (checkIsChatting(message.sender.id, message.receiver.id)){
@@ -173,8 +186,16 @@ const ListChat = ({ navigation }) => {
             dispatch(addMess(newMess))
         }
       })
-        // conversation.current = getConversation(id);
     } else {
+      dispatch(notify({ userName: conversations[index].user.userName, avt: conversations[index].user.avt,
+        content: message.messageType === "Text"? message.content : 
+        message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
+        message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" || 
+        message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" || 
+        message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
+        message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
+        type: 'single-chat'
+      }));
       dispatch(addLastMessage({ message: message, index: index }));
       // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
       if (checkIsChatting(message.sender.id, message.receiver.id)) {
@@ -188,18 +209,31 @@ const ListChat = ({ navigation }) => {
   }
 
   const onGroupMessageReceived = (payload) => {
+    dispatch(visibleModal(true));
     const message = JSON.parse(payload.body);
     let idGroup = message.receiver.id.split('_')[1];
     let index = conversationsRef.current.findIndex(conv => conv.idGroup === idGroup);
     dispatch(addLastMessage({ message: message, index: index }));
-
+    dispatch(notify({ userName: conversationsRef.current[index].nameGroup, 
+      avt: conversationsRef.current[index].avtGroup,
+      content: message.messageType === "Text"? message.content :
+      message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
+      message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
+      message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
+      message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
+      message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
+      type: 'group-chat'
+    }));
+    
     // kiểm tra xem tin nhắn nhận được có phải tin nhắn trong group đang chat hay không
     if (checkIsChatting(message.sender.id, message.receiver.id)){
-      let newMess = onMessageReceive(message,
-        { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
-        { id: idGroup, members: conversationsRef.current[index].members })
-      if (newMess)
-        dispatch(addMess(newMess))
+      getListMember(id, idGroup).then(members => {
+        let newMess = onMessageReceive(message,
+          { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
+          { id: idGroup, members: members })
+        if (newMess)
+          dispatch(addMess(newMess))
+      })
     }
   }
 
@@ -236,6 +270,21 @@ const ListChat = ({ navigation }) => {
 
   const onremoveMemberInGroup = (payload) => {
 
+  }
+
+  const onRequestAddFriend = (payload) => {
+    const friendRequest = JSON.parse(payload.body);
+    dispatch(addFriendRequest(friendRequest));
+    dispatch(notify({ userName: friendRequest.sender.userName, avt: friendRequest.sender.avt, 
+      type: "request-add-friend" }));
+    dispatch(visibleModal(true));
+  }
+
+  const onAcceptAddFriend = (payload) => {
+    const friendRequest = JSON.parse(payload.body);
+    dispatch(notify({ userName: friendRequest.sender.userName, avt: friendRequest.sender.avt, 
+      type: "accept-add-friend" }));
+    dispatch(visibleModal(true));
   }
 
   const onError = (error) => {
@@ -356,6 +405,18 @@ const ListChat = ({ navigation }) => {
   const getMember = (data, id) => {
     return data.filter(item => item.member.id == id)[0]
   }
+
+  const getListMember = async (senderId, groupId) => {
+    let api = `${host}messages/getMemberByIdSenderAndIdGroup?idSender=${senderId}&idGroup=${groupId}`
+    const result = await axios.get(api)
+    try {
+        if (result.data){
+            return result.data
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>

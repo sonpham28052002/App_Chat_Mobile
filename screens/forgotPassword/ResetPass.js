@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import host from "../../configHost";
 
-const ForgotPassword = ({ navigation, route }) => {
+const RestPass = ({ navigation, route }) => {
   const [mkMoi, setMkMoi] = useState("");
   const [confirmMk, setConfirmMk] = useState("");
   const [notification, setNotification] = useState("");
@@ -150,4 +150,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ForgotPassword;
+export default RestPass;

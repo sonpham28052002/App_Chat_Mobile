@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import accountReducer, { messageReducer, chatReducer, socketReducer } from './slice';
+import accountReducer, { messageReducer, chatReducer, socketReducer, modalReducer } from './slice';
 import thunk from 'redux-thunk';
 
 // const middleware = [...getDefaultMiddleware(), thunk];
@@ -10,6 +10,7 @@ const store = configureStore({
     message: messageReducer,
     chat: chatReducer,
     socket: socketReducer,
+    modal: modalReducer,
   },
   // middleware,
 });

@@ -95,29 +95,29 @@ const AudioMessage = ({ audioUri, isSender, onLongPress }) => {
     const { width } = Dimensions.get('window');
 
     return (
-        <View style={{
-            borderRadius: 5, paddingVertical: 10, paddingHorizontal: 10,
+        <TouchableOpacity style={{
+            borderRadius: 5, paddingVertical: 5, paddingHorizontal: 10,
             marginLeft: !isSender ? 0 : width - 252,
-            backgroundColor: !isSender ? 'white' : '#1E90FF',
+            backgroundColor: !isSender ? 'white' : '#D5F1FF',
             borderTopLeftRadius: 20, borderTopRightRadius: 20,
             borderBottomLeftRadius: !isSender ? 0 : 20,
             borderBottomRightRadius: !isSender ? 20 : 0,
             width: 150
-        }}>
+        }} onLongPress={onLongPress}>
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onLongPress={onLongPress}>
                 <TouchableOpacity onPress={isPlaying ? stopSound : playSound}>
                     <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={35} color="black" />
                 </TouchableOpacity>
-                <Text style={{ color: !isSender ? 'black' : 'white' }}>{`${formatTime(currentTime)} / ${formatTime(duration / 1000)}`}</Text>
+                <Text style={{ color: 'black' }}>{`${formatTime(currentTime)} / ${formatTime(duration / 1000)}`}</Text>
             </TouchableOpacity>
             <Text style={{
                 fontSize: 11,
-                color: !isSender ? 'grey' : 'white',
+                color: 'grey',
                 textAlign: !isSender ? 'left' : 'right'
             }}>
                 {new Date(audioUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
             </Text>
-        </View>
+        </TouchableOpacity>
     );
 };
 export default AudioMessage;

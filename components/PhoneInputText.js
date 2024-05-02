@@ -1,12 +1,10 @@
 import { View, Image } from 'react-native'
 import React, { useRef, useState } from 'react'
 import ButtonCustom from './button'
-import { RadioButton } from 'react-native-paper';
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
 import { firebaseConfig } from '../config'
 import { sendVerification } from '../function/sendVerification';
 import PhoneInput from "react-native-phone-input";
-import AuthenticateOTP from './otp/AuthenticateOTP';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const PhoneInputText = ({navigation, route}) => {

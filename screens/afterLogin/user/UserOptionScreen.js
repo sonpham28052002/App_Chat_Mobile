@@ -1,24 +1,32 @@
-import React, { useState,useEffect,useRef } from 'react';
-import { View, Text, TouchableOpacity, Switch, StyleSheet,Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Switch, StyleSheet, Alert } from 'react-native';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import host from '../../../configHost'
 import { useSelector, useDispatch } from 'react-redux';
 import { removeFriend } from "../../../Redux/slice";
+
 const UserOptionsScreen = ({ navigation, route }) => {
   const [isBestFriend, setIsBestFriend] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [isReported, setIsReported] = useState(false);
-const currentUser = useSelector((state) => state.account);
+  const currentUser = useSelector((state) => state.account);
   const { user } = route.params;
-    const dispatch = useDispatch();
-var stompClient = useRef(null);
+  const dispatch = useDispatch();
+  var stompClient = useRef(null);
+
   useEffect(() => {
     const socket = new SockJS(`${host}ws`);
     stompClient.current = Stomp.over(socket);
     stompClient.current.connect({}, onConnected, onError);
-  }, []);
+    
+    return () => {
+      if (stompClient.current && stompClient.current.connected) {
+        stompClient.current.disconnect();
+      }
+    };
+  }, [navigation]);
 
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
@@ -26,6 +34,7 @@ var stompClient = useRef(null);
 
   const onConnected = () => {
   }
+
   const toggleBestFriend = () => {
     setIsBestFriend(previousState => !previousState);
   };
@@ -41,7 +50,8 @@ var stompClient = useRef(null);
   const toggleReported = () => {
     setIsReported(previousState => !previousState);
   };
-    const handleDeleteFriend = async () => {
+
+  const handleDeleteFriend = async () => {
     try {
       const confirmDelete = () => {
         Alert.alert(
@@ -63,9 +73,8 @@ var stompClient = useRef(null);
                 dispatch(removeFriend(user.id));
                 navigation.goBack()
               },
-             style: 'destructive',
+              style: 'destructive',
             },
-      
           ],
           { cancelable: false }
         );
@@ -76,6 +85,7 @@ var stompClient = useRef(null);
       console.error('Error sending friend request:', error);
     }
   };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>

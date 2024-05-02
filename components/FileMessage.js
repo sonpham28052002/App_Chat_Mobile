@@ -47,7 +47,7 @@ const FileMessage = ({ currentMessage, fileExtension, senderId, onLongPress }) =
         <View style={{
             borderRadius: 5, paddingRight: 10, paddingVertical: 10, paddingLeft: 5,
             marginLeft: currentMessage.user._id !== senderId ? 0 : width - 252,
-            backgroundColor: currentMessage.user._id !== senderId ? 'white' : '#1E90FF',
+            backgroundColor: currentMessage.user._id !== senderId ? 'white' : '#D5F1FF',
             borderTopLeftRadius: 20, borderTopRightRadius: 20,
             borderBottomLeftRadius: currentMessage.user._id !== senderId ? 0 : 20,
             borderBottomRightRadius: currentMessage.user._id !== senderId ? 20 : 0,
@@ -60,12 +60,12 @@ const FileMessage = ({ currentMessage, fileExtension, senderId, onLongPress }) =
                     <MaterialCommunityIcons name={iconName} size={50} color={colorIcon} />
                 </TouchableOpacity>
                 <Text numberOfLines={2}
-                    style={{ color: currentMessage.user._id !== senderId ? 'black' : 'white' }}
+                    style={{ color: 'black' }}
                 >{titleFile}</Text>
             </TouchableOpacity>
             <Text style={{
                 fontSize: 11, marginLeft: 10,
-                color: currentMessage.user._id !== senderId ? 'grey' : 'white',
+                color: 'grey',
                 textAlign: currentMessage.user._id !== senderId ? 'left' : 'right'
             }}>
                 {new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}

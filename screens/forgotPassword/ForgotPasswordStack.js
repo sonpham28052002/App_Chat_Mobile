@@ -1,4 +1,3 @@
-import { View, Text } from 'react-native'
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 import PhoneInputText from '../../components/PhoneInputText'
@@ -11,7 +10,7 @@ const ForgotPasswordStack = () => {
     <Stack.Navigator screenOptions={{
         headerShown: false
     }}>
-        <Stack.Screen name="ForgotPassword" component={PhoneInputText} 
+        <Stack.Screen name="PhoneInputText" component={PhoneInputText} 
         initialParams={{ screens: 'ResetPass' }}
         options={{ headerShown: false }} />
         <Stack.Screen name='AuthenticateOTP' component={AuthenticateOTP} />

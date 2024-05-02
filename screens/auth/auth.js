@@ -1,20 +1,13 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Login from '../login/Login'
-// import Register from '../screens/register/Register';
 import Register from '../register/Register'
-import ForgotPassword from '../forgotPassword/ForgotPassword';
-import HomeChat from '../afterLogin/listChat/HomeChat';
-import CreatePassword from '../register/CreatePassword';
-import User from '../afterLogin/user/User';
 import LoginOtp from '../login/LoginOtp.js';
 import AuthenOtp from '../forgotPassword/AuthenOtp.js'
 import ResetPass from '../forgotPassword/ResetPass.js'
 import LoginController from '../login/LoginController.js';
 import TabHome from '../afterLogin/tabHome/TabHome.js';
-import HomChat from '../afterLogin/listChat/HomeChat';
 import UserProfile from '../afterLogin/user/UserProfile.js';
 import ForgotPasswordStack from '../forgotPassword/ForgotPasswordStack.js';
 import ListChat from '../afterLogin/listChat/ListChat.js';

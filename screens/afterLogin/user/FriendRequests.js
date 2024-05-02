@@ -67,10 +67,10 @@ const FriendRequests = () => {
             });
     };
 
-const handleAcceptRequest = (senderId, receiverId) => {
+const handleAcceptRequest = (sender, receiver) => {
     stompClient.current.send(`/app/accept-friend-request`, {}, JSON.stringify({
-        sender: { id: senderId },
-        receiver: { id: receiverId }
+        sender: sender,
+        receiver: receiver
     }));
 
     // stompClient.current.subscribe(`/user/${currentUser.id}/acceptAddFriend`, (message) => {
@@ -124,7 +124,7 @@ const handleAcceptRequest = (senderId, receiverId) => {
                                     <Text style={{ fontWeight: 'bold', color: 'blue', fontSize: 20, width: width - 170, marginHorizontal: 10 }}>
                                         {item.sender.userName} <Text style={{ fontWeight: 'normal', color: 'black'}}>muốn kết bạn</Text></Text>
                                     <View>
-                                    <TouchableOpacity style={styles.buttonAccept} onPress={() => handleAcceptRequest(item.sender.id, item.receiver.id)}>
+                                    <TouchableOpacity style={styles.buttonAccept} onPress={() => handleAcceptRequest(item.sender, item.receiver)}>
                                         <Text style={styles.buttonText}>OK</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.buttonReject} onPress={() => handleRejectRequest(item.sender.id, item.receiver.id)}>

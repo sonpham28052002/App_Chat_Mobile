@@ -16,9 +16,8 @@ const VideoMessage = React.memo(({ videoUri, sender, onLongPress }) => {
 
   return (
     <TouchableOpacity style={{
-      width: width - 170, justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: !sender ? 'white' : '#1E90FF',
+      width: width - 170, paddingVertical: 5, paddingHorizontal: 10,
+      backgroundColor: !sender ? 'white' : '#D5F1FF',
       marginLeft: !sender ? 0 : width - 232,
       borderTopLeftRadius: 20, borderTopRightRadius: 20,
       borderBottomRightRadius: !sender ? 20 : 0,
@@ -27,7 +26,7 @@ const VideoMessage = React.memo(({ videoUri, sender, onLongPress }) => {
     }}
       onLongPress={() => onLongPress(videoUri)}
     >
-      <View style={{ width: 200, height: 150 }}>
+      <View style={{ width: 200, height: 150, paddingTop: 5, justifyContent: 'center'}}>
         <WebView
           key={key}
           style={{ flex: 1 }}
@@ -43,18 +42,18 @@ const VideoMessage = React.memo(({ videoUri, sender, onLongPress }) => {
             <Text>Play video</Text>
           </TouchableOpacity>
         )}
-        <Text style={{
-          fontSize: 11, marginLeft: 10,
-          color: !sender ? 'black' : 'white',
-          textAlign: !sender ? 'left' : 'right'
-        }}>
-          {new Date(videoUri.createdAt).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: 'numeric',
-            hour12: true
-          })}
-        </Text>
       </View>
+      <Text style={{
+        fontSize: 11,
+        color: 'grey',
+        textAlign: !sender ? 'left' : 'right'
+      }}>
+        {new Date(videoUri.createdAt).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: 'numeric',
+          hour12: true
+        })}
+      </Text>
     </TouchableOpacity>
   );
 });

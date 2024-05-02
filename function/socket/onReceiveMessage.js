@@ -6,6 +6,7 @@ const getMember = (id) => {
 }
 
 function addMessage(message, type){
+    console.log("->>>>>>>>>>>>>>>>>", getMember('jgfqCBTFdEgDmpHHXaNHdZV8B982'));
     let date = new Date(message.senderDate);
     let newMessage = {
         _id: message.id,
@@ -14,9 +15,17 @@ function addMessage(message, type){
             _id: message.sender.id,
             name: message.sender.id === sender.id ? sender.userName : type == "group"? getMember(message.sender.id).member.userName : receiver.userName,
             avatar: message.sender.id === sender.id ? sender.avt : type == "group"? getMember(message.sender.id).member.avt : receiver.avt,
-            // name: message.sender.id === sender.id ? sender.userName : receiver.userName,
-            // avatar: message.sender.id === sender.id ? sender.avt : receiver.avt,
         },
+        replyMessage: message.replyMessage? {
+            userName: message.replyMessage.sender.id == sender.id ? sender.userName : type == "group"? getMember(message.replyMessage.sender.id).member.userName : receiver.userName,
+            content: message.replyMessage.messageType === 'RETRIEVE' ? "Tin nhắn đã bị thu hồi!"
+                : message.replyMessage.messageType === 'Text' ? message.replyMessage.content
+                    : message.replyMessage.messageType === 'PNG' || message.replyMessage.messageType === 'JPG' || message.replyMessage.messageType === 'JPEG' ? 'Hình ảnh'
+                        : message.replyMessage.messageType === 'PDF' || message.replyMessage.messageType === 'DOC' || message.replyMessage.messageType === 'DOCX' || message.replyMessage.messageType === 'XLS' || message.replyMessage.messageType === 'XLSX' || message.replyMessage.messageType === 'PPT' || message.replyMessage.messageType === 'PPTX' || message.replyMessage.messageType === 'RAR' || message.replyMessage.messageType === 'ZIP' ? message.replyMessage.titleFile
+                            : message.replyMessage.messageType === 'VIDEO' ? 'Video'
+                                : message.replyMessage.messageType === 'AUDIO' ? 'Audio'
+                                    : ''
+        } : null
     };
     if (message.content)
         newMessage.text = message.content;
@@ -36,6 +45,7 @@ function addMessage(message, type){
             || message.messageType == 'CSV' || message.messageType == 'HTML')
             newMessage.file = message.url;
     }
+    console.log(newMessage);
     return newMessage;
 }
 

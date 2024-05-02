@@ -5,6 +5,7 @@ const accountSlice = createSlice({
   initialState: {
     conversation: [],
     friendList: [],
+    friendRequest: [],
   },
   reducers: {
     save: (state, action) => {
@@ -25,7 +26,7 @@ const accountSlice = createSlice({
     addToFriendList: (state, action) => {
       state.friendList.push(action.payload);
     },
-     removeFriend: (state, action) => {
+    removeFriend: (state, action) => {
       const userId = action.payload;
       state.friendList = state.friendList.filter(friend => friend.user.id !== userId);
     },
@@ -49,6 +50,9 @@ const accountSlice = createSlice({
       else // id là id của user
         conversations = conversations.filter(conv => conv.idGroup || (conv.user && conv.user.id !== id));
       state.conversation = conversations;
+    },
+    addFriendRequest: (state, action) => {
+      state.friendRequest.push(action.payload);
     }
   },
 });
@@ -87,6 +91,7 @@ const messSlice = createSlice({
     }
   }
 });
+
 const chatSlice = createSlice({
   name: 'chat',
   initialState: {
@@ -118,11 +123,36 @@ const socketSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, retrieveLastMessage, addLastConversation, deleteConv,updateNickName,removeFriend } = accountSlice.actions;
+const modalSlice = createSlice({
+  name: 'modal',
+  initialState: {
+    notify: {
+      userName: '',
+      avt: '',
+      content: '',
+      type: ''
+    },
+    visible: false
+  },
+  reducers: {
+    visibleModal: (state, action) => {
+      state.visible = action.payload;
+    },
+    notify: (state, action) => {
+      state.notify = action.payload;
+    }
+  },
+});
+
+export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, 
+                retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
+                removeFriend, addFriendRequest } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } = messSlice.actions;
 // export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;
+export const { visibleModal, notify } = modalSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;
 export const chatReducer = chatSlice.reducer
 export const socketReducer = socketSlice.reducer;
+export const modalReducer = modalSlice.reducer;

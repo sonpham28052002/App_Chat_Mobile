@@ -1,9 +1,9 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView, View, Text, TouchableOpacity, Image, StyleSheet, Platform, Alert, ScrollView } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import axios from 'axios'; 
+import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
-import {save, updateAvatar } from "../../../Redux/slice";
+import { save, updateAvatar } from "../../../Redux/slice";
 import { Fontisto } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
@@ -13,25 +13,25 @@ import ButtonWithAudio from '../../../components/ButtonWithAudio';
 import { Feather } from '@expo/vector-icons';
 import host from '../../../configHost'
 
-const EditProfile = ({navigation}) => {
-  const coverImage= useSelector((state) => state.account.coverImage);
+const EditProfile = ({ navigation }) => {
+  const coverImage = useSelector((state) => state.account.coverImage);
   const name = useSelector((state) => state.account.userName);
   const avt = useSelector((state) => state.account.avt);
   const bio = useSelector((state) => state.account.bio);
   const userNewData = useSelector((state) => state.account);
-  const dispatch = useDispatch(); 
+  const dispatch = useDispatch();
   // const avatar=useState("")
   // const coverImage=useState("")
-  const [avatar, setAvatar] = useState(avt); 
-// const lastName = name.split(' ').pop(); 
+  const [avatar, setAvatar] = useState(avt);
+  // const lastName = name.split(' ').pop(); 
   useEffect(() => {
     // Update Redux khi avt thay đổi
     dispatch(updateAvatar(avatar));
   }, [avatar]);
-//hàm xử lí chọn image từ thiết bị
+  //hàm xử lí chọn image từ thiết bị
   const selectImage = async (isAvatar) => {
     let result;
-    if (Platform.OS === 'web'&&isAvatar) {
+    if (Platform.OS === 'web' && isAvatar) {
       result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -59,25 +59,25 @@ const EditProfile = ({navigation}) => {
     console.log("Result:", result);
     if (result && result.assets && result.assets.length > 0 && result.assets[0].uri) {
       uploadImage(result.assets[0].uri);
-      console.log("Uri",result.assets[0].uri);
+      console.log("Uri", result.assets[0].uri);
     } else {
       console.log("Không có hình ảnh đươc chọn");
     }
   };
-//Upload Image lên azure
+  //Upload Image lên azure
   const uploadImage = async (uri) => {
     try {
-   // Lấy tên của file từ URI
-    let filename = uri.split('/').pop();
+      // Lấy tên của file từ URI
+      let filename = uri.split('/').pop();
       //upload ảnh lên azure
       const formData = new FormData();
       formData.append('file', {
         uri: uri,
         type: 'image/jpeg',
-        name:filename,
+        name: filename,
       });
       formData.append('name', filename);
-    // console.log("FormData",formData);
+      // console.log("FormData",formData);
       const response = await axios.post(`${host}azure/changeImage`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -91,10 +91,10 @@ const EditProfile = ({navigation}) => {
       // Cập nhật dữ liệu người dùng chỉ với trường avt
       const updatedUserData = { ...userNewData, avt: response.data };
       //update dữ liệu về backend
-    const updateUserResponse = await axios.put(`${host}users/updateUser`, updatedUserData);
-    dispatch(save(updatedUserData))
+      const updateUserResponse = await axios.put(`${host}users/updateUser`, updatedUserData);
+      dispatch(save(updatedUserData))
     } catch (error) {
-    //  console.error('Lỗi upload ảnh', error);
+      //  console.error('Lỗi upload ảnh', error);
     }
   };
   //Hàm xử lí chọn ảnh khi nhấn vào ảnh đại diện
@@ -127,30 +127,30 @@ const EditProfile = ({navigation}) => {
       );
     }
   };
-  const handleNavigationEdit= ()=>{
+  const handleNavigationEdit = () => {
     navigation.navigate('ButtonEditUserProfile')
   }
   return (
-    <SafeAreaView style={{ flex: 1,backgroundColor:"#FFFFFF" }}>
-      <View style={{ flex: 1.5/3 }}>
-        <View style={{flexDirection:'row'}}>
- <View>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-      <Ionicons name="chevron-back" size={30} color="black" />
-        </TouchableOpacity>
-        </View>
-          <View style={{marginLeft:'80%'}}>
-     <TouchableOpacity onPress={handleNavigationEdit}>
-    <Feather name="more-horizontal" size={40} color="white" />
-      </TouchableOpacity>
-     </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      <View style={{ flex: 1.5 / 3 }}>
+        <View style={{ flexDirection: 'row' }}>
+          <View>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="chevron-back" size={30} color="black" />
+            </TouchableOpacity>
+          </View>
+          <View style={{ marginLeft: '80%' }}>
+            <TouchableOpacity onPress={handleNavigationEdit}>
+              <Feather name="more-horizontal" size={40} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.buttonAudio}>
           <ButtonWithAudio />
-    </View>
+        </View>
         {coverImage && (
           <Image
-            source={{ uri:coverImage }}
+            source={{ uri: coverImage }}
             style={styles.coverImage}
           />
         )}
@@ -172,36 +172,36 @@ const EditProfile = ({navigation}) => {
           <Text style={styles.bio}>{bio}</Text>
         </View>
       </View>
-      <View  style={styles.headerScrollView}>
-         <ScrollView horizontal style={styles.buttonScrollView}>
-         <TouchableOpacity style={styles.button} onPress={() => {}}>
-           <Fontisto name="applemusic" size={24} color="#2196f3" />
-           <Text style={styles.buttonText}>Nhạc chờ</Text>
-         </TouchableOpacity>
-         <TouchableOpacity style={styles.button} onPress={() => {}}>
-           <FontAwesome5 name="file-import" size={24} color="#2196f3" />
-           <Text style={styles.buttonText}>Nhập từ Facebook</Text>
-         </TouchableOpacity>
-         <TouchableOpacity style={styles.button} onPress={() => {}}>
-         <FontAwesome6 name="image" size={24} color="#2196f3" />
-           <Text style={styles.buttonText}>Ảnh</Text>
-         </TouchableOpacity>
-       </ScrollView>
-       </View>
-       <View style={styles.centerScreen}>
-       <Image
-           source={profileImage }
-                  style={styles.imageCenter}
-                />
-       </View>
-       <View style={styles.centerScreen}>
-        <Text  style={styles.centerText}>Hôm nay {name} có gì vui?</Text>
-       </View>
-       <View style={styles.footerScreen}>
-       <TouchableOpacity style={styles.buttonNK}>
-      <Text style={styles.buttonTextNK}>Đăng lên nhật kí</Text>
-    </TouchableOpacity>
-       </View>
+      <View style={styles.headerScrollView}>
+        <ScrollView horizontal style={styles.buttonScrollView}>
+          <TouchableOpacity style={styles.button} onPress={() => { }}>
+            <Fontisto name="applemusic" size={24} color="#2196f3" />
+            <Text style={styles.buttonText}>Nhạc chờ</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => { }}>
+            <FontAwesome5 name="file-import" size={24} color="#2196f3" />
+            <Text style={styles.buttonText}>Nhập từ Facebook</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => { }}>
+            <FontAwesome6 name="image" size={24} color="#2196f3" />
+            <Text style={styles.buttonText}>Ảnh</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+      <View style={styles.centerScreen}>
+        <Image
+          source={profileImage}
+          style={styles.imageCenter}
+        />
+      </View>
+      <View style={styles.centerScreen}>
+        <Text style={styles.centerText}>Hôm nay {name} có gì vui?</Text>
+      </View>
+      <View style={styles.footerScreen}>
+        <TouchableOpacity style={styles.buttonNK}>
+          <Text style={styles.buttonTextNK}>Đăng lên nhật kí</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     flexDirection: "row",
-    margin:10
+    margin: 10
   },
   buttonText: {
     fontSize: 16,
@@ -266,19 +266,19 @@ const styles = StyleSheet.create({
   buttonScrollView: {
     flexDirection: "row",
     // paddingHorizontal: 10,
-  
+
   },
-  headerScrollView:{
-    flex:0.5/3
+  headerScrollView: {
+    flex: 0.5 / 3
   },
-  centerScreen:{
-    flex:0.5/3,
+  centerScreen: {
+    flex: 0.5 / 3,
     justifyContent: "center",
     alignContent: "center",
     alignItems: "center",
-    marginTop:50
+    marginTop: 50
   },
-  imageCenter:{
+  imageCenter: {
     width: 200,
     height: 200,
   },
@@ -288,23 +288,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     alignItems: 'center',
-    width:'50%'
+    width: '50%'
   },
   buttonTextNK: {
     color: '#fff',
     fontSize: 16,
     fontWeight: "bold",
   },
-  footerScreen:{
+  footerScreen: {
     justifyContent: "center",
     alignContent: "center",
     alignItems: "center",
   },
-  buttonAudio:{
-      justifyContent: 'center',
-       alignItems: 'flex-start',
-       marginLeft:30,
-       marginTop:10
+  buttonAudio: {
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    marginLeft: 30,
+    marginTop: 10
   }
 });
 

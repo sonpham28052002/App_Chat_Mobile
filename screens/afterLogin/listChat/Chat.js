@@ -259,6 +259,7 @@ const Chat = ({ navigation, route }) => {
                 sendMessage(id, "Audio");
                 setAudio(null);
             }
+            setMessageReply(null);
         }
     };
 

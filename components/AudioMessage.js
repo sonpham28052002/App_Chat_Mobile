@@ -104,6 +104,12 @@ const AudioMessage = ({ audioUri, isSender, onLongPress }) => {
             borderBottomRightRadius: !isSender ? 20 : 0,
             width: 150
         }} onLongPress={onLongPress}>
+            { audioUri.replyMessage &&
+                <TouchableOpacity style={{ borderLeftWidth: 4, marginTop: 5, borderLeftColor: '#70faf3', paddingLeft: 5 }}>
+                    <Text style={{ fontSize: 11, fontWeight: 700 }}>{audioUri.replyMessage.userName}</Text>
+                    <Text style={{ color: 'grey', fontSize: 11 }} numberOfLines={1}>{audioUri.replyMessage.content}</Text>
+                </TouchableOpacity>
+            }
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onLongPress={onLongPress}>
                 <TouchableOpacity onPress={isPlaying ? stopSound : playSound}>
                     <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={35} color="black" />

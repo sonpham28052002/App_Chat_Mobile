@@ -14,8 +14,14 @@ const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
             borderTopLeftRadius: 20, borderTopRightRadius: 20,
             borderBottomLeftRadius: !isSender ? 0 : 20,
             borderBottomRightRadius: !isSender ? 20 : 0,
-            // width: 204
+            width: 204
         }}>
+            { currentMessage.replyMessage &&
+                    <TouchableOpacity style={{ borderLeftWidth: 4, marginTop: 8, marginBottom: 5, marginHorizontal: 8, borderLeftColor: '#70faf3', paddingLeft: 5}}>
+                        <Text style={{ fontSize: 11, fontWeight: 700 }}>{currentMessage.replyMessage.userName}</Text>
+                        <Text style={{ color: 'grey', fontSize: 11}} numberOfLines={1}>{currentMessage.replyMessage.content}</Text>
+                    </TouchableOpacity>
+            }
             <View>
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}
                     onLongPress={onLongPress}

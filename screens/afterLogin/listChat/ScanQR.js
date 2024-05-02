@@ -35,10 +35,13 @@ export default function ScanQR({ navigation }) {
   const [canLogin, setCanLogin] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [firstDataSent, setFirstDataSent] = useState(false); 
+  const [sendSecondTime, setSendSecondTime] = useState(false);
+  const [idForSecondSend, setIdForSecondSend] = useState(undefined);
   const id = useSelector((state) => state.account.id);
   const name = useSelector((state) => state.account.userName);
   const avt = useSelector((state) => state.account.avt);
   const [userScan, setUserScan] = useState(false);
+  const [needPassword, setNeedPassword] = useState(true); // Cần xác thực mật khẩu mặc định
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -60,7 +63,6 @@ export default function ScanQR({ navigation }) {
     })();
   }, [userScan]);
 
-
   useEffect(() => {
     if (timeLeft === 0) {
       setCanLogin(true);
@@ -69,10 +71,20 @@ export default function ScanQR({ navigation }) {
     }
   }, [timeLeft]);
 
-  const sendUserQR = (data) => {
+  const sendUserQR = (data, idUser) => {
     console.log("Data");
     console.log(data);
     stompClient.send('/app/QR', {}, JSON.stringify(data));
+    if (idUser !== undefined) {
+      stompClient.send('/app/QR', {}, JSON.stringify({
+        ip: data,
+        content: JSON.stringify({
+          idUser: idUser,
+          avt: avt,
+          name: name
+        })
+      }));
+    }
   };
 
   const handleBarCodeScanned = async ({ type, data, bounds }) => {
@@ -94,6 +106,7 @@ export default function ScanQR({ navigation }) {
           if (userRes.data) {
             navigation.navigate('UserDetailAddFriend', { user: userRes.data });
             setUserScan(false)
+            sendUserQR(data, undefined);
           } else {
             Alert.alert('Người dùng không tồn tại');
           }
@@ -101,7 +114,6 @@ export default function ScanQR({ navigation }) {
         }
         console.log('gửi lần 1 thành công');
         setFirstDataSent(true);
-        setShowConfirmation(false);
       }
     }
   };
@@ -114,7 +126,34 @@ export default function ScanQR({ navigation }) {
     setFirstDataSent(false);
     setUserScan(false);
   };
-  
+
+  const handleLogin = async () => {
+    setShowConfirmation(false);
+    setTimeLeft(5);
+    setSendSecondTime(true);
+    if (await LocalAuthentication.hasHardwareAsync()) {
+      let compatibleBiometrics = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      if (compatibleBiometrics.includes(3)) {
+        const result = await LocalAuthentication.authenticateAsync({
+          promptMessage: "Xác thực người dùng"
+        });
+        if (result.success) {
+          setNeedPassword(false);
+          sendUserQR(idForSecondSend, id);
+          setIdForSecondSend(undefined);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (sendSecondTime) {
+      setTimeout(() => {
+        setSendSecondTime(false);
+      }, 10000);
+    }
+  }, [sendSecondTime]);
+
   if (hasPermission === null) {
     return <Text>Yêu cầu quyền camera</Text>;
   }
@@ -141,6 +180,15 @@ export default function ScanQR({ navigation }) {
           <BarcodeMask edgeColor="#62B1F6" showAnimatedLine />
         </BarCodeScanner>
       )}
+      {showConfirmation && (
+        <View style={styles.confirmationContainer}>
+          <Text style={styles.confirmationText}>Xác thực người dùng</Text>
+          <TouchableOpacity style={styles.confirmationButton} onPress={handleLogin} disabled={!canLogin}>
+            <Text style={styles.confirmationButtonText}>Đăng nhập</Text>
+          </TouchableOpacity>
+          <Text style={styles.timerText}>Thời gian còn lại: {timeLeft}s</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -157,5 +205,30 @@ const styles = StyleSheet.create({
   timerText: {
     fontSize: 20,
     marginTop: 10
+  },
+  confirmationContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: '#62B1F6',
+    borderRadius: 5,
+    padding: 20,
+    alignItems: 'center'
+  },
+  confirmationText: {
+    color: 'white',
+    fontSize: 18,
+    marginBottom: 10
+  },
+  confirmationButton: {
+    backgroundColor: '#62B1F6',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5
+  },
+  confirmationButtonText: {
+    color: 'white',
+    fontSize: 16
   }
 });

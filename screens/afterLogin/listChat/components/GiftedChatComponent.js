@@ -23,8 +23,8 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
             return <VideoMessage videoUri={currentMessage} sender={currentMessage.user._id == senderId ? true : false} onLongPress={onLongPressMessage} />;
         if (currentMessage.audio)
             return <AudioMessage key={currentMessage._id} audioUri={currentMessage} isSender={currentMessage.user._id == senderId ? true : false} onLongPress={onLongPressMessage} durationInSeconds={currentMessage.durationInSeconds} />;
-        if (currentMessage.system)
-            return <Text>System</Text>
+        if (currentMessage.retrieve)
+            return <MessageCustom currentMessage={currentMessage} retrieve={true} isSender={currentMessage.user._id == senderId ? true : false} />
         if (currentMessage.text)
             return <MessageCustom currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false} />
         if (currentMessage.image)

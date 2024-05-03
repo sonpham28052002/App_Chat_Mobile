@@ -7,7 +7,7 @@ import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveReceiverId, saveMess } from '../../../Redux/slice';
+import { saveReceiverId, saveMess, addMess } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
@@ -243,19 +243,38 @@ const Chat = ({ navigation, route }) => {
             Alert.alert("Chưa gửi tin nhắn hoặc chọn ảnh, video hoặc file");
         } else {
             const id = uuidv4();
+            const m = {
+                _id: id,
+                user: {
+                    _id: sender.id,
+                    name: sender.userName,
+                    avatar: sender.avt
+                },
+                pending: true
+            }
             if (mess.trim() !== '') {
+                m.text = mess;
+                dispatch(addMess(m));
                 sendMessage(id, 'Text');
                 setMess(''); // Clear the TextInput value after sending
             } else if (uriImage) {
+                m.image = uriImage;
+                dispatch(addMess(m));
                 sendMessage(id, "Image");
                 setUriImage(null);
             } else if (uriFile) {
+                m.file = uriFile;
+                dispatch(addMess(m));
                 sendMessage(id, 'File');
                 setUriFile(null);
             } else if (uriVideo) {
+                m.video = uriVideo;
+                dispatch(addMess(m));
                 sendMessage(id, "Video");
                 setUriVideo(null);
             } else if (audio) {
+                m.audio = audio;
+                dispatch(addMess(m));
                 sendMessage(id, "Audio");
                 setAudio(null);
             }

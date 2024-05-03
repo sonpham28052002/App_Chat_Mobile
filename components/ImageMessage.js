@@ -1,13 +1,14 @@
 import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native'
 import React from 'react'
-import { Modal } from 'react-native-paper'
 import { Dialog } from '@rneui/themed';
+import { FontAwesome } from '@expo/vector-icons';
 
 const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
     const { width } = Dimensions.get('window')
     const [showModal, setShowModal] = React.useState(false)
     return (
-        <View style={{
+        <View style={{ flexDirection: 'row' }}>
+            <View style={{
             borderRadius: 5, paddingTop: 2, paddingBottom: 5, paddingHorizontal: 2,
             marginLeft: !isSender ? 0 : width - 252,
             backgroundColor: !isSender ? 'white' : '#D5F1FF',
@@ -35,7 +36,7 @@ const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
                     color: 'grey',
                     textAlign: !isSender ? 'left' : 'right'
                 }}>
-                    {new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
+                    {currentMessage.createdAt ? new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }) : 'Sending...'}
                 </Text>
             </View>
             <Dialog isVisible={showModal} onBackdropPress={() => setShowModal(false)}
@@ -43,6 +44,8 @@ const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
             >
                 <Image source={{ uri: currentMessage.image }} style={{ width: width - 10, height: width - 10 }} />
             </Dialog>
+        </View>
+        {isSender && <FontAwesome name={currentMessage.pending ? "circle-o" : "check-circle"} size={15} style={{ alignSelf: 'flex-end', marginLeft: 5 }} color="blue" />}
         </View>
     )
 }

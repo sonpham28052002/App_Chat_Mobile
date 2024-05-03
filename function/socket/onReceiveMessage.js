@@ -15,6 +15,7 @@ function addMessage(message, type){
             name: message.sender.id === sender.id ? sender.userName : type == "group"? getMember(message.sender.id).member.userName : receiver.userName,
             avatar: message.sender.id === sender.id ? sender.avt : type == "group"? getMember(message.sender.id).member.avt : receiver.avt,
         },
+        pending: message.sender.id === sender.id? false : null,
         replyMessage: message.replyMessage? {
             userName: message.replyMessage.sender.id == sender.id ? sender.userName : type == "group"? getMember(message.replyMessage.sender.id).member.userName : receiver.userName,
             content: message.replyMessage.messageType === 'RETRIEVE' ? "Tin nhắn đã bị thu hồi!"
@@ -44,7 +45,6 @@ function addMessage(message, type){
             || message.messageType == 'CSV' || message.messageType == 'HTML')
             newMessage.file = message.url;
     }
-    console.log(newMessage);
     return newMessage;
 }
 

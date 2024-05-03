@@ -73,12 +73,19 @@ const messSlice = createSlice({
       // state = {...state, messages: action.payload}
     },
     addMess: (state, action) => {
-      if(state.messages.findIndex(mess => mess._id === action.payload._id) === -1)
+      if(action.payload.pending == false){
+        const index = state.messages.findIndex(mess => mess._id === action.payload._id);
+        if(index == -1)
+          state.messages = [action.payload, ...state.messages];
+        else
+          state.messages[index] = action.payload;
+      } else if(state.messages.findIndex(mess => mess._id === action.payload._id) === -1)
         state.messages = [action.payload, ...state.messages];
     },
     retrieveMess: (state, action) => {
       let index = state.messages.findIndex(mess => mess._id === action.payload);
       state.messages[index].text = 'Tin nhắn đã bị thu hồi!';
+      state.messages[index].retrieve = true
       delete state.messages[index].image;
       delete state.messages[index].file;
       delete state.messages[index].audio;

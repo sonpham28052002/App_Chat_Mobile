@@ -96,7 +96,7 @@ const ListChat = ({ navigation }) => {
   // };
 
   const [deleteTimeout, setDeleteTimeout] = useState(null);
-  const [restoring, setRestoring] = useState(false);
+  // const [restoring, setRestoring] = useState(false);
 
   useEffect(() => {
     r.current = receiverId;
@@ -160,7 +160,6 @@ const ListChat = ({ navigation }) => {
   }
 
   const onReceiveMessage = (payload) => {
-    dispatch(visibleModal(true));
     const message = JSON.parse(payload.body);
     let userId = message.sender.id == id ? message.receiver.id : message.sender.id;
     let index = conversations.findIndex(conv => conv.user && conv.user.id === userId);
@@ -206,10 +205,10 @@ const ListChat = ({ navigation }) => {
           dispatch(addMess(newMess))
       }
     }
+    dispatch(visibleModal(true));
   }
 
   const onGroupMessageReceived = (payload) => {
-    dispatch(visibleModal(true));
     const message = JSON.parse(payload.body);
     let idGroup = message.receiver.id.split('_')[1];
     let index = conversationsRef.current.findIndex(conv => conv.idGroup === idGroup);
@@ -235,19 +234,12 @@ const ListChat = ({ navigation }) => {
           dispatch(addMess(newMess))
       })
     }
-  }
-
-  const checkLastMessageIsRetrieve = (id) => {
-    let index = 0
-    while (index < conversations.length && conversations[index].lastMessage?.id !== id) {
-      index++;
-    }
-    return index === conversations.length ? -1 : index;
+    dispatch(visibleModal(true));
   }
 
   const onRetrieveMessage = (payload) => {
     let message = JSON.parse(payload.body)
-    let index = checkLastMessageIsRetrieve(message.id);
+    let index = conversationsRef.current.findIndex(conv => conv.lastMessage?.id === message.id);
     if(index !== -1)
       dispatch(retrieveLastMessage(index));
     if(checkIsChatting(message.sender.id, message.receiver.id))

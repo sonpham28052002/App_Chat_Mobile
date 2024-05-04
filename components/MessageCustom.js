@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native'
 import React from 'react'
 import { FontAwesome } from '@expo/vector-icons';
+import { Badge } from '@rneui/themed';
 
 const MessageCustom = ({ currentMessage, isSender, onLongPress, retrieve }) => {
     const { width } = Dimensions.get('window')
@@ -43,6 +44,7 @@ const MessageCustom = ({ currentMessage, isSender, onLongPress, retrieve }) => {
                 }}>
                     {currentMessage.createdAt ? new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }) : 'Sending...'}
                 </Text>
+                {/* <View style={{ height: 20, width: 20, backgroundColor: 'red', position: 'absolute', top: 5}}></View> */}
             </View>
             {isSender && <FontAwesome name={currentMessage.pending ? "circle-o" : "check-circle"} size={15} style={{ alignSelf: 'flex-end', marginLeft: 5 }} color="blue" />}
         </View>

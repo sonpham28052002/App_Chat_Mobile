@@ -5,6 +5,7 @@ import { MaterialIcons, FontAwesome6, Ionicons, AntDesign  } from '@expo/vector-
 
 const ModalOperationMessage = ({ visible, onDismiss, messTarget, senderId, onPressRecall, onPressForward, onPressDelete, onPressReply, messageReply }) => {
     const { width } = Dimensions.get('window')
+    const [visibleIcon, setVisibleIcon] = React.useState(visible);
 
     const getTitleFile = (file) => {
         const uri = file.substring(file.indexOf('/') + 1)
@@ -12,6 +13,10 @@ const ModalOperationMessage = ({ visible, onDismiss, messTarget, senderId, onPre
         const type = uri.substring(uri.lastIndexOf('.') + 1)
         return title + '.' + type
     }
+
+    React.useEffect(() => {
+        setVisibleIcon(visible)
+    }, [visible])
 
     return (
         <Modal visible={visible} onDismiss={onDismiss}

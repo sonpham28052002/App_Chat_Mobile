@@ -183,24 +183,12 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.messageType = type
             }
             else if (type === 'Image') {
-                // const uri = uriImage.substring(uriImage.lastIndexOf("/") + 1);
-                // const type = getFileExtension(uriImage);
-                // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_"))+"."+type;
                 const titleFile = uriImage.substring(uriImage.lastIndexOf("/") + 1);
                 chatMessage.size = sizeImage;
                 chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
                 chatMessage.titleFile = titleFile;
-                // chatMessage.size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
-                // chatMessage.messageType = type.toUpperCase();
                 chatMessage.url = uriImage;
             } else if (type === 'File') {
-                // const uri = uriFile.substring(uriFile.lastIndexOf("/") + 1);
-                // const type = getFileExtension(uriFile);
-                // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
-                // chatMessage.titleFile = titleFile;
-                // chatMessage.size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
-                // chatMessage.messageType = type.toUpperCase();
-                // chatMessage.url = uriFile;
                 const uri = uriFile.substring(uriFile.lastIndexOf("/") + 1);
                 const titleFile = uri.substring(uri.indexOf("_") + 1);
                 chatMessage.size = size;

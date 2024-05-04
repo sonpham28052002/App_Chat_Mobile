@@ -69,7 +69,6 @@ const getMessage = async (sender, receiver) => {
     } catch (error) {
         console.log(error);
     }
-    console.log(messages);
     return messages;
 }
 

@@ -12,6 +12,12 @@ import ImageMessage from '../../../../components/ImageMessage';
 
 const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, user, onLongPress, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend, fileExtension, messageReply, onCloseReply }) => {
     const { width } = Dimensions.get('window')
+    const [messageGiftedChat, setMessageGiftedChat] = React.useState(messages)
+
+    React.useEffect(() => {
+        setMessageGiftedChat(messages)
+    }, [messages])
+
     const renderBubble = (props) => {
         const { currentMessage } = props;
         const onLongPressMessage = () => {
@@ -75,7 +81,7 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
                     <Text style={{ textAlign: 'center', fontSize: 18, color: 'lightgrey' }}>Chỉ trưởng nhóm và phó nhóm mới được gửi tin nhắn!</Text>
                 </View>
             }
-            messages={messages}
+            messages={messageGiftedChat}
             user={user}
             onLongPress={onLongPress}
             // renderMessage={renderMessage}

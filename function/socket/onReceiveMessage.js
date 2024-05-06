@@ -16,6 +16,9 @@ function addMessage(message, type){
             avatar: message.sender.id === sender.id ? sender.avt : type == "group"? getMember(message.sender.id).member.avt : receiver.avt,
         },
         pending: message.sender.id === sender.id? false : null,
+        extraData:{
+            react: []
+        },
         replyMessage: message.replyMessage? {
             userName: message.replyMessage.sender.id == sender.id ? sender.userName : type == "group"? getMember(message.replyMessage.sender.id).member.userName : receiver.userName,
             content: message.replyMessage.messageType === 'RETRIEVE' ? "Tin nhắn đã bị thu hồi!"

@@ -3,9 +3,8 @@ import React from 'react'
 import { Modal } from 'react-native-paper';
 import { MaterialIcons, FontAwesome6, Ionicons, AntDesign  } from '@expo/vector-icons';
 
-const ModalOperationMessage = ({ visible, onDismiss, messTarget, senderId, onPressRecall, onPressForward, onPressDelete, onPressReply, messageReply }) => {
+const ModalOperationMessage = ({ visible, onDismiss, messTarget, senderId, onPressRecall, onPressForward, onPressDelete, onPressReply, onReactMessage }) => {
     const { width } = Dimensions.get('window')
-    const [visibleIcon, setVisibleIcon] = React.useState(visible);
 
     const getTitleFile = (file) => {
         const uri = file.substring(file.indexOf('/') + 1)
@@ -13,10 +12,6 @@ const ModalOperationMessage = ({ visible, onDismiss, messTarget, senderId, onPre
         const type = uri.substring(uri.lastIndexOf('.') + 1)
         return title + '.' + type
     }
-
-    React.useEffect(() => {
-        setVisibleIcon(visible)
-    }, [visible])
 
     return (
         <Modal visible={visible} onDismiss={onDismiss}
@@ -40,19 +35,29 @@ const ModalOperationMessage = ({ visible, onDismiss, messTarget, senderId, onPre
                 justifyContent: 'space-between',
                 width: width * 0.7
             }}>
-                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}
+                    onPress={() => onReactMessage('HAPPY')}
+                >
                     <Text style={{ fontSize: 30 }}>😄</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}
+                    onPress={() => onReactMessage('HEART')}
+                >
                     <Text style={{ fontSize: 30 }}>❤️</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}
+                    onPress={() => onReactMessage('SAD')}
+                >
                     <Text style={{ fontSize: 30 }}>😥</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}
+                    onPress={() => onReactMessage('ANGRY')}
+                >
                     <Text style={{ fontSize: 30 }}>😡</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }}
+                    onPress={() => onReactMessage('LIKE')}
+                >
                     <Text style={{ fontSize: 30 }}>👍</Text>
                 </TouchableOpacity>
             </View>

@@ -7,7 +7,7 @@ import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveReceiverId, saveMess, addMess } from '../../../Redux/slice';
+import { saveReceiverId, saveMess, addMess, reactMessage } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
@@ -42,7 +42,7 @@ const Chat = ({ navigation, route }) => {
 
     // message reducer
     const receiverId = useSelector((state) => state.message.id);
-    const messages = useSelector((state) => state.message.messages);
+    const messages = useSelector((state) => state.message.messages)
 
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
@@ -164,7 +164,13 @@ const Chat = ({ navigation, route }) => {
                 navigation.navigate('ListChat')
             }
         })
+        // stompClient.current.subscribe('/user/' + sender.id + '/react-message', onReactMessage)
     }
+
+    // const onReactMessage = (payload) => {
+    //     const message = JSON.parse(payload.body);
+    //     dispatch(reactMessage({ id: message.id, react: message.react }));
+    //   }
 
     function onError(error) {
         console.log('Could not connect to WebSocket server. Please refresh and try again!');
@@ -238,7 +244,10 @@ const Chat = ({ navigation, route }) => {
                     name: sender.userName,
                     avatar: sender.avt
                 },
-                pending: true
+                pending: true,
+                extraData:{
+                    react: []
+                }
             }
             if (mess.trim() !== '') {
                 m.text = mess;
@@ -343,6 +352,15 @@ const Chat = ({ navigation, route }) => {
                             onPressReply={() => {
                                 setMessageReply(messTarget);
                                 handleFocusText();
+                                hideModal();
+                            }}
+                            onReactMessage={(reaction) => {
+                                if (stompClient.current) {
+                                    let reactMessage = convertMessageGiftedChatToMessage(messTarget, sender.id, route.params.id, getFileExtension)
+                                    reactMessage.react.push({ user: { id: sender.id }, react: reaction })
+                                    stompClient.current.send("/app/react-message", {},
+                                        JSON.stringify(reactMessage));
+                                }
                                 hideModal();
                             }}
                         />

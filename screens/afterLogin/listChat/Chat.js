@@ -7,7 +7,7 @@ import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveReceiverId, saveMess, addMess } from '../../../Redux/slice';
+import { saveReceiverId, saveMess, addMess, reactMessage } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
@@ -42,7 +42,7 @@ const Chat = ({ navigation, route }) => {
 
     // message reducer
     const receiverId = useSelector((state) => state.message.id);
-    const messages = useSelector((state) => state.message.messages);
+    const messages = useSelector((state) => state.message.messages)
 
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
@@ -164,7 +164,13 @@ const Chat = ({ navigation, route }) => {
                 navigation.navigate('ListChat')
             }
         })
+        // stompClient.current.subscribe('/user/' + sender.id + '/react-message', onReactMessage)
     }
+
+    // const onReactMessage = (payload) => {
+    //     const message = JSON.parse(payload.body);
+    //     dispatch(reactMessage({ id: message.id, react: message.react }));
+    //   }
 
     function onError(error) {
         console.log('Could not connect to WebSocket server. Please refresh and try again!');
@@ -183,24 +189,12 @@ const Chat = ({ navigation, route }) => {
                 chatMessage.messageType = type
             }
             else if (type === 'Image') {
-                // const uri = uriImage.substring(uriImage.lastIndexOf("/") + 1);
-                // const type = getFileExtension(uriImage);
-                // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_"))+"."+type;
                 const titleFile = uriImage.substring(uriImage.lastIndexOf("/") + 1);
                 chatMessage.size = sizeImage;
                 chatMessage.messageType = getFileExtension(uriImage).toUpperCase();
                 chatMessage.titleFile = titleFile;
-                // chatMessage.size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
-                // chatMessage.messageType = type.toUpperCase();
                 chatMessage.url = uriImage;
             } else if (type === 'File') {
-                // const uri = uriFile.substring(uriFile.lastIndexOf("/") + 1);
-                // const type = getFileExtension(uriFile);
-                // const titleFile = uri.substring(uri.indexOf("_") + 1, uri.lastIndexOf("_")) + "." + type;
-                // chatMessage.titleFile = titleFile;
-                // chatMessage.size = uri.substring(uri.lastIndexOf("_") + 1, uri.lastIndexOf("."));
-                // chatMessage.messageType = type.toUpperCase();
-                // chatMessage.url = uriFile;
                 const uri = uriFile.substring(uriFile.lastIndexOf("/") + 1);
                 const titleFile = uri.substring(uri.indexOf("_") + 1);
                 chatMessage.size = size;
@@ -250,7 +244,10 @@ const Chat = ({ navigation, route }) => {
                     name: sender.userName,
                     avatar: sender.avt
                 },
-                pending: true
+                pending: true,
+                extraData:{
+                    react: []
+                }
             }
             if (mess.trim() !== '') {
                 m.text = mess;
@@ -355,6 +352,15 @@ const Chat = ({ navigation, route }) => {
                             onPressReply={() => {
                                 setMessageReply(messTarget);
                                 handleFocusText();
+                                hideModal();
+                            }}
+                            onReactMessage={(reaction) => {
+                                if (stompClient.current) {
+                                    let reactMessage = convertMessageGiftedChatToMessage(messTarget, sender.id, route.params.id, getFileExtension)
+                                    reactMessage.react.push({ user: { id: sender.id }, react: reaction })
+                                    stompClient.current.send("/app/react-message", {},
+                                        JSON.stringify(reactMessage));
+                                }
                                 hideModal();
                             }}
                         />

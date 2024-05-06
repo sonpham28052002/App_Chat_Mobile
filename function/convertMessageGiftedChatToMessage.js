@@ -1,7 +1,8 @@
 const convertMessageGiftedChatToMessage = (giftedMessage, senderId, receiverId, getFileExtension) => {
     let chatMessage = {
         id: giftedMessage._id,
-        senderDate: new Date(giftedMessage.createdAt)
+        senderDate: new Date(giftedMessage.createdAt),
+        react: [...giftedMessage.extraData.react]
     };
     chatMessage.sender = { id: giftedMessage.user._id}
     chatMessage.receiver = giftedMessage.user._id === senderId?

@@ -1,17 +1,40 @@
 import { Text, Dimensions, Image, View } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import { visibleModal } from '../../Redux/slice';
 import { Dialog } from '@rneui/themed';
+import { Audio } from 'expo-av';
 
 const modalNotification = () => {
     const { width } = Dimensions.get('window');
     const dispatch = useDispatch();
     const visible = useSelector(state => state.modal.visible);
     const notify = useSelector(state => state.modal.notify);
+    const [sound, setSound] = useState();
 
     useEffect(() => {
-        if(visible) setTimeout(() => dispatch(visibleModal(false)), 3000)
+        const loadSound = async () => {
+          const { sound } = await Audio.Sound.createAsync(
+            require('../../assets/movie_1.mp3')
+          );
+          setSound(sound);
+        };
+    
+        loadSound();
+    
+        return () => {
+          if (sound) {
+            sound.unloadAsync();
+          }
+        };
+      }, []);
+
+    useEffect(() => {
+        if(visible) {
+            sound.playAsync()
+            setTimeout(() => sound.stopAsync(), 500)
+            setTimeout(() => dispatch(visibleModal(false)), 2500)
+        }
     }, [visible])
 
     return (

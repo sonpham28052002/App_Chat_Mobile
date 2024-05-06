@@ -30,6 +30,9 @@ const getMessage = async (sender, receiver) => {
                         avatar: message.sender.id == sender.id ? sender.avt : isGroup ? getMember(receiver.members, message.sender.id).member.avt : receiver.avt,
                     },
                     retrieve: message.messageType === 'RETRIEVE'? true : false,
+                    extraData:{
+                        react: [...message.react]
+                    },
                     replyMessage: message.replyMessage? {
                         userName: message.replyMessage.sender.id == sender.id ? sender.userName : isGroup ? getMember(receiver.members, message.replyMessage.sender.id).member.userName : receiver.userName,
                         content: message.replyMessage.messageType === 'RETRIEVE' ? "Tin nhắn đã bị thu hồi!" 
@@ -69,7 +72,6 @@ const getMessage = async (sender, receiver) => {
     } catch (error) {
         console.log(error);
     }
-    console.log(messages);
     return messages;
 }
 

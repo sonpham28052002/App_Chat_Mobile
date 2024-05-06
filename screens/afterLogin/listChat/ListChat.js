@@ -4,7 +4,7 @@ import { FontAwesome, AntDesign } from '@expo/vector-icons';
 // import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { addLastMessage, retrieveLastMessage, addLastConversation, deleteConv, 
-  retrieveMess, addMess, deleteMess, initSocket, visibleModal, notify, addFriendRequest } from '../../../Redux/slice';
+  retrieveMess, addMess, deleteMess, initSocket, visibleModal, notify, addFriendRequest, reactMessage } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -136,6 +136,7 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/deleteConversation', onReceiveDeleteConversationResponse);
     stompClient.current.subscribe('/user/' + id + '/requestAddFriend', onRequestAddFriend)
     stompClient.current.subscribe('/user/' + id + '/acceptAddFriend', onAcceptAddFriend)
+    stompClient.current.subscribe('/user/' + id + '/react-message', onReactMessage)
 
     stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onremoveMemberInGroup)
     // stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
@@ -277,6 +278,11 @@ const ListChat = ({ navigation }) => {
     dispatch(notify({ userName: friendRequest.sender.userName, avt: friendRequest.sender.avt, 
       type: "accept-add-friend" }));
     dispatch(visibleModal(true));
+  }
+
+  const onReactMessage = (payload) => {
+    const message = JSON.parse(payload.body);
+    dispatch(reactMessage({ id: message.id, react: message.react }));
   }
 
   const onError = (error) => {

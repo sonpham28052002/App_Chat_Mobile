@@ -95,6 +95,11 @@ const messSlice = createSlice({
       let messages3 = [...state.messages];
       messages3 = messages3.filter(mess => mess._id !== action.payload);
       state.messages = messages3;
+    },
+    reactMessage: (state, action) => {
+      let index = state.messages.findIndex(mess => mess._id === action.payload.id);
+      if(index !== -1)
+        state.messages[index].extraData.react = action.payload.react;
     }
   }
 });
@@ -154,7 +159,7 @@ const modalSlice = createSlice({
 export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, 
                 retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
                 removeFriend, addFriendRequest } = accountSlice.actions;
-export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess } = messSlice.actions;
+export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reactMessage } = messSlice.actions;
 // export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;
 export const { visibleModal, notify } = modalSlice.actions;

@@ -16,11 +16,17 @@ import OptionChat from '../afterLogin/listChat/OptionChat.js';
 import OptionChat2 from '../afterLogin/listChat/OptionChat2.js';
 import Search from '../afterLogin/Search/Search.js'
 import ListMemberGroup from '../afterLogin/listChat/ListMemberGroup.js'
-const Stack = createStackNavigator()
+// import { ZegoCallInvitationDialog } from '@zegocloud/zego-uikit-prebuilt-call-rn'
+// import {
+//   ZegoUIKitPrebuiltCallWaitingScreen,
+//   ZegoUIKitPrebuiltCallInCallScreen,
+// } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 
+const Stack = createStackNavigator()
 export default function Auth() {
   return (
     <NavigationContainer>
+      {/* <ZegoCallInvitationDialog /> */}
       <Stack.Navigator
         screenOptions={{
           headerShown: true
@@ -99,8 +105,18 @@ export default function Auth() {
             headerShown: false
           }}
         />
-        {/* <Stack.Screen name="CreatePassword" component={CreatePassword} /> */}
-        {/* <Stack.Screen name="User" component={User} /> */}
+        {/* <Stack.Screen
+                options={{ headerShown: false }}
+                // DO NOT change the name 
+                name="ZegoUIKitPrebuiltCallWaitingScreen"
+                component={ZegoUIKitPrebuiltCallWaitingScreen}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                // DO NOT change the name
+                name="ZegoUIKitPrebuiltCallInCallScreen"
+                component={ZegoUIKitPrebuiltCallInCallScreen}
+            /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -7,7 +7,7 @@ const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
     const { width } = Dimensions.get('window')
     const [showModal, setShowModal] = React.useState(false)
     return (
-        <View style={{ flexDirection: 'row' }}>
+        <View style={{ flexDirection: 'row', marginBottom: currentMessage.extraData.react?.length > 0 ? 10 : 0 }}>
             <View style={{
             borderRadius: 5, paddingTop: 2, paddingBottom: 5, paddingHorizontal: 2,
             marginLeft: !isSender ? 0 : width - 252,
@@ -38,6 +38,24 @@ const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
                 }}>
                     {currentMessage.createdAt ? new Date(currentMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }) : 'Sending...'}
                 </Text>
+                {currentMessage.extraData.react.length > 0 &&
+                    <TouchableOpacity style={{
+                        borderRadius: 10, flexDirection: 'row', paddingLeft: 2, paddingRight: 5, borderWidth: 1, borderColor: 'grey', backgroundColor: 'white',
+                        position: 'absolute', bottom: -10, left: 20
+                    }}>
+                        {
+                            [...new Set(currentMessage.extraData.react.map(item => item.react))].slice(0, 3).map((react, index) => <Text key={index} style={{ fontSize: 9 }}>{
+                                react == "HAPPY" ? "😄"
+                                    : react == "HEART" ? "❤️"
+                                        : react == "SAD" ? "😥"
+                                            : react == "ANGRY" ? "😡"
+                                                : react == "LIKE" ? "👍"
+                                                    : null
+                            }</Text>)
+                        }
+                        <Text style={{ fontSize: 9, marginLeft: 1 }}>{currentMessage.extraData.react.length < 100 ? currentMessage.extraData.react.length : "99+"}</Text>
+                    </TouchableOpacity>
+                }
             </View>
             <Dialog isVisible={showModal} onBackdropPress={() => setShowModal(false)}
                 overlayStyle={{ width: width, padding: 5, margin: 0 }}

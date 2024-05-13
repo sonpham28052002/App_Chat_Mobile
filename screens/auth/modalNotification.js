@@ -44,7 +44,7 @@ const modalNotification = () => {
             { notify.avt && <Image source={{uri: notify.avt}} style={{width: 40, height: 40, borderRadius: 20, marginLeft: 10}} />}
             <View style={{ marginLeft: 10 }}>
                 { ( notify.type === 'single-chat' || notify.type === 'group-chat') && <Text style={{ fontWeight: 'bold' }}>{notify.userName}</Text> }
-                { notify.content? <Text>{notify.content}</Text> 
+                { notify.content? <Text numberOfLines={1}>{notify.content}</Text> 
                     : <Text style={{ fontWeight: 'bold' }}>{notify.userName}
                         <Text style={{ fontWeight: 'normal'}}>{notify.type === 'request-add-friend'? ' đã gửi lời mời kết bạn' : ' đã đồng ý kết bạn'}</Text>
                     </Text> }

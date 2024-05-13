@@ -11,11 +11,41 @@ import ContactHome from '../user/ContactHome'
 import { save } from '../../../Redux/slice';
 import axios from 'axios';
 import host from '../../../configHost';
+// import { ZIMKit } from '@zegocloud/zimkit-rn';
+// import * as ZIM from 'zego-zim-react-native';
+// import ZegoUIKitPrebuiltCallService from "@zegocloud/zego-uikit-prebuilt-call-rn";
 
 const Tab = createMaterialBottomTabNavigator();
 
 const TabHome = ({ route }) => {
   const dispatch = useDispatch();
+
+  // const appConfig = {
+  //   appID: 1532398834, // The AppID you get from ZEGOCLOUD Admin Console.
+  //   appSign: 'df5e8d723e44364f8e74237831ca7159', // The AppSign you get from ZEGOCLOUD Admin Console.
+  // };
+  // useEffect(() => {
+  //   ZIMKit.init(appConfig.appID, appConfig.appSign);
+  //   ZIMKit.connectUser({
+  //     userID: '123', // Your ID as a user.  
+  //     userName: 'Ss' // Your name as a user.
+  //   }, '')
+  //     .then(() => {
+  //       // Implement your event handling logic after logging in successfully. 
+
+  //       // initialized ZegoUIKitPrebuiltCallInvitationService.
+  //       // when app's user is logged in or re-logged in.
+  //       // We recommend calling this method as soon as the user logs in to your app.
+  //       ZegoUIKitPrebuiltCallService.init(
+  //         appConfig.appID, // The AppID you get from ZEGOCLOUD Admin Console.
+  //         appConfig.appSign, // The AppSign you get from ZEGOCLOUD Admin Console.
+  //         '123', // Your ID as a user.  
+  //         'Ss', // Your name as a user.
+  //         [ZIM],
+  //       );
+  //     });
+  // }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {

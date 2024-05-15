@@ -23,6 +23,7 @@ const Login = ({ navigation }) => {
   const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('84814929002');
 
   const handleLogin = async () => {
+    navigation.navigate("TabHome");
     let found = false;
     try {
       // Gọi API để kiểm tra tài khoản
@@ -38,7 +39,8 @@ const Login = ({ navigation }) => {
           // await AsyncStorage.setItem('account', JSON.stringify({account}));
           // console.log("Dữ liệu đã lưu vào AsyncStorage:", 
           // await AsyncStorage.getItem('account'));
-          navigation.navigate("TabHome", { id: userRes.data.id });
+          // navigation.navigate("TabHome", { id: userRes.data.id });
+        
         }
       } else {
         if (!found) {

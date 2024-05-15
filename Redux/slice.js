@@ -14,6 +14,9 @@ const accountSlice = createSlice({
     updateAvatar: (state, action) => {
       Object.assign(state, action.payload);
     },
+    updateCoverImage: (state, action) => {
+      Object.assign(state, action.payload);
+    },
     updateNickName: (state, action) => {
       const { userId, newNickName } = action.payload;
       const friend = state.friendList.find(friend => friend.user.id === userId);
@@ -156,7 +159,7 @@ const modalSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar, updateLastMessage, addToFriendList, addLastMessage, 
+export const { save, updateAvatar,updateCoverImage, updateLastMessage, addToFriendList, addLastMessage, 
                 retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
                 removeFriend, addFriendRequest } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reactMessage } = messSlice.actions;

@@ -26,8 +26,7 @@ function TatCa({ route }) {
   //biến kiểm tra xem chức vụ của account hiện hành trong nhóm
   const [memberType, setMemberType] = useState("");
   useEffect(() => {
-    setDataMember(route.params.members);
-    setMemberType(route.params.members.find((item) => item.member.id === account.id).memberType);
+    loadAllMember()
   }, []);
 
   const [visibleRemove, setVisibleRemove] = useState(false);
@@ -99,8 +98,8 @@ function TatCa({ route }) {
     stompClient.current.connect({}, onConnected, onError);
   }, []);
 
-  const removeMember = (data) => {
-   stompClient.current.send('/app/removeMemberInGroup', {}, JSON.stringify(data));
+  const removeMember = async (data) => {
+await   stompClient.current.send('/app/removeMemberInGroup', {}, JSON.stringify(data));
    loadAllMember()
   }
 
@@ -108,31 +107,33 @@ function TatCa({ route }) {
     // stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
   }
 
-  const addMember = (data) => {
-    stompClient.current.send('/app/addMemberIntoGroup', {}, JSON.stringify(data));
-    setVisible(false);
+  const addMember = async (data) => {
+  await  stompClient.current.send('/app/addMemberIntoGroup', {}, JSON.stringify(data));
     loadAllMember()
+    setVisible(false);
   }
-
+  
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
   }
 
-  const grantMember = (data) => {
-    stompClient.current.send('/app/grantRoleMember_DEPUTY_LEADER', {}, JSON.stringify(data));
+  const grantMember = async (data) => {
+   await stompClient.current.send('/app/grantRoleMember_DEPUTY_LEADER', {}, JSON.stringify(data));
     loadAllMember()
-  }
+  } 
 
-  const loadAllMember = async () =>{
-    const result = await axios.get(`${host}messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.idGroup}`)
-    try{
-      if(result.data){
-        setDataMember(result.data)
+  const loadAllMember = async () => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Độ trễ 1 giây
+      const result = await axios.get(`${host}messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.idGroup}`);
+      if (result.data) {
+        setDataMember(result.data);
+        setMemberType(result.data.find(item => item.member.id === account.id).memberType);
       }
-    }catch(error){
-    console.log(error);
+    } catch (error) {
+      console.log(error);
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -207,10 +208,11 @@ function TatCa({ route }) {
             let dataSend = {
               members: [{ member: { id: memberTarget}}],
               idGroup: route.params.idGroup,
-              ownerID: account.id
+              ownerID: account.id 
             }
             grantMember(dataSend)
-            setVisibleRemove(false)}}/>
+
+            setVisibleRemove(false)}}/> 
         </Modal>
     </View>
   );

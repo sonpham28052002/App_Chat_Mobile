@@ -17,6 +17,7 @@ const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
             borderBottomRightRadius: !isSender ? 20 : 0,
             width: 204
         }}>
+            <Text style={{ fontWeight: 'bold', marginLeft: 10, marginBottom: 5 }}>{currentMessage.user.name}</Text>
             { currentMessage.replyMessage &&
                     <TouchableOpacity style={{ borderLeftWidth: 4, marginTop: 8, marginBottom: 5, marginHorizontal: 8, borderLeftColor: '#70faf3', paddingLeft: 5}}>
                         <Text style={{ fontSize: 11, fontWeight: 700 }}>{currentMessage.replyMessage.userName}</Text>
@@ -28,7 +29,7 @@ const ImageMessage = ({ currentMessage, isSender, onLongPress }) => {
                     onLongPress={onLongPress}
                     onPress={() => setShowModal(true)}
                 >
-                    <Image source={{ uri: currentMessage.image }} style={{ width: 200, height: 200, borderRadius: 20 }} />
+                    <Image source={{ uri: currentMessage.image }} style={{ width: 200, height: 200, borderRadius: 10 }} />
                 </TouchableOpacity>
                 <Text style={{
                     fontSize: 11, 

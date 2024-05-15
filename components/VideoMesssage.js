@@ -26,6 +26,7 @@ const VideoMessage = React.memo(({ videoUri, sender, onLongPress }) => {
       }}
         onLongPress={() => onLongPress(videoUri)}
       >
+        <Text style={{ fontWeight: 'bold' }}>{videoUri.user.name}</Text>
         {videoUri.replyMessage &&
           <TouchableOpacity style={{ marginVertical: 5, borderLeftWidth: 4, borderLeftColor: '#70faf3', paddingLeft: 5 }}>
             <Text style={{ fontSize: 11, fontWeight: 700 }}>{videoUri.replyMessage.userName}</Text>

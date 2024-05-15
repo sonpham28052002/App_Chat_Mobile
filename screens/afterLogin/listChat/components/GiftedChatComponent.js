@@ -9,6 +9,7 @@ import VideoMessage from '../../../../components/VideoMesssage';
 import AudioMessage from '../../../../components/AudioMessage';
 import MessageCustom from '../../../../components/MessageCustom';
 import ImageMessage from '../../../../components/ImageMessage';
+import CallMessage from '../../../../components/CallMessage';
 
 const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, user, onLongPress, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend, fileExtension, messageReply, onCloseReply }) => {
     const { width } = Dimensions.get('window')
@@ -30,6 +31,8 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
             return <MessageCustom currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false} />
         if (currentMessage.image)
             return <ImageMessage currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false}/>
+        if (currentMessage.call)
+            return <CallMessage currentMessage={currentMessage} isSender={currentMessage.user._id == senderId ? true : false} nameUser={currentMessage.user.name}/>
         return null
     }
 
@@ -52,12 +55,14 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
                             <Entypo name="emoji-happy" size={35} color='black' />
                         </TouchableOpacity>
                         <View style={{ marginHorizontal: 10, width: width - 180 }}>
-                            <TextInput placeholder="Tin nhắn" style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
+                            <TextInput style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
+                                textColor='black'
                                 value={mess}
                                 onChangeText={onChangeText}
                                 selection={position}
                                 ref={textInputRef}
                                 onSelectionChange={onSelectionChange}
+                                placeholder="Tin nhắn" 
                             />
                         </View>
                         <TouchableOpacity style={{ flexDirection: 'row', width: 75, justifyContent: 'space-between' }} onPress={onPressModal2} >

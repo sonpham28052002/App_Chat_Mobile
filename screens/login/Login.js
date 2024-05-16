@@ -9,7 +9,7 @@ import InputPassword from "../../components/InputPassword";
 import { LinearGradient } from 'expo-linear-gradient'
 import host from "../../configHost"
 import { visibleModal } from "../../Redux/slice";
-// import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("123");
@@ -23,7 +23,7 @@ const Login = ({ navigation }) => {
   const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('84814929002');
 
   const handleLogin = async () => {
-    navigation.navigate("TabHome");
+    // navigation.navigate("TabHome");
     let found = false;
     try {
       // Gọi API để kiểm tra tài khoản
@@ -32,14 +32,15 @@ const Login = ({ navigation }) => {
         const userId = accountRes.data.id;
         const userRes = await axios.get(`${host}users/getUserById?id=${userId}`);
         if (userRes.data) {
-          const account=userRes.data
+          const account=userRes.data.id
           dispatch(save(userRes.data));
+          console.log(account);
           found = true;
-          // await AsyncStorage.setItem('isLoggedIn', 'true');
-          // await AsyncStorage.setItem('account', JSON.stringify({account}));
-          // console.log("Dữ liệu đã lưu vào AsyncStorage:", 
-          // await AsyncStorage.getItem('account'));
-          // navigation.navigate("TabHome", { id: userRes.data.id });
+          await AsyncStorage.setItem('isLoggedIn', 'true');
+          await AsyncStorage.setItem('account', JSON.stringify({account}));
+          console.log("Dữ liệu đã lưu vào AsyncStorage:", 
+          await AsyncStorage.getItem('account'));
+          navigation.navigate("TabHome", { id: userRes.data.id });
         
         }
       } else {
@@ -77,30 +78,30 @@ const Login = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
-//  useEffect(() => {
-//     const checkLoginStatus = async () => {
-//       try {
-//         const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
-//        if (isLoggedIn === 'true') {
-//   const accountString = await AsyncStorage.getItem('account');
-//   if (accountString) {
-//     const account = JSON.parse(accountString);
-//     dispatch(save(account));
-//     navigation.navigate("TabHome");
-//   } else {
-//     navigation.navigate("Login");
-//   }
-// } else {
-//   navigation.navigate("Login");
-// }
+ useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+       if (isLoggedIn === 'true') {
+  const accountString = await AsyncStorage.getItem('account');
+  if (accountString) {
+    const account = JSON.parse(accountString);
+    // dispatch(save(account));
+   navigation.navigate("TabHome", { id: account.account });
+  } else {
+    navigation.navigate("Login");
+  }
+} else {
+  navigation.navigate("Login");
+}
 
-//       } catch (error) {
-//         console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
-//       }
-//     };
+      } catch (error) {
+        console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
+      }
+    };
 
-//     checkLoginStatus();
-//   }, []);
+    checkLoginStatus();
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

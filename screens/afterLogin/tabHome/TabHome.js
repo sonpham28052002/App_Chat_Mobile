@@ -20,6 +20,7 @@ const TabHome = ({ route }) => {
     const fetchData = async () => {
       try {
         if (route.params && route.params.id) {
+          console.log('ID người dùng:', route.params.id);
           // Gọi API để lấy thông tin người dùng nếu có
           const response = await axios.get(`${host}users/getUserById?id=${route.params.id}`);
           dispatch(save(response.data)); 

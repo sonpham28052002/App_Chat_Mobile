@@ -11,11 +11,17 @@ import ContactHome from '../user/ContactHome'
 import { save } from '../../../Redux/slice';
 import axios from 'axios';
 import host from '../../../configHost';
+import { onUserLogin } from '../../../function/zegoCloud/onUserLogin';
+// import { ZIMKit } from '@zegocloud/zimkit-rn';
+// import * as ZIM from 'zego-zim-react-native';
+// import ZegoUIKitPrebuiltCallService from "@zegocloud/zego-uikit-prebuilt-call-rn";
 
 const Tab = createMaterialBottomTabNavigator();
 
 const TabHome = ({ route }) => {
   const dispatch = useDispatch();
+  const [userName, setUserName] = React.useState('');
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -23,6 +29,7 @@ const TabHome = ({ route }) => {
           console.log('ID người dùng:', route.params.id);
           // Gọi API để lấy thông tin người dùng nếu có
           const response = await axios.get(`${host}users/getUserById?id=${route.params.id}`);
+          setUserName(response.data.userName);
           dispatch(save(response.data)); 
         }
       } catch (error) {
@@ -33,6 +40,9 @@ const TabHome = ({ route }) => {
     fetchData();
   }, [dispatch, route.params]);
 
+  useEffect(() => {
+    onUserLogin(route.params.id, userName);
+  }, []);
 
   return (
     <Tab.Navigator>

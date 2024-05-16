@@ -66,6 +66,8 @@ const getMessage = async (sender, receiver) => {
                     newMess.video = message.url
                 else if (message.messageType == 'AUDIO')
                     newMess.audio = message.url
+                else if (message.messageType == 'CALLSINGLE')
+                    newMess.call = message.titleFile
                 return newMess;
             });
         }

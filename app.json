@@ -17,15 +17,23 @@
       "web"
     ],
     "plugins": [
+      "@notifee/react-native",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "../../node_modules/@notifee/react-native/android/libs"
+            ]
+          },
+          "ios": {}
+        }
+      ],
       [
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
-        },
-        // "expo-av",
-        // {
-        //   "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
-        // }
+        }
       ]
     ],
     "assetBundlePatterns": [
@@ -34,26 +42,39 @@
     "ios": {
       "supportsTablet": true,
       "supportsFaceId": true,
-      "usesIcloudStorage" : true ,
-     "bundleIdentifier" : "com.appchatmobile",
+      "usesIcloudStorage": true,
+      "bundleIdentifier": "com.appchatmobile",
       "infoPlist": {
         "NSContactsUsageDescription": "Ứng dụng yêu cầu quyền truy cập danh bạ",
-        "NSFaceIDUsageDescription": "Vui lòng cho phép ứng dụng truy cập Face ID để xác thực.",
-        "permissions": ["INTERNET"],
-       "NSDocumentPickerUsageDescription": "Ứng dụng sẽ truy cập vào tệp để chọn tệp để tải lên."
+        "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID.",
+        "permissions": [
+          "INTERNET"
+        ],
+        "NSDocumentPickerUsageDescription": "Ứng dụng sẽ truy cập vào tệp để chọn tệp để tải lên."
       }
-     
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff",
-        "permissions": ["READ_CONTACTS"]
+        "permissions": [
+          "READ_CONTACTS"
+        ]
       },
-      "softwareKeyboardLayoutMode": "pan"
+      "package": "com.sonnguyen1105.appchatmobile",
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a10838e6-9832-41eb-a058-38d1a6777c33"
+      }
     }
   }
 }

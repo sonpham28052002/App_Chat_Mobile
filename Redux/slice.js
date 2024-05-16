@@ -64,7 +64,7 @@ const messSlice = createSlice({
   name: 'message',
   initialState: {
     id: '',
-    messages: []
+    messages: [],
   },
   reducers:{
     saveReceiverId: (state, action) => {

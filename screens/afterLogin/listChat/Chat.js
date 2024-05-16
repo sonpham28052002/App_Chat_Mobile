@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
-import { Entypo, FontAwesome } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
 import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
@@ -18,6 +18,7 @@ import GiftedChatComponent from './components/GiftedChatComponent';
 import { convertMessageGiftedChatToMessage } from '../../../function/convertMessageGiftedChatToMessage';
 import host from '../../../configHost'
 import { useFocusEffect } from '@react-navigation/native';
+import {ZegoSendCallInvitationButton} from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 
@@ -80,18 +81,40 @@ const Chat = ({ navigation, route }) => {
             title: route.params.userName ? route.params.userName : route.params.nameGroup,
             headerRight: () => (
                 <View style={{
-                    width: 120,
                     height: 50,
                     flexDirection: 'row',
-                    paddingHorizontal: 20,
+                    paddingHorizontal: 10,
                     justifyContent: 'space-between',
                     alignItems: 'center'
                 }}>
-                    <FontAwesome name="search" size={35} color="white" />
-                    <TouchableOpacity style={{ width: 35 }}
-                        onPress={() => navigation.navigate('OptionChat', route.params)}>
-                        <Entypo name="menu" size={40} color="white" />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row' }}>
+                        <ZegoSendCallInvitationButton
+                            invitees={[
+                                {
+                                    userID: route.params.id,
+                                    userName: route.params.userName,
+                                },
+                            ]}
+                            isVideoCall={false}
+                            backgroundColor={'cyan'}
+                        />
+                        {/* <Ionicons name="call" size={35} color="white" /> */}
+                        {/* <Entypo style={{ marginHorizontal: 5 }} name="video-camera" size={35} color="white" /> */}
+                        <ZegoSendCallInvitationButton
+                            invitees={[
+                                {
+                                    userID: route.params.id,
+                                    userName: route.params.userName,
+                                },
+                            ]}
+                            isVideoCall={true}
+                            backgroundColor={'cyan'}
+                        />
+                        <TouchableOpacity style={{ width: 35 }}
+                            onPress={() => navigation.navigate('OptionChat', route.params)}>
+                            <Entypo name="menu" size={40} color="white" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
             )
         });

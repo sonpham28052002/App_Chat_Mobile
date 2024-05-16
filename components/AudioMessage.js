@@ -94,7 +94,7 @@ const AudioMessage = ({ audioUri, isSender, onLongPress }) => {
     const { width } = Dimensions.get('window');
 
     return (
-        <View style={{ flexDirection: 'row' }}>
+        <View style={{ flexDirection: 'row', marginBottom: audioUri.extraData.react?.length > 0 ? 10 : 0 }}>
             <TouchableOpacity style={{
                 borderRadius: 5, paddingVertical: 5, paddingHorizontal: 10,
                 marginLeft: !isSender ? 0 : width - 252,
@@ -102,8 +102,9 @@ const AudioMessage = ({ audioUri, isSender, onLongPress }) => {
                 borderTopLeftRadius: 20, borderTopRightRadius: 20,
                 borderBottomLeftRadius: !isSender ? 0 : 20,
                 borderBottomRightRadius: !isSender ? 20 : 0,
-                width: 150
+                width: 200
             }} onLongPress={onLongPress}>
+                <Text style={{ fontWeight: 'bold', marginLeft: 10 }}>{audioUri.user.name}</Text>
                 {audioUri.replyMessage &&
                     <TouchableOpacity style={{ borderLeftWidth: 4, marginTop: 5, borderLeftColor: '#70faf3', paddingLeft: 5 }}>
                         <Text style={{ fontSize: 11, fontWeight: 700 }}>{audioUri.replyMessage.userName}</Text>
@@ -123,6 +124,24 @@ const AudioMessage = ({ audioUri, isSender, onLongPress }) => {
                 }}>
                     {audioUri.createdAt ? new Date(audioUri.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }) : 'Sending...'}
                 </Text>
+                {audioUri.extraData.react.length > 0 &&
+                    <TouchableOpacity style={{
+                        borderRadius: 10, flexDirection: 'row', paddingLeft: 2, paddingRight: 5, borderWidth: 1, borderColor: 'grey', backgroundColor: 'white',
+                        position: 'absolute', bottom: -10, left: 20
+                    }}>
+                        {
+                            [...new Set(audioUri.extraData.react.map(item => item.react))].slice(0, 3).map((react, index) => <Text key={index} style={{ fontSize: 9 }}>{
+                                react == "HAPPY" ? "😄"
+                                    : react == "HEART" ? "❤️"
+                                        : react == "SAD" ? "😥"
+                                            : react == "ANGRY" ? "😡"
+                                                : react == "LIKE" ? "👍"
+                                                    : null
+                            }</Text>)
+                        }
+                        <Text style={{ fontSize: 9, marginLeft: 1 }}>{audioUri.extraData.react.length < 100 ? audioUri.extraData.react.length : "99+"}</Text>
+                    </TouchableOpacity>
+                }
             </TouchableOpacity>
             {isSender && <FontAwesome name={audioUri.pending ? "circle-o" : "check-circle"} size={15} style={{ alignSelf: 'flex-end', marginLeft: 5 }} color="blue" />}
         </View>

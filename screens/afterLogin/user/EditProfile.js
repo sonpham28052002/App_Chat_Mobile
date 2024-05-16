@@ -6,6 +6,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { save, updateAvatar, updateCoverImage } from "../../../Redux/slice";
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
+import { Fontisto } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome6 } from '@expo/vector-icons';
 import profileImage from '../../../assets/profile.png';
 import ButtonWithAudio from '../../../components/ButtonWithAudio';
 import host from '../../../configHost';
@@ -29,6 +32,57 @@ const EditProfile = ({ navigation }) => {
   }, [selectedCoverImage]);
 
   const selectAvatar = async () => {
+    if (Platform.OS === 'web') {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+      if (!result.cancelled) {
+        uploadImage(result.assets[0].uri, 'avt');
+      }
+    } else {
+      Alert.alert(
+        "Chọn ảnh",
+        "Chọn tùy chọn ảnh",
+        [
+          {
+            text: "Chụp ảnh mới",
+            onPress: () => captureAvatar(), // Chụp ảnh mới trên thiết bị di động
+          },
+          {
+            text: "Chọn ảnh từ thư viện",
+            onPress: () => pickAvatar(), // Chọn ảnh từ thư viện trên thiết bị di động
+          },
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  const captureAvatar = async () => {
+    let result;
+    try {
+      result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+      if (!result.cancelled) {
+        uploadImage(result.assets[0].uri, 'avt');
+      }
+    } catch (error) {
+      console.error('Lỗi khi chụp ảnh', error);
+    }
+  };
+
+  const pickAvatar = async () => {
     let result;
     try {
       result = await ImagePicker.launchImageLibraryAsync({
@@ -37,16 +91,71 @@ const EditProfile = ({ navigation }) => {
         aspect: [1, 1],
         quality: 0.5,
       });
-      console.log("Select Avatar Result:", result); // Log để kiểm tra kết quả
+      console.log(result);
       if (!result.cancelled) {
-        uploadImage(result.uri, 'avatar');
+        uploadImage(result.assets[0].uri, 'avt');
       }
     } catch (error) {
-      console.error('Lỗi khi chọn ảnh', error);
+      console.error('Lỗi khi chọn ảnh từ thư viện', error);
     }
   };
 
   const selectCoverImage = async () => {
+    let result;
+    if (Platform.OS === 'web') {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.5,
+      });
+    } else {
+      Alert.alert(
+        "Chọn ảnh",
+        "Chọn tùy chọn ảnh",
+        [
+          {
+            text: "Chụp ảnh mới",
+            onPress: () => captureCoverImage(), // Chụp ảnh mới trên thiết bị di động
+          },
+          {
+            text: "Chọn ảnh từ thư viện",
+            onPress: () => pickCoverImage(), // Chọn ảnh từ thư viện trên thiết bị di động
+          },
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+
+    if (result && result.assets && result.assets.length > 0 && result.assets[0].uri) {
+      uploadImage(result.assets[0].uri, 'coverImage');
+    } else {
+      console.log("Không có hình ảnh được chọn");
+    }
+  };
+
+  const captureCoverImage = async () => {
+    let result;
+    try {
+      result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.5,
+      });
+      if (!result.cancelled) {
+        uploadImage(result.assets[0].uri, 'coverImage');
+      }
+    } catch (error) {
+      console.error('Lỗi khi chụp ảnh', error);
+    }
+  };
+
+  const pickCoverImage = async () => {
     let result;
     try {
       result = await ImagePicker.launchImageLibraryAsync({
@@ -55,18 +164,18 @@ const EditProfile = ({ navigation }) => {
         aspect: [16, 9],
         quality: 0.5,
       });
-      console.log("Select Cover Image Result:", result); // Log để kiểm tra kết quả
       if (!result.cancelled) {
-        uploadImage(result.uri, 'coverImage');
+        uploadImage(result.assets[0].uri, 'coverImage');
       }
     } catch (error) {
-      console.error('Lỗi khi chọn ảnh', error);
+      console.error('Lỗi khi chọn ảnh từ thư viện', error);
     }
   };
 
   const uploadImage = async (uri, type) => {
     try {
       if (!uri) {
+        console.log("Không có địa chỉ URL hợp lệ");
         console.log("Không có hình ảnh được chọn");
         return;
       }
@@ -74,32 +183,28 @@ const EditProfile = ({ navigation }) => {
       let filename = uri.split('/').pop();
       const formData = new FormData();
       formData.append('file', {
-        uri: Platform.OS === 'web' ? uri : uri.replace("file://", ""),
+        uri: uri,
         type: 'image/jpeg',
         name: filename,
       });
       formData.append('name', filename);
-
-      console.log("Upload Image FormData:", formData); // Log để kiểm tra dữ liệu FormData
 
       const response = await axios.post(`${host}azure/changeImage`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-
-      console.log("Upload Image Response:", response.data); // Log để kiểm tra phản hồi từ server
-
-      if (response.data && response.data.url) {
-        if (type === 'avatar') {
-          dispatch(updateAvatar(response.data.url));
-          setAvatar(response.data.url);
+    console.log(response.data);
+      if (response.data ) {
+        if (type === 'avt') {
+          dispatch(updateAvatar(response.data));
+          setAvatar(response.data);
         } else if (type === 'coverImage') {
-          dispatch(updateCoverImage(response.data.url));
-          setSelectedCoverImage(response.data.url);
+          dispatch(updateCoverImage(response.data));
+          setSelectedCoverImage(response.data);
         }
 
-        const updatedUserData = { ...userNewData, [type]: response.data.url };
+        const updatedUserData = { ...userNewData, [type]: response.data };
         const updateUserResponse = await axios.put(`${host}users/updateUser`, updatedUserData);
         dispatch(save(updatedUserData));
       } else {
@@ -132,12 +237,14 @@ const EditProfile = ({ navigation }) => {
         <View style={styles.buttonAudio}>
           <ButtonWithAudio />
         </View>
-        {selectedCoverImage && (
-          <Image
-            source={{ uri: selectedCoverImage }}
-            style={styles.coverImage}
-          />
-        )}
+<TouchableOpacity onPress={selectCoverImage} style={styles.coverImageContainer}>
+  {selectedCoverImage && (
+    <Image
+      source={{ uri: selectedCoverImage }}
+      style={styles.coverImage}
+    />
+  )}
+</TouchableOpacity>
         <View style={styles.userInfoContainer}>
           <TouchableOpacity onPress={selectAvatar}>
             <View style={styles.avatarContainer}>
@@ -161,7 +268,18 @@ const EditProfile = ({ navigation }) => {
       </View>
       <View style={styles.headerScrollView}>
         <ScrollView horizontal style={styles.buttonScrollView}>
-          {/* Your buttons */}
+          <TouchableOpacity style={styles.button} onPress={() => { }}>
+            <Fontisto name="applemusic" size={24} color="#2196f3" />
+            <Text style={styles.buttonText}>Nhạc chờ</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => { }}>
+            <FontAwesome5 name="file-import" size={24} color="#2196f3" />
+            <Text style={styles.buttonText}>Nhập từ Facebook</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => { }}>
+            <FontAwesome6 name="image" size={24} color="#2196f3" />
+            <Text style={styles.buttonText}>Ảnh</Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
       <View style={styles.centerScreen}>
@@ -185,6 +303,12 @@ const EditProfile = ({ navigation }) => {
 const styles = StyleSheet.create({
   coverImage: {
     width: "100%",
+    height: "100%",
+    // position: "absolute",
+    // zIndex: -1,
+  },
+    coverImageContainer: {
+    width: "100%",
     height: "60%",
     position: "absolute",
     zIndex: -1,
@@ -197,6 +321,14 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     alignItems: "center",
+  },
+  button: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flexDirection: "row",
+    margin: 10
   },
   avatar: {
     width: 100,
@@ -262,7 +394,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginLeft: 30,
     marginTop: 10
-  }
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
 export default EditProfile;

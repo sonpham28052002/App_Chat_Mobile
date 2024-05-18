@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
-import { Entypo, Ionicons } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
 import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
@@ -98,8 +98,6 @@ const Chat = ({ navigation, route }) => {
                             isVideoCall={false}
                             backgroundColor={'cyan'}
                         />
-                        {/* <Ionicons name="call" size={35} color="white" /> */}
-                        {/* <Entypo style={{ marginHorizontal: 5 }} name="video-camera" size={35} color="white" /> */}
                         <ZegoSendCallInvitationButton
                             invitees={[
                                 {
@@ -131,9 +129,7 @@ const Chat = ({ navigation, route }) => {
                 getListMember().then(() => {
                     getMessage(sender, { id: route.params.id, members: listMember.current }).then(messages => {
                         if (messages.length > 0) setMessLoad(messages);
-                        else {
-                            setVisible3(false);
-                        };
+                        else setVisible3(false);
                     });
                 })
             } else
@@ -187,13 +183,7 @@ const Chat = ({ navigation, route }) => {
                 navigation.navigate('ListChat')
             }
         })
-        // stompClient.current.subscribe('/user/' + sender.id + '/react-message', onReactMessage)
     }
-
-    // const onReactMessage = (payload) => {
-    //     const message = JSON.parse(payload.body);
-    //     dispatch(reactMessage({ id: message.id, react: message.react }));
-    //   }
 
     function onError(error) {
         console.log('Could not connect to WebSocket server. Please refresh and try again!');
@@ -204,6 +194,7 @@ const Chat = ({ navigation, route }) => {
             var chatMessage = {
                 id: id,
                 sender: { id: sender.id },
+                seen: [{ id: sender.id }],
                 replyMessage: messageReply? convertMessageGiftedChatToMessage(messageReply, sender.id, route.params.id, getFileExtension) : null,
                 reply: messageReply? convertMessageGiftedChatToMessage(messageReply, sender.id, route.params.id, getFileExtension) : null
             };
@@ -406,7 +397,7 @@ const Chat = ({ navigation, route }) => {
                         </Dialog>
                     </Portal>
                     <View style={{ height: height - 80, backgroundColor: 'lightgray', marginBottom: 25 }}>
-                        <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef} 
+                        <GiftedChatComponent messages={messages} mess={mess} onChangeText={setMess} position={position} textInputRef={textInputRef} receiverName={route.params.nameGroup? '' : route.params.userName}
                             onCloseReply={()=>{setMessageReply(null)}} messageReply={messageReply} status={route.params.status? route.params.status : null} memberType={route.params.memberType? route.params.memberType : null} senderId={sender.id} fileExtension={getFileExtension}
                             onPress={() => {
                                 setShowEmoji(!showEmoji);

@@ -33,10 +33,8 @@ const AddFriend = ({ onPress }) => {
             if (accountRes.data) {
                 receiverId.current = accountRes.data.id;
                 setPhone(accountRes.data.phone);
-                // setData(accountRes.data);
                 setError(null);
             } else {
-                // setData([]);
                 setError('Không tìm thấy số điện thoại.');
             }
         } catch (error) {
@@ -52,9 +50,7 @@ const AddFriend = ({ onPress }) => {
                 receiverId: receiverId.current
             };
             onPress(request);
-            // stompClient.send("/app/request-add-friend", {}, JSON.stringify(request));
             Alert.alert('Kết bạn', 'Yêu cầu kết bạn đã được gửi.');
-            // navigation.navigate("Contact")
         } catch (error) {
             console.error('Error sending friend request:', error);
         }
@@ -62,7 +58,6 @@ const AddFriend = ({ onPress }) => {
 
     return (
         <View>
-            {/* {Platform.OS == "android" && <View style={{ height: 30 }} />} */}
             <View style={{ backgroundColor: '#1fadea', height: 50 }}>
                 <Text style={{
                     fontSize: 20,
@@ -108,32 +103,18 @@ const AddFriend = ({ onPress }) => {
                 confirmTextStyle={{ fontSize: 20, color: 'green' }}
                 pickerItemStyle={{ fontSize: 20 }}
             />
-            <View style={{ height: height*0.8 - 380 }}>
+            <View style={{ height: height * 0.8 - 380 }}>
                 {error ? (
                     <View style={{ alignItems: 'center', marginTop: 20 }}>
                         <Text style={{ fontSize: 16, color: 'red' }}>{error}</Text>
                     </View>
                 ) :
-                // data && data.length > 0 ? (
-                    // <FlatList
-                        // data={data}
-                        // keyExtractor={(item) => `${item.id}_${item.phone}`}
-                        // renderItem={({ item }) => (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10, paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#ccc' }}>
-                                <Text style={{ flex: 1, fontSize: 20 }}>{phone}</Text>
-                                <TouchableOpacity style={styles.buttonAdd} onPress={handleAddFriend}>
-                                    <Text style={styles.buttonText}>KẾT BẠN</Text>
-                                </TouchableOpacity>
-                            </View>
-                        // )}
-                    // />
-                // ) : (
-                //     <View style={{ alignItems: 'center', marginTop: 20 }}>
-                //         <Text style={{ fontSize: 16, color: 'red' }}>
-                //             {text.trim() !== '' ? 'Không tìm thấy số điện thoại.' : 'Vui lòng nhập số điện thoại.'}
-                //         </Text>
-                //     </View>
-                // )
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10, paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#ccc' }}>
+                        <Text style={{ flex: 1, fontSize: 20 }}>{phone}</Text>
+                        <TouchableOpacity style={styles.buttonAdd} onPress={handleAddFriend}>
+                            <Text style={styles.buttonText}>KẾT BẠN</Text>
+                        </TouchableOpacity>
+                    </View>
                 }
             </View>
         </View>

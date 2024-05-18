@@ -23,25 +23,19 @@ const Login = ({ navigation }) => {
   const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('84814929002');
 
   const handleLogin = async () => {
-    navigation.navigate("TabHome");
     let found = false;
     try {
       // Gọi API để kiểm tra tài khoản
       const accountRes = await axios.get(`${host}account/getAccountPhoneAndPassword?phone=${phoneNumberWithoutPlus}&password=${password}`);
       if (accountRes.data) {
         const userId = accountRes.data.id;
-        const userRes = await axios.get(`${host}users/getUserById?id=${userId}`);
-        if (userRes.data) {
-          const account=userRes.data
-          dispatch(save(userRes.data));
-          found = true;
+        found = true;
+        navigation.navigate("TabHome", {id: userId});
           // await AsyncStorage.setItem('isLoggedIn', 'true');
           // await AsyncStorage.setItem('account', JSON.stringify({account}));
           // console.log("Dữ liệu đã lưu vào AsyncStorage:", 
           // await AsyncStorage.getItem('account'));
           // navigation.navigate("TabHome", { id: userRes.data.id });
-        
-        }
       } else {
         if (!found) {
           setError("Số điện thoại hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại");
@@ -62,7 +56,7 @@ const Login = ({ navigation }) => {
   };
 
   const handleLoginOtp = (user) => {
-    navigation.navigate('PhoneInputText', "TabHome");
+    navigation.navigate('PhoneInputText', {screen: "TabHome"});
   };
 
   const handleForgotPassword = () => {
@@ -109,9 +103,9 @@ const Login = ({ navigation }) => {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <TouchableOpacity style={{ width: '100%', height: 50, paddingVertical: 10, alignItems: "center", justifyContent: 'center', backgroundColor: "#1fadea" }}>
+        <View style={{ width: '100%', height: 50, alignItems: "center", justifyContent: 'center', backgroundColor: "#1fadea" }}>
           <Text style={{ color: "#fdf8f8", fontSize: 30 }}>Đăng nhập</Text>
-        </TouchableOpacity>
+        </View>
         <View style={{ height: 200, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
           <Image source={require('../../assets/bgr.png')} style={{ width: 200, height: 200 }} />
         </View>
@@ -204,7 +198,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#1faeeb",
     borderRadius: 20,
-    height: 50,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 13,

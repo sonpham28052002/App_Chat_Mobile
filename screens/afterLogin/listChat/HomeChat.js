@@ -7,7 +7,6 @@ import UserDetailAddFriend from '../user/UserDetailAddFriend';
 import UserOptionsScreen from '../user/UserOptionScreen';
 const Stack = createStackNavigator();
 
-
 const HomeChat = () => {
   return (
     <Stack.Navigator>

@@ -3,8 +3,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 // import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { addLastMessage, retrieveLastMessage, addLastConversation, deleteConv, 
-  retrieveMess, addMess, deleteMess, initSocket, visibleModal, notify, addFriendRequest, reactMessage } from '../../../Redux/slice';
+import {
+  addLastMessage, retrieveLastMessage, addLastConversation, deleteConv,
+  retrieveMess, addMess, deleteMess, initSocket, visibleModal, notify, addFriendRequest, reactMessage
+} from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -17,7 +19,8 @@ import host from '../../../configHost'
 import * as ZIM from 'zego-zim-react-native';
 import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import * as ZPNs from 'zego-zpns-react-native';
-import { onUserLogin } from '../../../function/zegoCloud/onUserLogin';
+import 'react-native-get-random-values';
+const { v4: uuidv4 } = require('uuid');
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ListChat = ({ navigation }) => {
@@ -42,7 +45,7 @@ const ListChat = ({ navigation }) => {
   //   };
   //   fetchAccount();
   // }, []);
-            
+
   // account reducer
   const id = useSelector((state) => state.account.id);
   const currentUser = useSelector((state) => state.account);
@@ -72,33 +75,6 @@ const ListChat = ({ navigation }) => {
   const showModalCreateGroup = () => setVisibleCreateGroup(true);
   const hideModalCreateGroup = () => setVisibleCreateGroup(false);
 
-  // // Xóa cuộc trò chuyện
-  // const deleteConversationAction = async (userId) => {
-  //   try {
-
-  //     setDeleteMode(false);
-  //     const updatedConversations = conversations.filter(conversation => {
-  //       if (conversation.user && conversation.user.id !== userId) {
-  //         return true;
-  //       } else if (conversation.conversationType === 'group') {
-  //         return false;
-  //       }
-  //       return false;
-  //     });
-  //     setConversations(updatedConversations);
-  //     const updatedUser = { ...currentUser, conversation: updatedConversations };
-  //     const updateUserResponse = await axios.put('${host}users/updateUser', updatedUser);
-
-  //     if (updateUserResponse.status === 200) {
-  //       // dispatch(deleteConversationAction(userId));
-  //       dispatch(save(updateUserResponse.data));
-  //       console.log('Cập nhật người dùng thành công', updateUserResponse.data);
-  //     }
-  //   } catch (error) {
-  //     console.error('Lỗi khi cập nhật người dùng', error);
-  //   }
-  // };
-
   const [deleteTimeout, setDeleteTimeout] = useState(null);
   // const [restoring, setRestoring] = useState(false);
 
@@ -116,43 +92,15 @@ const ListChat = ({ navigation }) => {
 
   useEffect(() => {
     if (!socketConnected) {
-      const socket = new SockJS(`${host}ws`);
+      let socket = new SockJS(`${host}ws`);
       stompClient.current = Stomp.over(socket);
       stompClient.current.connect({}, onConnected, onError);
-      setIsConnected(true);
-      dispatch(initSocket(true));
     }
-
-    // ZegoUIKitPrebuiltCallService.init(
-    // 940263346, // You can get it from ZEGOCLOUD's console
-    // '40da48b6a31a24ddfc594d8c998e7bb36a542e86f83697fb889f2b85bf1c572a', // You can get it from ZEGOCLOUD's console
-    // id, // It can be any valid characters, but we recommend using a phone number.
-    // currentUser.userName,
-    // [ZIM, ZPNs],
-    // {
-    //   onIncomingCallDeclineButtonPressed: (navigation) => {
-    //     console.log('onIncomingCallDeclineButtonPressed: ', navigation);
-    //   },
-    //   onIncomingCallReceived: (callID, inviter, type, invitees) => {
-    //     console.log('Incoming call: ', callID, inviter, type, invitees)
-    //   },
-    //   onOutgoingCallRejectedCauseBusy(callID, invitee) {
-    //     console.log('onOutgoingCallRejectedCauseBusy: ', callID, invitee);
-    //   },
-    //   ringtoneConfig: {
-    //     incomingCallFileName: require('../../../assets/ringtone-205162.mp3'),
-    //     outgoingCallFileName: require('../../../assets/happy-pop-1-185286.mp3'),
-    //   },
-    //   androidNotificationConfig: {
-    //     channelID: 'ZegoUIKit',
-    //     channelName: 'ZegoUIKit',
-    //   },
-  //   },
-  // );
+    onUserLogin(id, currentUser.userName);
   }, [])
 
   useEffect(() => {
-    if(!socketConnected && isConnected){
+    if (!socketConnected && isConnected) {
       stompClient.current.disconnect(() => console.log('Socket disconnected'));
       setIsConnected(false);
     }
@@ -180,12 +128,12 @@ const ListChat = ({ navigation }) => {
   }
 
   const checkIsChatting = (senderId, messageReceiverId) => {
-    if(messageReceiverId.indexOf('_') === -1){
+    if (messageReceiverId.indexOf('_') === -1) {
       if ((senderId === id && messageReceiverId === r.current)
         || (senderId === r.current && messageReceiverId === id))
         return true;
       return false;
-    } else{// receriverId is group
+    } else {// receriverId is group
       let idGroup = messageReceiverId.split('_')[1];
       return idGroup === r.current;
     }
@@ -196,20 +144,25 @@ const ListChat = ({ navigation }) => {
     let userId = message.sender.id == id ? message.receiver.id : message.sender.id;
     let index = conversations.findIndex(conv => conv.user && conv.user.id === userId);
     //update message in listchat
-    if( index === -1 ){
+    if (index === -1) {
       getConversation(id).then(conv => {
-        dispatch(notify({ userName: conv.user.userName, avt: conv.user.avt,
-          content: message.messageType === "Text"? message.content : 
-          message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
-          message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" || 
-          message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" || 
-          message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
-          message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
-          type: 'single-chat'
-        }));
+        if (message.sender.id !== id) {
+          dispatch(notify({
+            userName: conv.user.userName, avt: conv.user.avt,
+            content: message.messageType === "CALLSINGLE" ? message.titleFile.startsWith('Cuộc gọi') ? '[Cuộc gọi]' : '[Cuộc gọi nhỡ]'
+              : message.messageType === "Text" ? message.content :
+                message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
+                  message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
+                    message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
+                    message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
+                    message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
+            type: 'single-chat'
+          }));
+          dispatch(visibleModal(true));
+        }
         dispatch(addLastConversation(conv));
         // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
-        if (checkIsChatting(message.sender.id, message.receiver.id)){
+        if (checkIsChatting(message.sender.id, message.receiver.id)) {
           let newMess = onMessageReceive(message,
             { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
             conv.user)
@@ -218,15 +171,19 @@ const ListChat = ({ navigation }) => {
         }
       })
     } else {
-      dispatch(notify({ userName: conversations[index].user.userName, avt: conversations[index].user.avt,
-        content: message.messageType === "Text"? message.content : 
-        message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
-        message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" || 
-        message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" || 
-        message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
-        message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
-        type: 'single-chat'
-      }));
+      if (message.sender.id !== id) {
+        dispatch(notify({
+          userName: conversations[index].user.userName, avt: conversations[index].user.avt,
+          content: message.messageType === "CALLSINGLE" ? '[Cuộc gọi]' : message.messageType === "Text" ? message.content :
+            message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
+              message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
+                message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
+                message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
+                message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
+          type: 'single-chat'
+        }));
+        dispatch(visibleModal(true));
+      }
       dispatch(addLastMessage({ message: message, index: index }));
       // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
       if (checkIsChatting(message.sender.id, message.receiver.id)) {
@@ -237,7 +194,6 @@ const ListChat = ({ navigation }) => {
           dispatch(addMess(newMess))
       }
     }
-    dispatch(visibleModal(true));
   }
 
   const onGroupMessageReceived = (payload) => {
@@ -245,19 +201,21 @@ const ListChat = ({ navigation }) => {
     let idGroup = message.receiver.id.split('_')[1];
     let index = conversationsRef.current.findIndex(conv => conv.idGroup === idGroup);
     dispatch(addLastMessage({ message: message, index: index }));
-    dispatch(notify({ userName: conversationsRef.current[index].nameGroup, 
-      avt: conversationsRef.current[index].avtGroup,
-      content: message.messageType === "Text"? message.content :
-      message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
-      message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
-      message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
-      message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
-      message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
-      type: 'group-chat'
-    }));
-    
+    if (message.sender.id !== id)
+      dispatch(notify({
+        userName: conversationsRef.current[index].nameGroup,
+        avt: conversationsRef.current[index].avtGroup,
+        content: message.messageType === "Text" ? message.content :
+          message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
+            message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
+              message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
+              message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
+              message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
+        type: 'group-chat'
+      }));
+
     // kiểm tra xem tin nhắn nhận được có phải tin nhắn trong group đang chat hay không
-    if (checkIsChatting(message.sender.id, message.receiver.id)){
+    if (checkIsChatting(message.sender.id, message.receiver.id)) {
       getListMember(id, idGroup).then(members => {
         let newMess = onMessageReceive(message,
           { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
@@ -272,22 +230,22 @@ const ListChat = ({ navigation }) => {
   const onRetrieveMessage = (payload) => {
     let message = JSON.parse(payload.body)
     let index = conversationsRef.current.findIndex(conv => conv.lastMessage?.id === message.id);
-    if(index !== -1)
+    if (index !== -1)
       dispatch(retrieveLastMessage(index));
-    if(checkIsChatting(message.sender.id, message.receiver.id))
+    if (checkIsChatting(message.sender.id, message.receiver.id))
       dispatch(retrieveMess(message.id));
   }
 
   const onDeleteResult = (payload) => {
     let message = JSON.parse(payload.body)
-    if(checkIsChatting(message.sender.id, message.receiver.id)){
+    if (checkIsChatting(message.sender.id, message.receiver.id)) {
       dispatch(deleteMess(message.id));
     }
   }
 
   const onReceiveDeleteConversationResponse = async (payload) => {
     const conversation = JSON.parse(payload.body);
-    if(conversation.idGroup)
+    if (conversation.idGroup)
       dispatch(deleteConv(conversation.idGroup));
     else dispatch(deleteConv(conversation.user.id));
   }
@@ -299,16 +257,24 @@ const ListChat = ({ navigation }) => {
   const onRequestAddFriend = (payload) => {
     const friendRequest = JSON.parse(payload.body);
     dispatch(addFriendRequest(friendRequest));
-    dispatch(notify({ userName: friendRequest.sender.userName, avt: friendRequest.sender.avt, 
-      type: "request-add-friend" }));
-    dispatch(visibleModal(true));
+    if (friendRequest.sender.id !== id) {
+      dispatch(notify({
+        userName: friendRequest.sender.userName, avt: friendRequest.sender.avt,
+        type: "request-add-friend"
+      }));
+      dispatch(visibleModal(true));
+    }
   }
 
   const onAcceptAddFriend = (payload) => {
     const friendRequest = JSON.parse(payload.body);
-    dispatch(notify({ userName: friendRequest.sender.userName, avt: friendRequest.sender.avt, 
-      type: "accept-add-friend" }));
-    dispatch(visibleModal(true));
+    if (friendRequest.sender.id === id) {
+      dispatch(notify({
+        userName: friendRequest.receiver.userName, avt: friendRequest.receiver.avt,
+        type: "accept-add-friend"
+      }));
+      dispatch(visibleModal(true));
+    }
   }
 
   const onReactMessage = (payload) => {
@@ -439,13 +405,120 @@ const ListChat = ({ navigation }) => {
     let api = `${host}messages/getMemberByIdSenderAndIdGroup?idSender=${senderId}&idGroup=${groupId}`
     const result = await axios.get(api)
     try {
-        if (result.data){
-            return result.data
-        }
+      if (result.data) {
+        return result.data
+      }
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
-}
+  }
+
+  const onUserLogin = async (userID, userName) => {
+    var a = ZegoUIKitPrebuiltCallService.init(
+      940263346, // You can get it from ZEGOCLOUD's console
+      '40da48b6a31a24ddfc594d8c998e7bb36a542e86f83697fb889f2b85bf1c572a', // You can get it from ZEGOCLOUD's console
+      userID, // It can be any valid characters, but we recommend using a phone number.
+      userName,
+      [ZIM, ZPNs],
+      {
+        onIncomingCallDeclineButtonPressed: (navigation) => {
+          console.log('onIncomingCallDeclineButtonPressed: ', navigation);
+        },
+        onIncomingCallAcceptButtonPressed: (navigation) => {
+          console.log('onIncomingCallAcceptButtonPressed: ', navigation);
+        },
+        onOutgoingCallCancelButtonPressed: (navigation, callID, invitees, type) => {
+          console.log('onOutgoingCallCancelButtonPressed: ', navigation, callID, invitees, type);
+        },
+        onIncomingCallReceived: (callID, type, invitees) => {
+          console.log('Incoming call: ', callID, type, invitees)
+        },
+        onIncomingCallCanceled: (callID, inviter) => {
+          console.log('Incoming call canceled: ', callID, inviter)
+        },
+        onOutgoingCallAccepted: (callID, invitee) => {
+          console.log('Outgoing call accepted: ', callID, invitee)
+          var chatMessage = {
+            id: uuidv4(),
+            sender: { id: id },
+            seen: [{ id: id }],
+            replyMessage: null,
+            reply: null,
+            messageType: 'CALLSINGLE',
+            receiver: { id: invitee.userID },
+            react: [],
+            size: 0,
+            titleFile: 'Cuộc gọi video từ ',
+            url: null
+        };
+          stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
+        },
+        // onOutgoingCallRejectedCauseBusy: (callID, invitee) => {
+        //   console.log('onOutgoingCallRejectedCauseBusy: ', callID, invitee);
+        // },
+        onOutgoingCallDeclined: (callID, invitee) => {
+          console.log('Outgoing call declined: ', callID, invitee);
+          var chatMessage = {
+            id: uuidv4(),
+            sender: { id: id },
+            seen: [{ id: id }],
+            replyMessage: null,
+            reply: null,
+            messageType: 'CALLSINGLE',
+            receiver: { id: invitee.userID },
+            react: [],
+            size: 0,
+            titleFile: ' từ chối cuộc gọi video từ ',
+            url: null
+        };
+          stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
+        },
+        onIncomingCallTimeout: (callID, inviter) => {
+          console.log('Incoming call timeout: ', callID, inviter)
+          var chatMessage = {
+            id: uuidv4(),
+            sender: { id: id },
+            seen: [{ id: id }],
+            replyMessage: null,
+            reply: null,
+            messageType: 'CALLSINGLE',
+            receiver: { id: inviter.userID },
+            react: [],
+            size: 0,
+            titleFile: 'bị nhở cuộc gọi video từ ',
+            url: null
+          };
+          stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
+        },
+        onOutgoingCallTimeout: (callID, invitees) => {
+          console.log('Outgoing call timeout: ', callID, invitees)
+          var chatMessage = {
+            id: uuidv4(),
+            sender: { id: id },
+            seen: [{ id: id }],
+            replyMessage: null,
+            reply: null,
+            messageType: 'CALLSINGLE',
+            receiver: { id: invitees[0].userID },
+            react: [],
+            size: 0,
+            titleFile: 'bị nhở cuộc gọi video từ ',
+            url: null
+        };
+          stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
+        },
+        ringtoneConfig: {
+          incomingCallFileName: require('../../../assets/ringtone-205162.mp3'),
+          outgoingCallFileName: require('../../../assets/happy-pop-1-185286.mp3'),
+        },
+        androidNotificationConfig: {
+          channelID: 'ZegoUIKit',
+          channelName: 'ZegoUIKit',
+        },
+      },
+    );
+    return a;
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -496,7 +569,7 @@ const ListChat = ({ navigation }) => {
                   flex: 1
                 }}
                 onPress={() => navigation.navigate("Chat", item.user ? item.user :
-                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members, memberType: getMember(item.members, id).memberType})}
+                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members, memberType: getMember(item.members, id).memberType })}
                 onLongPress={() => {
                   setSelectedItem(item);
                   setDeleteMode(true);

@@ -33,7 +33,9 @@ function addMessage(message, type){
     if (message.content)
         newMessage.text = message.content;
     else {
-        if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
+        if (message.messageType == 'CALLSINGLE')
+            newMessage.call = message.titleFile
+        else if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
             newMessage.image = message.url;
         else if (message.messageType == 'AUDIO')
             newMessage.audio = message.url;

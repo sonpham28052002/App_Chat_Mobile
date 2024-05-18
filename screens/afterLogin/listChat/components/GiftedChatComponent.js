@@ -11,11 +11,12 @@ import MessageCustom from '../../../../components/MessageCustom';
 import ImageMessage from '../../../../components/ImageMessage';
 import CallMessage from '../../../../components/CallMessage';
 
-const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, user, onLongPress, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend, fileExtension, messageReply, onCloseReply }) => {
+const GiftedChatComponent = ({ receiverName, status, memberType, onPress, messages, senderId, user, onLongPress, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend, fileExtension, messageReply, onCloseReply }) => {
     const { width } = Dimensions.get('window')
 
     const renderBubble = (props) => {
         const { currentMessage } = props;
+        if(!currentMessage) return null;
         const onLongPressMessage = () => {
             onLongPress(null, currentMessage)
         }
@@ -32,7 +33,7 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
         if (currentMessage.image)
             return <ImageMessage currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false}/>
         if (currentMessage.call)
-            return <CallMessage currentMessage={currentMessage} isSender={currentMessage.user._id == senderId ? true : false} nameUser={currentMessage.user.name}/>
+            return <CallMessage currentMessage={currentMessage} isSender={currentMessage.user._id == senderId ? true : false} nameUser={currentMessage.user.name} receiverName={receiverName}/>
         return null
     }
 

@@ -1,6 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StyleSheet } from 'react-native';
 import Login from '../login/Login'
 import Register from '../register/Register'
 import LoginOtp from '../login/LoginOtp.js';
@@ -84,27 +83,18 @@ export default function Auth() {
           }}
         />
         <Stack.Screen
-                options={{ headerShown: false }}
-                // DO NOT change the name 
-                name="ZegoUIKitPrebuiltCallWaitingScreen"
-                component={ZegoUIKitPrebuiltCallWaitingScreen}
-            />
-            <Stack.Screen
-                options={{ headerShown: false }}
-                // DO NOT change the name
-                name="ZegoUIKitPrebuiltCallInCallScreen"
-                component={ZegoUIKitPrebuiltCallInCallScreen}
-            />
+          options={{ headerShown: false }}
+          // DO NOT change the name 
+          name="ZegoUIKitPrebuiltCallWaitingScreen"
+          component={ZegoUIKitPrebuiltCallWaitingScreen}
+        />
+        <Stack.Screen
+          options={{ headerShown: false }}
+          // DO NOT change the name
+          name="ZegoUIKitPrebuiltCallInCallScreen"
+          component={ZegoUIKitPrebuiltCallInCallScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

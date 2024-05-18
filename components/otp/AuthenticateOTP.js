@@ -15,6 +15,7 @@ const AuthenticateOTP = ({ navigation, route }) => {
         const credential = auth.PhoneAuthProvider.credential(route.params.verificationId, code);
         auth().signInWithCredential(credential)
             .then((response) => {
+                // console.log(response.user.uid)
                 navigation.navigate(route.params.screen, { id: response.user.uid, phone: route.params.phone })
             })
             .catch((error) => {

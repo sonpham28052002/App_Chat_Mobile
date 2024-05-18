@@ -31,7 +31,7 @@ const getMessage = async (sender, receiver) => {
                     },
                     retrieve: message.messageType === 'RETRIEVE'? true : false,
                     extraData:{
-                        react: [...message.react]
+                        react: message.react? [...message.react]: []
                     },
                     replyMessage: message.replyMessage? {
                         userName: message.replyMessage.sender.id == sender.id ? sender.userName : isGroup ? getMember(receiver.members, message.replyMessage.sender.id).member.userName : receiver.userName,
@@ -44,7 +44,11 @@ const getMessage = async (sender, receiver) => {
                             : ''
                     } : null
                 }
-                if (message.messageType === 'RETRIEVE')
+                if(message.messageType === 'NOTIFICATION'){
+                    newMess.text = getMember(receiver.members, message.sender.id).member.userName+ " " + message.content
+                    newMess.system = true
+                }
+                else if (message.messageType === 'RETRIEVE')
                     newMess.text = "Tin nhắn đã bị thu hồi!";
                 else if (message.content)
                     newMess.text = message.content

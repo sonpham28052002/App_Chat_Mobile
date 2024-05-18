@@ -11,7 +11,7 @@ const ForgotPasswordStack = () => {
         headerShown: false
     }}>
         <Stack.Screen name="PhoneInputText" component={PhoneInputText} 
-        initialParams={{ screens: 'ResetPass' }}
+        initialParams={{ screen: 'ResetPass' }}
         options={{ headerShown: false }} />
         <Stack.Screen name='AuthenticateOTP' component={AuthenticateOTP} />
         <Stack.Screen name="ResetPass" component={ResetPass}/>

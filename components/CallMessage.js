@@ -1,8 +1,8 @@
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome, Entypo } from '@expo/vector-icons';
 
-const CallMessage = ({ currentMessage, isSender, nameUser }) => {
+const CallMessage = ({ currentMessage, isSender, nameUser, receiverName }) => {
     return (
         <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity style={{
@@ -11,11 +11,36 @@ const CallMessage = ({ currentMessage, isSender, nameUser }) => {
                 borderTopLeftRadius: 20, borderTopRightRadius: 20,
                 borderBottomLeftRadius: !isSender ? 0 : 20,
                 borderBottomRightRadius: !isSender ? 20 : 0,
-                width: 200
+                width: 270
             }}>
-                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <MaterialIcons name="call" size={35} color="black" />
-                    <Text style={{ color: 'black' }}>{currentMessage.call}<Text style={{ fontWeight: 'bold' }}>{nameUser}</Text></Text>
+                <TouchableOpacity style={{ alignItems: 'center' }}>
+                    {currentMessage.call.startsWith('Cuộc gọi') ?  // cuộc gọi video/thoại từ...
+                        <View style={{ flexDirection: 'row', marginLeft: 10, alignItems: 'center' }}>
+                            {currentMessage.call.includes('video') ?
+                                <Entypo name="video-camera" size={35} color="black" /> 
+                                : <MaterialIcons name="call" size={35} color="black" />}
+                            <Text style={{ color: 'black', width: 210, marginLeft: 10 }}>{currentMessage.call}
+                                <Text style={{ fontWeight: isSender ? 'normal' : 'bold' }}> {isSender ? 'bạn' : receiverName}</Text>
+                            </Text>
+                        </View>
+                        : // bị nhỡ cuộc gọi video/thoại từ...
+                        isSender ?
+                            <View style={{ flexDirection: 'row', marginLeft: 10, alignItems: 'center' }}>
+                                {currentMessage.call.includes('video') ?
+                                    <Entypo name="video-camera" size={35} color="red" />
+                                    : <MaterialIcons name="call" size={35} color="red" />}
+                                <Text style={{ color: 'red', fontWeight: 'bold', width: 210, marginLeft: 10 }}>{receiverName}<Text style={{ fontWeight: 'normal' }}> {currentMessage.call}bạn</Text></Text>
+                            </View>
+                        : 
+                            <View style={{ flexDirection: 'row', marginLeft: 10, alignItems: 'center' }}>
+                                {currentMessage.call.includes('video') ?
+                                    <Entypo name="video-camera" size={35} color="red" />
+                                    : <MaterialIcons name="call" size={35} color="red" />}
+                                <Text style={{ color: 'red', width: 210, marginLeft: 10 }}>Bạn {currentMessage.call}
+                                    <Text style={{ fontWeight: 'bold' }}>{nameUser}</Text>
+                                </Text>
+                            </View>
+                    }
                 </TouchableOpacity>
                 <Text style={{
                     fontSize: 11,

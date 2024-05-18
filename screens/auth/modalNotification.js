@@ -15,7 +15,7 @@ const modalNotification = () => {
     useEffect(() => {
         const loadSound = async () => {
           const { sound } = await Audio.Sound.createAsync(
-            require('../../assets/movie_1.mp3')
+            require('../../assets/noti.mp3')
           );
           setSound(sound);
         };

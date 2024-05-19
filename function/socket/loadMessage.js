@@ -45,7 +45,16 @@ const getMessage = async (sender, receiver) => {
                     } : null
                 }
                 if(message.messageType === 'NOTIFICATION'){
-                    newMess.text = getMember(receiver.members, message.sender.id).member.userName+ " " + message.content
+                    if(message.content === "đã tạo nhóm.")
+                        newMess.text = getMember(receiver.members, message.sender.id).member.userName+ " " + message.content
+                    else if(message.content === "đã bị mời ra khỏi nhóm bởi")
+                        newMess.text = getMember(receiver.members, message.user.id).member.userName+ " " + message.content + " " + getMember(receiver.members, message.sender.id).member.userName
+                    else if(message.content === "đã được thêm vào nhóm bởi")
+                        newMess.text = getMember(receiver.members, message.user.id).member.userName+ " " + message.content + " " + getMember(receiver.members, message.sender.id).member.userName
+                    else if(message.content === "đã phân phó nhóm cho")
+                        newMess.text = getMember(receiver.members, message.user.id).member.userName+ " " + message.content + " " + getMember(receiver.members, message.sender.id).member.userName
+                    else if(message.content === "tước quyền phó nhóm của")
+                        newMess.text = getMember(receiver.members, message.user.id).member.userName+ " " + message.content + " " + getMember(receiver.members, message.sender.id).member.userName
                     newMess.system = true
                 }
                 else if (message.messageType === 'RETRIEVE')

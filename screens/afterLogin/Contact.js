@@ -58,14 +58,15 @@ export default function ContactScreen({ navigation }) {
           <Image source={{ uri: item.user ? item.user.avt : item.avtGroup }} style={{ width: 50, height: 50, borderRadius: 25 }} />
           <Text style={styles.userNameText}>{item.user.userName}</Text>
         </View>
-        <View style={styles.friendItemContainer}>
-          <View style={styles.callIcons}>
-            <Icon name="call" type="material" color={"#006AF5"} onPress={() => console.log('Voice call')} />
+        <View style={styles.friendItemCall}>
+           <View style={styles.callIcons}>
+            <Icon name="call" type="material" color={"#006AF5"} size={30} onPress={() => console.log('Voice call')} />
           </View>
+          <View style={{ width: 10 }} />
           <View style={styles.callIcons}>
-            <Icon name="videocam" type="material" color={"#006AF5"} onPress={() => console.log('Video call')} />
+            <Icon name="videocam" type="material" color={"#006AF5"} size={30} onPress={() => console.log('Video call')} />
           </View>
-        </View>
+          </View>
       </View>
     </TouchableOpacity>
   );
@@ -154,22 +155,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 15,
+    // paddingVertical: 10,
+    paddingHorizontal: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#DDD',
   },
+    friendItemCall: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
   userNameText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#333',
     marginLeft: 20,
   },
   sectionHeader: {
     backgroundColor: '#f0f0f0',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    fontSize: 16,
+    paddingVertical: 4,
+    paddingHorizontal: 5,
+    fontSize: 14,
     fontWeight: 'bold',
   },
 });

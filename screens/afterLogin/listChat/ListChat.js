@@ -120,6 +120,10 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onremoveMemberInGroup)
     // stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
     // stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
+    // stompClient.current.subscribe('/user/' + id + '/ChangeRoleNotification', (message)=>{
+    //   let mess = JSON.parse(message.body)
+    //   console.log(mess);
+    // })
   }
 
   const onCreateGroup = (payload) => {
@@ -205,7 +209,8 @@ const ListChat = ({ navigation }) => {
       dispatch(notify({
         userName: conversationsRef.current[index].nameGroup,
         avt: conversationsRef.current[index].avtGroup,
-        content: message.messageType === "Text" ? message.content :
+        content: message.messageType === "NOTIFICATION" ? "[Thông báo]" :
+        message.messageType === "Text" ? message.content :
           message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
             message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
               message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
@@ -224,7 +229,7 @@ const ListChat = ({ navigation }) => {
           dispatch(addMess(newMess))
       })
     }
-    dispatch(visibleModal(true));
+    if(!message.messageType=='NOTIFICATION') dispatch(visibleModal(true));
   }
 
   const onRetrieveMessage = (payload) => {
@@ -593,6 +598,7 @@ const ListChat = ({ navigation }) => {
                     {
                       item.lastMessage ? item.lastMessage.sender.id == id ?
                         <Text style={{ fontSize: 14, color: 'grey' }} numberOfLines={1}>{
+                          item.lastMessage.messageType == 'CALLSINGLE' ? 'Bạn: [Cuộc gọi]' :
                           item.lastMessage.messageType == 'RETRIEVE' ? 'Bạn đã thu hồi một tin nhắn' :
                             item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
                               'Bạn: [Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
@@ -600,12 +606,13 @@ const ListChat = ({ navigation }) => {
                                 || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
                                 'Bạn: ' + item.lastMessage.titleFile :
                                 item.lastMessage.messageType == 'AUDIO' ? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO' ?
-                                  'Bạn: [Video]' : 'Bạn: ' + item.lastMessage.content}</Text>
+                                  'Bạn: [Video]' : item.lastMessage.content == 'đã bị mời ra khỏi nhóm bởi'? 'Một người tham gia đã bị xoá khỏi nhóm': ''}</Text>
                         : <Text style={{
                           fontSize: 14, color: item.lastMessage && item.lastMessage.seen ? 'grey' : 'black',
                           fontWeight: item.lastMessage && item.lastMessage.seen ? 'normal' : 'bold'
                         }} numberOfLines={1}>
                           {
+                            item.lastMessage.messageType == 'CALLSINGLE' ? '[Cuộc gọi]' :
                             item.lastMessage.messageType == 'RETRIEVE' ? 'Đã thu hồi một tin nhắn' :
                               item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
                                 '[Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'

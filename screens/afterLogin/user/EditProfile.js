@@ -4,14 +4,14 @@ import * as ImagePicker from "expo-image-picker";
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { save, updateAvatar, updateCoverImage } from "../../../Redux/slice";
+import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { Fontisto } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
 import profileImage from '../../../assets/profile.png';
 import ButtonWithAudio from '../../../components/ButtonWithAudio';
-import { Feather } from '@expo/vector-icons';
-import host from '../../../configHost'
+import host from '../../../configHost';
 
 const EditProfile = ({ navigation }) => {
   const coverImage = useSelector((state) => state.account.coverImage);
@@ -32,14 +32,16 @@ const EditProfile = ({ navigation }) => {
   }, [selectedCoverImage]);
 
   const selectAvatar = async () => {
-    let result;
     if (Platform.OS === 'web') {
-      result = await ImagePicker.launchImageLibraryAsync({
+      let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
       });
+      if (!result.cancelled) {
+        uploadImage(result.assets[0].uri, 'avt');
+      }
     } else {
       Alert.alert(
         "Chọn ảnh",
@@ -47,11 +49,11 @@ const EditProfile = ({ navigation }) => {
         [
           {
             text: "Chụp ảnh mới",
-            onPress: () => captureAvatarImage(), // Chụp ảnh mới trên thiết bị di động
+            onPress: () => captureAvatar(), // Chụp ảnh mới trên thiết bị di động
           },
           {
             text: "Chọn ảnh từ thư viện",
-            onPress: () => pickAvatarImage(), // Chọn ảnh từ thư viện trên thiết bị di động
+            onPress: () => pickAvatar(), // Chọn ảnh từ thư viện trên thiết bị di động
           },
           {
             text: "Cancel",
@@ -61,35 +63,40 @@ const EditProfile = ({ navigation }) => {
         { cancelable: true }
       );
     }
+  };
 
-    if (result && result.assets && result.assets.length > 0 && result.assets[0].uri) {
-      uploadImage(result.assets[0].uri, 'avatar');
-    } else {
-      console.log("Không có hình ảnh được chọn");
+  const captureAvatar = async () => {
+    let result;
+    try {
+      result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+      if (!result.cancelled) {
+        uploadImage(result.assets[0].uri, 'avt');
+      }
+    } catch (error) {
+      console.error('Lỗi khi chụp ảnh', error);
     }
   };
 
-  const captureAvatarImage = async () => {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
-    if (!result.cancelled) {
-      uploadImage(result.uri, 'avatar');
-    }
-  };
-
-  const pickAvatarImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
-    if (!result.cancelled) {
-      uploadImage(result.uri, 'avatar');
+  const pickAvatar = async () => {
+    let result;
+    try {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+      console.log(result);
+      if (!result.cancelled) {
+        uploadImage(result.assets[0].uri, 'avt');
+      }
+    } catch (error) {
+      console.error('Lỗi khi chọn ảnh từ thư viện', error);
     }
   };
 
@@ -132,31 +139,47 @@ const EditProfile = ({ navigation }) => {
   };
 
   const captureCoverImage = async () => {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.5,
-    });
-    if (!result.cancelled) {
-      uploadImage(result.uri, 'coverImage');
+    let result;
+    try {
+      result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.5,
+      });
+      if (!result.cancelled) {
+        uploadImage(result.assets[0].uri, 'coverImage');
+      }
+    } catch (error) {
+      console.error('Lỗi khi chụp ảnh', error);
     }
   };
 
   const pickCoverImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.5,
-    });
-    if (!result.cancelled) {
-      uploadImage(result.uri, 'coverImage');
+    let result;
+    try {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.5,
+      });
+      if (!result.cancelled) {
+        uploadImage(result.assets[0].uri, 'coverImage');
+      }
+    } catch (error) {
+      console.error('Lỗi khi chọn ảnh từ thư viện', error);
     }
   };
 
   const uploadImage = async (uri, type) => {
     try {
+      if (!uri) {
+        console.log("Không có địa chỉ URL hợp lệ");
+        console.log("Không có hình ảnh được chọn");
+        return;
+      }
+
       let filename = uri.split('/').pop();
       const formData = new FormData();
       formData.append('file', {
@@ -171,26 +194,30 @@ const EditProfile = ({ navigation }) => {
           'Content-Type': 'multipart/form-data'
         }
       });
+    console.log(response.data);
+      if (response.data ) {
+        if (type === 'avt') {
+          dispatch(updateAvatar(response.data));
+          setAvatar(response.data);
+        } else if (type === 'coverImage') {
+          dispatch(updateCoverImage(response.data));
+          setSelectedCoverImage(response.data);
+        }
 
-      if (type === 'avatar') {
-        dispatch(updateAvatar(response.data));
-        setAvatar(response.data);
-      } else if (type === 'coverImage') {
-        dispatch(updateCoverImage(response.data));
-        setSelectedCoverImage(response.data);
+        const updatedUserData = { ...userNewData, [type]: response.data };
+        const updateUserResponse = await axios.put(`${host}users/updateUser`, updatedUserData);
+        dispatch(save(updatedUserData));
+      } else {
+        console.log("Không có địa chỉ URL hợp lệ từ phản hồi");
       }
-
-      const updatedUserData = { ...userNewData, [type]: response.data };
-      const updateUserResponse = await axios.put(`${host}users/updateUser`, updatedUserData);
-      dispatch(save(updatedUserData))
     } catch (error) {
       console.error('Lỗi upload ảnh', error);
     }
   };
 
   const handleNavigationEdit = () => {
-    navigation.navigate('ButtonEditUserProfile')
-  }
+    navigation.navigate('ButtonEditUserProfile');
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -210,12 +237,14 @@ const EditProfile = ({ navigation }) => {
         <View style={styles.buttonAudio}>
           <ButtonWithAudio />
         </View>
-        {selectedCoverImage && (
-          <Image
-            source={{ uri: selectedCoverImage }}
-            style={styles.coverImage}
-          />
-        )}
+<TouchableOpacity onPress={selectCoverImage} style={styles.coverImageContainer}>
+  {selectedCoverImage && (
+    <Image
+      source={{ uri: selectedCoverImage }}
+      style={styles.coverImage}
+    />
+  )}
+</TouchableOpacity>
         <View style={styles.userInfoContainer}>
           <TouchableOpacity onPress={selectAvatar}>
             <View style={styles.avatarContainer}>
@@ -274,6 +303,12 @@ const EditProfile = ({ navigation }) => {
 const styles = StyleSheet.create({
   coverImage: {
     width: "100%",
+    height: "100%",
+    // position: "absolute",
+    // zIndex: -1,
+  },
+    coverImageContainer: {
+    width: "100%",
     height: "60%",
     position: "absolute",
     zIndex: -1,
@@ -286,6 +321,14 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     alignItems: "center",
+  },
+  button: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flexDirection: "row",
+    margin: 10
   },
   avatar: {
     width: 100,
@@ -311,32 +354,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#CCCCCC'
   },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    // marginTop: 20,
-    paddingHorizontal: 20,
-  },
-  button: {
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    flexDirection: "row",
-    margin: 10
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  centerText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
   buttonScrollView: {
     flexDirection: "row",
-    // paddingHorizontal: 10,
-
   },
   headerScrollView: {
     flex: 0.5 / 3
@@ -375,7 +394,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginLeft: 30,
     marginTop: 10
-  }
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
 export default EditProfile;

@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect ,useRef,useState} from 'react';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useDispatch } from 'react-redux';
+import { useDispatch,useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeChat from '../listChat/HomeChat';
 import HomeUser from '../user/HomeUser';
@@ -20,7 +20,6 @@ import * as ZPNs from 'zego-zpns-react-native';
 // import ZegoUIKitPrebuiltCallService from "@zegocloud/zego-uikit-prebuilt-call-rn";
 
 const Tab = createMaterialBottomTabNavigator();
-
 const TabHome = ({ route }) => {
   const dispatch = useDispatch();
 
@@ -41,6 +40,18 @@ const TabHome = ({ route }) => {
 
     fetchData();
   }, [dispatch, route.params]);
+//     var stompClient = useRef(null);
+//   const socketConnected = useSelector((state) => state.socket.connected);
+//   const [isConnected, setIsConnected] = useState(false);
+// useEffect(() => {
+//     if (!socketConnected) {
+//       const socket = new SockJS(`${host}ws`);
+//       stompClient.current = Stomp.over(socket);
+//       stompClient.current.connect({login:route.params.id}, onConnected, onError);
+//       setIsConnected(true);
+//       dispatch(initSocket(true));
+//     }
+//   }, [])
 
   // const onUserLogin = async (userID, userName) => {
   //   var a = ZegoUIKitPrebuiltCallService.init(
@@ -98,6 +109,7 @@ const TabHome = ({ route }) => {
       <Tab.Screen
         name="Tin nhắn"
         component={HomeChat}
+        initialParams={{ id: route.params.id }}
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="chatbubble-ellipses-outline" size={24} color="#0A68FE" />

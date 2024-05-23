@@ -64,7 +64,7 @@ const messSlice = createSlice({
   name: 'message',
   initialState: {
     id: '',
-    messages: []
+    messages: [],
   },
   reducers:{
     saveReceiverId: (state, action) => {
@@ -103,7 +103,18 @@ const messSlice = createSlice({
       let index = state.messages.findIndex(mess => mess._id === action.payload.id);
       if(index !== -1)
         state.messages[index].extraData.react = action.payload.react;
-    }
+    },
+     markMessageAsSeen:(state, action) =>{
+      const messageId = action.payload;
+      const message = state.messages.find(msg => msg.id === messageId);
+      if (message) {
+        message.isSeen = true;
+      }
+    },
+    //  setListUserOnline(state, action) {
+    //   onsole.log("Updating listUserOnline in state: ", action.payload);
+    //         state.listUserOnline = action.payload;
+    //     },
   }
 });
 
@@ -158,16 +169,44 @@ const modalSlice = createSlice({
     }
   },
 });
-
+const userOnlineSlice = createSlice({
+  name: "user",
+  initialState: {
+    listUserOnline: [],
+  },
+  reducers: {
+    updateListUserOnline: (state, action) => {
+      console.log("Đã vào Redux");
+      state.listUserOnline = action.payload;
+      console.log("List user online: ", state.listUserOnline);
+    },
+    addUserIntoList: (state, action) => {
+      const idUser = action.payload;
+      const arr = [...state.listUserOnline];
+      if (!arr.includes(idUser)) {
+        state.listUserOnline = [...arr, idUser];
+      }
+    },
+    removeUserIntoList: (state, action) => {
+      const idUser = action.payload;
+      const arr = [...state.listUserOnline];
+      if (arr.includes(idUser)) {
+        state.listUserOnline = [...arr.filter((item) => item !== idUser)];
+      }
+    },
+  }
+});
 export const { save, updateAvatar,updateCoverImage, updateLastMessage, addToFriendList, addLastMessage, 
                 retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
                 removeFriend, addFriendRequest } = accountSlice.actions;
-export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reactMessage } = messSlice.actions;
+export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reactMessage,markMessageAsSeen } = messSlice.actions;
 // export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;
 export const { visibleModal, notify } = modalSlice.actions;
+export const { updateListUserOnline,addUserIntoList,removeUserIntoList } = userOnlineSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;
+export const userOnlineReducer = userOnlineSlice.reducer;
 export const chatReducer = chatSlice.reducer
 export const socketReducer = socketSlice.reducer;
 export const modalReducer = modalSlice.reducer;

@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform,Text } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
-import { Entypo, FontAwesome } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
 import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveReceiverId, saveMess, addMess, reactMessage } from '../../../Redux/slice';
+import { saveReceiverId, saveMess, addMess, reactMessage, updateListUserOnline } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
@@ -18,9 +18,9 @@ import GiftedChatComponent from './components/GiftedChatComponent';
 import { convertMessageGiftedChatToMessage } from '../../../function/convertMessageGiftedChatToMessage';
 import host from '../../../configHost'
 import { useFocusEffect } from '@react-navigation/native';
+// import {ZegoSendCallInvitationButton} from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
-
 const Chat = ({ navigation, route }) => {
     const { width, height } = Dimensions.get('window');
     const dispatch = useDispatch();
@@ -30,7 +30,7 @@ const Chat = ({ navigation, route }) => {
     const [position, setPosition] = useState({ start: 0, end: 0 });
     const [showEmoji, setShowEmoji] = useState(false);
     const [messLoad, setMessLoad] = useState([]);
-
+   const [seenMessages, setSeenMessages] = useState([]);
     // message when long press
     const [messTarget, setMessTarget] = useState();
 
@@ -43,7 +43,7 @@ const Chat = ({ navigation, route }) => {
     // message reducer
     const receiverId = useSelector((state) => state.message.id);
     const messages = useSelector((state) => state.message.messages)
-
+//user online
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
     const [uriVideo, setUriVideo] = useState(null);
@@ -53,7 +53,6 @@ const Chat = ({ navigation, route }) => {
     const [sizeVideo, setSizeVideo] = useState(0);
     const [sizeAudio, setSizeAudio] = useState(0);
     const [durationInSeconds, setdurationInSeconds] = useState(0);
-
     let listMember = useRef([]);
 
     // visible modal recall message, forward message, delete message
@@ -74,32 +73,72 @@ const Chat = ({ navigation, route }) => {
     const [visibleMessageForward, setVisibleMessageForward] = useState(false);
     const showModalMessageForward = () => setVisibleMessageForward(true);
     const hideModalMessageForward = () => setVisibleMessageForward(false);
-
+    //user online
+ const usersOnline = useSelector((state) => state.user.listUserOnline);
+    const [online, setOnline] = useState(usersOnline.includes(receiverId)?true:false);
+    const [userStatus, setUserStatus] = useState(online?"Đang hoạt động":"Offline");
     useEffect(() => {
+        //  useFocusEffect(
+        // React.useCallback(() => {
         navigation.setOptions({
             title: route.params.userName ? route.params.userName : route.params.nameGroup,
+                 headerTitleContainerStyle: {
+            flexDirection: 'column' 
+        },
             headerRight: () => (
                 <View style={{
-                    width: 120,
                     height: 50,
                     flexDirection: 'row',
-                    paddingHorizontal: 20,
+                    paddingHorizontal: 10,
                     justifyContent: 'space-between',
                     alignItems: 'center'
                 }}>
-                    <FontAwesome name="search" size={35} color="white" />
-                    <TouchableOpacity style={{ width: 35 }}
-                        onPress={() => navigation.navigate('OptionChat', route.params)}>
-                        <Entypo name="menu" size={40} color="white" />
-                    </TouchableOpacity>
+                            <View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+               {online && <Entypo name="dot-single" size={20} color="green" />}
+    <Text style={{ color: online ? 'green' : 'red' }}>{userStatus}</Text>
+</View>
+          </View>
+                    <View style={{ flexDirection: 'row' }}>
+                        {/* <ZegoSendCallInvitationButton
+                            invitees={[
+                                {
+                                    userID: route.params.id,
+                                    userName: route.params.userName,
+                                },
+                            ]}
+                            isVideoCall={false}
+                            backgroundColor={'cyan'}
+                        /> */}
+                        {/* <Ionicons name="call" size={35} color="white" /> */}
+                        {/* <Entypo style={{ marginHorizontal: 5 }} name="video-camera" size={35} color="white" /> */}
+                        {/* <ZegoSendCallInvitationButton
+                            invitees={[
+                                {
+                                    userID: route.params.id,
+                                    userName: route.params.userName,
+                                },
+                            ]}
+                            isVideoCall={true}
+                            backgroundColor={'cyan'}
+                        /> */}
+                        <TouchableOpacity style={{ width: 35 }}
+                            onPress={() => navigation.navigate('OptionChat', route.params)}>
+                            <Entypo name="menu" size={40} color="white" />
+                        </TouchableOpacity>
+                    </View>
+             
                 </View>
-            )
+            ),
+        headerSubtitleStyle: {
+        color: online ? 'green' : 'red'
+    },
+        headerSubtitle: userStatus
         });
 
         const socket = new SockJS(`${host}ws`);
         stompClient.current = Stomp.over(socket);
-        stompClient.current.connect({}, onConnected, onError);
-
+        stompClient.current.connect({login:sender.id}, onConnected, onError);
         if (receiverId !== route.params.id) {
             toggleDialog3();
             dispatch(saveReceiverId(route.params.id));
@@ -119,7 +158,7 @@ const Chat = ({ navigation, route }) => {
                     else setVisible3(false);
                 });
         }
-    }, []);
+    }, [online, userStatus,receiverId,sender.id]);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -131,6 +170,7 @@ const Chat = ({ navigation, route }) => {
         }, [])
     );
 
+
     useEffect(() => {
         if (messLoad.length > 0){
             dispatch(saveMess(messLoad.reverse()));
@@ -141,6 +181,29 @@ const Chat = ({ navigation, route }) => {
     useEffect(() => {
         hideModal()
     }, [messages]);
+//Kiểm tra user online
+  useEffect(() => {
+    console.log("User online:", usersOnline);
+    console.log("Receiver id:", receiverId);
+    if (Array.isArray(usersOnline) && receiverId) {
+        const isOnline = usersOnline.includes(receiverId);
+        console.log("Is online:", isOnline);
+        setOnline(isOnline);
+        if(isOnline) {
+        setUserStatus(online?"Đang hoạt động":"Offline");
+        }
+    }
+}, [usersOnline, receiverId]);
+//Check trạng thái user online
+useEffect(() => {
+    console.log('User status:', userStatus);
+}, [userStatus]);
+useEffect(() => {
+  setUserStatus(online?"Đang hoạt động":"Offline");
+}, [online]);
+useEffect(() => {
+    console.log('Danh sách người dùng trực tuyến:', usersOnline);
+  }, [usersOnline]);
 
     const getListMember = async () => {
         let api = `${host}messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
@@ -153,8 +216,28 @@ const Chat = ({ navigation, route }) => {
             console.log(error);
         }
     }
-
+// const onMessageSeen = async (payload) => {
+//     console.log('đã vào');
+//     console.log(payload.body);
+//     const messageSeen = JSON.parse(payload.body);
+//         setSeenMessages(prevSeenMessages => [...prevSeenMessages, messageSeen.id]);
+//       console.log(messageSeen);
+// };
     function onConnected() {
+        //   stompClient.current.subscribe('/user/' + sender.id + '/SeenMessageSingle', (payload)=>{
+        //     let messageSeen = JSON.parse(payload.body);
+        //     setSeenMessages(prevSeenMessages => [...prevSeenMessages, messageSeen.id]);
+        //     console.log(messageSeen);
+        // })
+       stompClient.current.subscribe('/user/' + sender.id + '/ListUserOnline', (payload) => {
+        console.log("Màn hình Chat", payload.body);
+        const newUsersOnlineData = JSON.parse(payload.body);
+        dispatch(updateListUserOnline(newUsersOnlineData));
+        console.log(newUsersOnlineData);
+        const isOnline = Array.isArray(newUsersOnlineData) && newUsersOnlineData.includes(receiverId);
+        setOnline(isOnline);
+        setUserStatus(isOnline ? "Đang hoạt động" : "Offline");
+    });
         stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
             let message = JSON.parse(payload.body)
             let members = message.members;
@@ -164,9 +247,10 @@ const Chat = ({ navigation, route }) => {
                 navigation.navigate('ListChat')
             }
         })
+         
         // stompClient.current.subscribe('/user/' + sender.id + '/react-message', onReactMessage)
     }
-
+    
     // const onReactMessage = (payload) => {
     //     const message = JSON.parse(payload.body);
     //     dispatch(reactMessage({ id: message.id, react: message.react }));
@@ -316,9 +400,28 @@ const Chat = ({ navigation, route }) => {
             textInputRef.current.focus();
         }
     };
+ const renderMessageText = (props) => {
+        const { currentMessage } = props;
+        console.log(currentMessage._id);
+        if (currentMessage.pending) {
+            return null;
+        } else if (seenMessages.includes(currentMessage._id)) {
+            return (
+                <View>
+                    <Text style={{ color: 'red' }}>Đã xem</Text>
+                </View>
+            );
+        } else {
+            return <MessageText {...props} />;
+        }
+    };
 
     return (
-        <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
+        <View style={{ width: width,height: height - 80, justifyContent: 'space-between' }}>
+                  {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ color: online ? 'green' : 'red' }}>{online ? 'Đang hoạt động' : 'Offline'}</Text>
+                {online && <Entypo name="dot-single" size={20} color="green" />}
+            </View> */}
             <KeyboardAvoidingView style={{ flex: 1 }}
                 keyboardVerticalOffset={50}
                 behavior={Platform.OS == "ios" ? "padding" : undefined}
@@ -403,6 +506,8 @@ const Chat = ({ navigation, route }) => {
                             onPressModal2={showModal2}
                             onSelectAudio={handleAudioSelect}
                             handleSend={handleSend}
+                            renderMessageText={renderMessageText}
+                            seenMessages={seenMessages}
                         />
                     </View>
                 </PaperProvider>
@@ -415,9 +520,10 @@ const Chat = ({ navigation, route }) => {
                         setMess(emoji.emoji)
                 }}
                     open={showEmoji} onClose={() => setShowEmoji(false)}
-                />
+/>
             }
         </View>
+        
     );
 }
 

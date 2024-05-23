@@ -84,6 +84,7 @@
     "react-native-websocket": "^1.0.2",
     "react-native-webview": "13.8.6",
     "react-redux": "^9.1.0",
+    "react-router-native": "^6.23.1",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
     "rn-emoji-keyboard": "^1.6.0",

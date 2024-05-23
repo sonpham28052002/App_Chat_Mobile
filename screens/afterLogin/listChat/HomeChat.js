@@ -8,10 +8,11 @@ import UserOptionsScreen from '../user/UserOptionScreen';
 const Stack = createStackNavigator();
 
 
-const HomeChat = () => {
+const HomeChat = ({route}) => {
   return (
     <Stack.Navigator>
         <Stack.Screen name="ListChat" component={ListChat} 
+        initialParams={{ id: route.params.id }}
         options={{
           headerShown: false
         }}

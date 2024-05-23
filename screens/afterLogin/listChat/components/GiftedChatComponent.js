@@ -9,14 +9,10 @@ import VideoMessage from '../../../../components/VideoMesssage';
 import AudioMessage from '../../../../components/AudioMessage';
 import MessageCustom from '../../../../components/MessageCustom';
 import ImageMessage from '../../../../components/ImageMessage';
+import CallMessage from '../../../../components/CallMessage';
 
 const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, user, onLongPress, mess, onChangeText, position, onSelectionChange, textInputRef, onPressModal2, onSelectAudio, handleSend, fileExtension, messageReply, onCloseReply }) => {
     const { width } = Dimensions.get('window')
-    const [messageGiftedChat, setMessageGiftedChat] = React.useState(messages)
-
-    React.useEffect(() => {
-        setMessageGiftedChat(messages)
-    }, [messages])
 
     const renderBubble = (props) => {
         const { currentMessage } = props;
@@ -35,6 +31,8 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
             return <MessageCustom currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false} />
         if (currentMessage.image)
             return <ImageMessage currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false}/>
+        if (currentMessage.call)
+            return <CallMessage currentMessage={currentMessage} isSender={currentMessage.user._id == senderId ? true : false} nameUser={currentMessage.user.name}/>
         return null
     }
 
@@ -48,7 +46,7 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
     return (
         <GiftedChat
             renderInputToolbar={(props) =>
-                (!status || status == "ACTIVE" || 
+                ( !status || status == "ACTIVE" || 
                 ( status == "READ_ONLY" && (memberType == "DEPUTY_LEADER" || memberType == "GROUP_LEADER")) ||
                 ( status == "CHANGE_IMAGE_AND_NAME_ONLY" && (memberType == "DEPUTY_LEADER" || memberType == "GROUP_LEADER")))?
                 <View style={{ flexDirection: 'row', width: width, backgroundColor: 'white', alignItems: 'center' }}>
@@ -57,12 +55,14 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
                             <Entypo name="emoji-happy" size={35} color='black' />
                         </TouchableOpacity>
                         <View style={{ marginHorizontal: 10, width: width - 180 }}>
-                            <TextInput placeholder="Tin nhắn" style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
+                            <TextInput style={{ backgroundColor: 'white', fontSize: 20, width: '100%' }}
+                                textColor='black'
                                 value={mess}
                                 onChangeText={onChangeText}
                                 selection={position}
                                 ref={textInputRef}
                                 onSelectionChange={onSelectionChange}
+                                placeholder="Tin nhắn" 
                             />
                         </View>
                         <TouchableOpacity style={{ flexDirection: 'row', width: 75, justifyContent: 'space-between' }} onPress={onPressModal2} >
@@ -81,7 +81,7 @@ const GiftedChatComponent = ({ status, memberType, onPress, messages, senderId, 
                     <Text style={{ textAlign: 'center', fontSize: 18, color: 'lightgrey' }}>Chỉ trưởng nhóm và phó nhóm mới được gửi tin nhắn!</Text>
                 </View>
             }
-            messages={messageGiftedChat}
+            messages={messages}
             user={user}
             onLongPress={onLongPress}
             // renderMessage={renderMessage}

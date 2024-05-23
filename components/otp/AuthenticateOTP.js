@@ -1,21 +1,38 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Image } from 'react-native'
 import React from 'react'
 import { OtpInput } from "react-native-otp-entry";
 import ButtonCustom from '../button'
-import { confirmCode } from '../../function/confirmCodeOTP';
+import auth from '@react-native-firebase/auth';
+// import { confirmCode } from '../../function/confirmCodeOTP';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const AuthenticateOTP = ({ route }) => {
+const AuthenticateOTP = ({ navigation, route }) => {
 
     const [code, setCode] = React.useState('')
     const [err, setErr] = React.useState(null)
 
+    async function confirmCode() {
+        const credential = auth.PhoneAuthProvider.credential(route.params.verificationId, code);
+        auth().signInWithCredential(credential)
+            .then((response) => {
+                navigation.navigate(route.params.screen, { id: response.user.uid, phone: route.params.phone })
+            })
+            .catch((error) => {
+                console.log(error)
+                setErr('Mã OTP không đúng!')
+            });
+        ;
+    }
+
     return (
-        <LinearGradient style={{ flex: 1, width: '100%', paddingHorizontal: 10, justifyContent: 'center' }}
+        <LinearGradient style={{ flex: 1, width: '100%', paddingHorizontal: '5%', justifyContent: 'center' }}
             colors={['#7cc0d8', '#FED9B7']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
         >
+            <View style={{ flex: 1, marginVertical: 20, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                <Image source={require('../../assets/bgr.png')} style={{ width: 200, height: 200 }} />
+            </View>
             <View style={{ flex: 1, justifyContent: 'center' }}>
                 <Text style={styles.text}>Mã OTP đã được gửi đến số điện thoại: {route.params.phone}</Text>
             </View>
@@ -34,23 +51,8 @@ const AuthenticateOTP = ({ route }) => {
                         }}
                         onTextChange={(text) => setCode(text)} />
                 </View>
-                <ButtonCustom title={'Xác thực'} backgroundColor={'cyan'} onPress={
-                    () => {
-                        confirmCode(route.params.verificationId, code,
-                            (uid) => { // hàm thực thi sau khi xác thực thành công
-                                setCode('');
-                                route.params.callBack(uid)
-                            },
-                            () => { setErr('Mã OTP không đúng!') }) // hàm thực thi sau khi xác thực thất bại
-                    }
-                } />
+                <ButtonCustom title={'Xác thực'} backgroundColor={'cyan'} onPress={confirmCode} />
                 <Text style={{ color: 'red', fontSize: 20, textAlign: 'center' }}>{err}</Text>
-                {/* <View style={{flexDirection: 'row', marginTop:20}}>
-                    <Text style={styles.text}>Bạn không nhận được mã? </Text>
-                    <TouchableOpacity style={{
-                        fontSize: 20, color: 'blue', justifyContent: 'flex-end', alignItems: 'center'
-                    }}><Text>Gửi lại</Text></TouchableOpacity>
-                </View> */}
             </View>
         </LinearGradient>
     )

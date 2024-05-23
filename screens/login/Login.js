@@ -63,18 +63,12 @@ const Login = ({ navigation }) => {
   };
 
   const handleLoginOtp = (user) => {
-    navigation.navigate('LoginController');
+    navigation.navigate('PhoneInputText', "TabHome");
   };
-
 
   const handleForgotPassword = () => {
     navigation.navigate('ForgotPassword');
   };
-
-  const handleTogglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {

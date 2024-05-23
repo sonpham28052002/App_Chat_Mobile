@@ -14,7 +14,10 @@ import ModalAddFriend from './components/ModalAddFriend';
 import { onMessageReceive } from '../../../function/socket/onReceiveMessage';
 import { getConversation } from '../../../function/getLastConversationByUserId';
 import host from '../../../configHost'
-import { useParams } from 'react-router-native';
+import * as ZIM from 'zego-zim-react-native';
+import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import * as ZPNs from 'zego-zpns-react-native';
+import { onUserLogin } from '../../../function/zegoCloud/onUserLogin';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ListChat = ({ navigation,route }) => {
@@ -129,6 +132,35 @@ const ListChat = ({ navigation,route }) => {
       dispatch(initSocket(true));
     }
   }, [id])
+
+    // ZegoUIKitPrebuiltCallService.init(
+    // 940263346, // You can get it from ZEGOCLOUD's console
+    // '40da48b6a31a24ddfc594d8c998e7bb36a542e86f83697fb889f2b85bf1c572a', // You can get it from ZEGOCLOUD's console
+    // id, // It can be any valid characters, but we recommend using a phone number.
+    // currentUser.userName,
+    // [ZIM, ZPNs],
+    // {
+    //   onIncomingCallDeclineButtonPressed: (navigation) => {
+    //     console.log('onIncomingCallDeclineButtonPressed: ', navigation);
+    //   },
+    //   onIncomingCallReceived: (callID, inviter, type, invitees) => {
+    //     console.log('Incoming call: ', callID, inviter, type, invitees)
+    //   },
+    //   onOutgoingCallRejectedCauseBusy(callID, invitee) {
+    //     console.log('onOutgoingCallRejectedCauseBusy: ', callID, invitee);
+    //   },
+    //   ringtoneConfig: {
+    //     incomingCallFileName: require('../../../assets/ringtone-205162.mp3'),
+    //     outgoingCallFileName: require('../../../assets/happy-pop-1-185286.mp3'),
+    //   },
+    //   androidNotificationConfig: {
+    //     channelID: 'ZegoUIKit',
+    //     channelName: 'ZegoUIKit',
+    //   },
+  //   },
+  // );
+  // }, [])
+
 
   useEffect(() => {
     if(!socketConnected && isConnected){
@@ -450,7 +482,6 @@ useEffect(() => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-      {Platform.OS == "android" && <View style={{ height: 30 }} />}
       <TouchableOpacity onPress={() => navigation.navigate('Search')}
         style={{
           backgroundColor: 'cyan',

@@ -18,7 +18,7 @@ import GiftedChatComponent from './components/GiftedChatComponent';
 import { convertMessageGiftedChatToMessage } from '../../../function/convertMessageGiftedChatToMessage';
 import host from '../../../configHost'
 import { useFocusEffect } from '@react-navigation/native';
-// import {ZegoSendCallInvitationButton} from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import {ZegoSendCallInvitationButton} from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
 const Chat = ({ navigation, route }) => {
@@ -109,10 +109,10 @@ const Chat = ({ navigation, route }) => {
                             ]}
                             isVideoCall={false}
                             backgroundColor={'cyan'}
-                        /> */}
+                        />
                         {/* <Ionicons name="call" size={35} color="white" /> */}
                         {/* <Entypo style={{ marginHorizontal: 5 }} name="video-camera" size={35} color="white" /> */}
-                        {/* <ZegoSendCallInvitationButton
+                        <ZegoSendCallInvitationButton
                             invitees={[
                                 {
                                     userID: route.params.id,
@@ -121,13 +121,12 @@ const Chat = ({ navigation, route }) => {
                             ]}
                             isVideoCall={true}
                             backgroundColor={'cyan'}
-                        /> */}
+                        />
                         <TouchableOpacity style={{ width: 35 }}
                             onPress={() => navigation.navigate('OptionChat', route.params)}>
                             <Entypo name="menu" size={40} color="white" />
                         </TouchableOpacity>
                     </View>
-             
                 </View>
             ),
         headerSubtitleStyle: {

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1071228614114",
+    "project_id": "zalo-chats-10f1e",
+    "storage_bucket": "zalo-chats-10f1e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1071228614114:android:981388215c232de72f35bb",
+        "android_client_info": {
+          "package_name": "com.sonnguyen1105.appchatmobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1071228614114-vo9d004cmql9ee0cdr24gjn5jubo8rok.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmIOaOdnL8dcJf1Pn8DFfzowK6WxOGnPg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1071228614114-vo9d004cmql9ee0cdr24gjn5jubo8rok.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

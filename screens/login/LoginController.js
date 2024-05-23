@@ -11,13 +11,13 @@ const LoginController = () => {
       headerShown: false
     }}
     >
-       <Stack.Screen name="PhoneInputText" component={PhoneInputText}
+       {/* <Stack.Screen name="PhoneInputText" component={PhoneInputText}
       initialParams={ {screens: "TabHome"}} 
       options={{title: 'Số điện thoại'}}
       />
       <Stack.Screen name="AuthenticateOTP" component={AuthenticateOTP}
       options={{title: 'Xác thực OTP'}}
-      />
+      /> */}
     </Stack.Navigator>
   )
 }

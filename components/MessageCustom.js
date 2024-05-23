@@ -26,6 +26,7 @@ const MessageCustom = ({ currentMessage, isSender, onLongPress, retrieve }) => {
                         : calcWidthMessage(currentMessage.text, 11) > calcWidthMessage(currentMessage.replyMessage.userName, 9) ? calcWidthMessage(currentMessage.text, 11) : calcWidthMessage(currentMessage.replyMessage.userName, 9)
                     : calcWidthMessage(currentMessage.text, 11)
             }} onLongPress={onLongPress}>
+                <Text style={{ fontWeight: 'bold' }}>{currentMessage.user.name}</Text>
                 {!retrieve ? <TouchableOpacity onLongPress={onLongPress}>
                     {currentMessage.replyMessage &&
                         <TouchableOpacity style={{ borderLeftWidth: 4, borderLeftColor: '#70faf3', paddingLeft: 5 }}>

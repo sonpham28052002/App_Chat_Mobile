@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Dimensions, StyleSheet, TouchableOpacity, Text, View, Platform, Alert } from 'react-native';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+// import { BarCodeScanner } from 'expo-barcode-scanner';
 import BarcodeMask from 'react-native-barcode-mask';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSelector } from 'react-redux';
@@ -54,13 +54,13 @@ export default function ScanQR({ navigation }) {
   }, [timeLeft, scanned]);
 
   useEffect(() => {
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-      if (status === 'granted' && !userScan) { 
-        setCameraVisible(true);
-      }
-    })();
+    // (async () => {
+    //   const { status } = await BarCodeScanner.requestPermissionsAsync();
+    //   setHasPermission(status === 'granted');
+    //   if (status === 'granted' && !userScan) { 
+    //     setCameraVisible(true);
+    //   }
+    // })();
   }, [userScan]);
 
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function ScanQR({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      {cameraVisible && !userScan && (
+      {/* {cameraVisible && !userScan && (
         <BarCodeScanner
           onBarCodeScanned={handleBarCodeScanned}
           barCodeTypes={[BarCodeScanner.Constants.BarCodeType.qr]}
@@ -188,7 +188,7 @@ export default function ScanQR({ navigation }) {
           </TouchableOpacity>
           <Text style={styles.timerText}>Thời gian còn lại: {timeLeft}s</Text>
         </View>
-      )}
+      )} */}
     </View>
   );
 }

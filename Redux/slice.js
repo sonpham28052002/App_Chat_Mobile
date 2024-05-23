@@ -106,25 +106,6 @@ const messSlice = createSlice({
   }
 });
 
-// const chatSlice = createSlice({
-//   name: 'chat',
-//   initialState: {
-//     conversations: [],
-//   },
-//   reducers: {
-//     deleteConversation: (state, action) => {
-//       state.conversations = state.conversations.filter(conversation => {
-//         if (conversation.user && conversation.user.id !== action.payload) {
-//           return true;
-//         } else if (conversation.conversationType === 'group') {
-//           return false;
-//         }
-//         return false;
-//       });
-//     },
-//   },
-// });
-
 const socketSlice = createSlice({
   name: 'socket',
   initialState: {

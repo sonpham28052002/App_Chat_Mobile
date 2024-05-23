@@ -7,6 +7,7 @@ import { updateAvatar } from "../../../Redux/slice";
 import { CommonActions } from '@react-navigation/native';
 import { initSocket } from "../../../Redux/slice";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
 const UserProfile = ({ navigation }) => {
     const name = useSelector((state) => state.account.userName);
     const avt = useSelector((state) => state.account.avt);
@@ -22,6 +23,8 @@ const UserProfile = ({ navigation }) => {
     }, [isFocused]);
 
     const handleLogout = async () => {
+        if(ZegoUIKitPrebuiltCallService)
+            ZegoUIKitPrebuiltCallService.uninit();
         const logoutAsyncStorage = async () => {
             try {
                 await AsyncStorage.setItem('isLoggedIn', 'false');

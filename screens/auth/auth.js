@@ -29,11 +29,6 @@ export default function Auth() {
       <Stack.Navigator screenOptions={{ headerShown: true }}>
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen name="LoginOtp" component={LoginOtp} options={{ headerShown: false }} />
-        {/* <Stack.Screen name="LoginController" component={LoginController}
-          options={{
-            headerShown: false
-          }}
-        /> */}
         <Stack.Screen name="PhoneInputText" component={PhoneInputText} options={{ headerShown: false }} />
         <Stack.Screen name="AuthenticateOTP" component={AuthenticateOTP} options={{ headerShown: false }} />
         <Stack.Screen name="Register" options={{ headerShown: false }} component={Register} />
@@ -42,16 +37,7 @@ export default function Auth() {
         <Stack.Screen name="TabHome" component={TabHome} options={{ headerShown: false }} />
         <Stack.Screen name="UserProfile" component={UserProfile} />
         <Stack.Screen name="ListChat" component={ListChat} />
-        <Stack.Screen name="Chat" component={Chat}
-          options={{
-            headerStyle: {
-              backgroundColor: 'cyan',
-            },
-            headerTitleStyle: {
-              fontSize: 20,
-            }
-          }}
-        />
+        <Stack.Screen name="Chat" component={Chat} options={{ headerStyle: { backgroundColor: 'cyan' }, headerTitleStyle: { fontSize: 20 }}} />
         <Stack.Screen name="OptionChat" component={OptionChat} />
         <Stack.Screen
           name="OptionChat2"

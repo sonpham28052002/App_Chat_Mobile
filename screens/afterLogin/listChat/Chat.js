@@ -174,15 +174,15 @@ const Chat = ({ navigation, route }) => {
     }
 
     function onConnected() {
-        stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
-            let message = JSON.parse(payload.body)
-            let members = message.members;
-            let isRemove = members.filter(item => item.member.id == sender.id && item.memberType == "LEFT_MEMBER");
-            if(route.params.id === message.idGroup && isRemove.length > 0){
-                Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
-                navigation.navigate('ListChat')
-            }
-        })
+        // stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
+        //     let message = JSON.parse(payload.body)
+        //     let members = message.members;
+        //     let isRemove = members.filter(item => item.member.id == sender.id && item.memberType == "LEFT_MEMBER");
+        //     if(route.params.id === message.idGroup && isRemove.length > 0){
+        //         Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
+        //         navigation.navigate('ListChat')
+        //     }
+        // })
     }
 
     function onError(error) {

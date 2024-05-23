@@ -45,16 +45,31 @@ const getMessage = async (sender, receiver) => {
                     } : null
                 }
                 if(message.messageType === 'NOTIFICATION'){
-                    if(message.content === "đã tạo nhóm.")
+                    if(["đã tạo nhóm.", "đã rời nhóm"].includes(message.content))
                         newMess.text = getMember(receiver.members, message.sender.id).member.userName+ " " + message.content
-                    else if(message.content === "đã bị mời ra khỏi nhóm bởi")
-                        newMess.text = getMember(receiver.members, message.user.id).member.userName+ " " + message.content + " " + getMember(receiver.members, message.sender.id).member.userName
-                    else if(message.content === "đã được thêm vào nhóm bởi")
-                        newMess.text = getMember(receiver.members, message.user.id).member.userName+ " " + message.content + " " + getMember(receiver.members, message.sender.id).member.userName
-                    else if(message.content === "đã phân phó nhóm cho")
-                        newMess.text = getMember(receiver.members, message.user.id).member.userName+ " " + message.content + " " + getMember(receiver.members, message.sender.id).member.userName
-                    else if(message.content === "tước quyền phó nhóm của")
-                        newMess.text = getMember(receiver.members, message.user.id).member.userName+ " " + message.content + " " + getMember(receiver.members, message.sender.id).member.userName
+                    else {
+                        if(!message.content) newMess.text = "Cuộc gọi nhóm"
+                        else{
+                        const actions = [
+                            "đã phân phó nhóm cho",
+                            "tước quyền phó nhóm của",
+                            "đã nhường quyền trưởng nhóm lại cho"
+                        ];
+                        const actions2 = [
+                            "đã bị mời ra khỏi nhóm bởi",
+                            "đã được thêm vào nhóm bởi"
+                        ]
+                        if (actions.includes(message.content)) {
+                            const user = getMember(receiver.members, message.user.id).member.userName;
+                            const sender = getMember(receiver.members, message.sender.id).member.userName;
+                            newMess.text = `${sender} ${message.content} ${user}`;
+                        } else{
+                            const user = getMember(receiver.members, message.user.id).member.userName;
+                            const sender = getMember(receiver.members, message.sender.id).member.userName;
+                            newMess.text = `${user} ${message.content} ${sender}`;
+                        }
+                    }
+                    }
                     newMess.system = true
                 }
                 else if (message.messageType === 'RETRIEVE')

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView, Platform, Alert } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
 // import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
@@ -19,9 +19,11 @@ import host from '../../../configHost'
 import * as ZIM from 'zego-zim-react-native';
 import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import * as ZPNs from 'zego-zpns-react-native';
+import { getListFriendByUser } from '../../../function/getListFriendByUser';
 import 'react-native-get-random-values';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import { getFriendByUser } from '../../../function/getListFriendByUser';
 const { v4: uuidv4 } = require('uuid');
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ListChat = ({ navigation }) => {
   const { width } = Dimensions.get('window');
@@ -29,22 +31,6 @@ const ListChat = ({ navigation }) => {
   const socketConnected = useSelector((state) => state.socket.connected);
   const [isConnected, setIsConnected] = useState(false);
   const dispatch = useDispatch();
-  // const [account, setAccount] = useState(null);
-  // useEffect(() => {
-  //   const fetchAccount = async () => {
-  //     try {
-  //       const storedAccount = await AsyncStorage.getItem('account');
-  //       if (storedAccount !== null) {
-  //         const parsedAccount = JSON.parse(storedAccount);
-  //         setAccount(parsedAccount.account);
-  //         dispatch(save(parsedAccount.account));
-  //       }
-  //     } catch (error) {
-  //       console.error('Lỗi khi lấy dữ liệu từ AsyncStorage:', error);
-  //     }
-  //   };
-  //   fetchAccount();
-  // }, []);
 
   // account reducer
   const id = useSelector((state) => state.account.id);
@@ -116,14 +102,8 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/requestAddFriend', onRequestAddFriend)
     stompClient.current.subscribe('/user/' + id + '/acceptAddFriend', onAcceptAddFriend)
     stompClient.current.subscribe('/user/' + id + '/react-message', onReactMessage)
-
-    stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onremoveMemberInGroup)
-    // stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
-    // stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
-    // stompClient.current.subscribe('/user/' + id + '/ChangeRoleNotification', (message)=>{
-    //   let mess = JSON.parse(message.body)
-    //   console.log(mess);
-    // })
+    stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onRemoveMemberInGroup)
+    stompClient.current.subscribe('/user/' + id + '/outGroup', onOutGroup)
   }
 
   const onCreateGroup = (payload) => {
@@ -146,48 +126,31 @@ const ListChat = ({ navigation }) => {
   const onReceiveMessage = (payload) => {
     const message = JSON.parse(payload.body);
     let userId = message.sender.id == id ? message.receiver.id : message.sender.id;
-    let index = conversations.findIndex(conv => conv.user && conv.user.id === userId);
+    let index = conversationsRef.current.findIndex(conv => conv.user && conv.user.id === userId);
     //update message in listchat
-    if (index === -1) {
-      getConversation(id).then(conv => {
-        if (message.sender.id !== id) {
-          dispatch(notify({
-            userName: conv.user.userName, avt: conv.user.avt,
-            content: message.messageType === "CALLSINGLE" ? message.titleFile.startsWith('Cuộc gọi') ? '[Cuộc gọi]' : '[Cuộc gọi nhỡ]'
-              : message.messageType === "Text" ? message.content :
-                message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
-                  message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
-                    message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
-                    message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
-                    message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
-            type: 'single-chat'
-          }));
-          dispatch(visibleModal(true));
-        }
-        dispatch(addLastConversation(conv));
-        // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
-        if (checkIsChatting(message.sender.id, message.receiver.id)) {
-          let newMess = onMessageReceive(message,
-            { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
-            conv.user)
-          if (newMess)
-            dispatch(addMess(newMess))
-        }
-      })
-    } else {
+    const dispatchNotification = (conv) => {
       if (message.sender.id !== id) {
         dispatch(notify({
-          userName: conversations[index].user.userName, avt: conversations[index].user.avt,
-          content: message.messageType === "CALLSINGLE" ? '[Cuộc gọi]' : message.messageType === "Text" ? message.content :
-            message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
-              message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
-                message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
-                message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
-                message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
+          userName: conv.user.userName, avt: conv.user.avt,
+          content: message.messageType === "CALLSINGLE" ? message.titleFile.startsWith('Cuộc gọi') ? '[Cuộc gọi]' : '[Cuộc gọi nhỡ]'
+            : message.messageType === "Text" ? message.content :
+              message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
+                message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
+                  message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
+                  message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
+                  message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
           type: 'single-chat'
         }));
         dispatch(visibleModal(true));
       }
+    }
+    if (index === -1) {
+      getConversation(id).then(conv => {
+        dispatchNotification(conv);
+        dispatch(addLastConversation(conv));
+      })
+    } else {
+      dispatchNotification(conversations[index]);
       dispatch(addLastMessage({ message: message, index: index }));
       // kiểm tra xem tin nhắn nhận được có phải tin nhắn với người dùng đang chat hay không
       if (checkIsChatting(message.sender.id, message.receiver.id)) {
@@ -202,34 +165,46 @@ const ListChat = ({ navigation }) => {
 
   const onGroupMessageReceived = (payload) => {
     const message = JSON.parse(payload.body);
+    if(message.memberType === "CALLGROUP") return
     let idGroup = message.receiver.id.split('_')[1];
     let index = conversationsRef.current.findIndex(conv => conv.idGroup === idGroup);
-    dispatch(addLastMessage({ message: message, index: index }));
-    if (message.sender.id !== id)
-      dispatch(notify({
-        userName: conversationsRef.current[index].nameGroup,
-        avt: conversationsRef.current[index].avtGroup,
-        content: message.messageType === "NOTIFICATION" ? "[Thông báo]" :
-        message.messageType === "Text" ? message.content :
-          message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
-            message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
-              message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
-              message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
-              message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
-        type: 'group-chat'
-      }));
-
-    // kiểm tra xem tin nhắn nhận được có phải tin nhắn trong group đang chat hay không
-    if (checkIsChatting(message.sender.id, message.receiver.id)) {
-      getListMember(id, idGroup).then(members => {
-        let newMess = onMessageReceive(message,
-          { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
-          { id: idGroup, members: members })
-        if (newMess)
-          dispatch(addMess(newMess))
+    const dispatchNotification = (conv) => {
+      if (message.sender.id !== id) {
+        dispatch(notify({
+          userName: conv.nameGroup,
+          avt: conv.avtGroup,
+          content: message.messageType === "NOTIFICATION" ? "Bạn đã được thêm vào nhóm" :
+            message.messageType === "Text" ? message.content :
+              message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
+                message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
+                  message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
+                  message.messageType === "PPTX" || message.messageType === "RAR" || message.messageType === "ZIP" ? message.titleFile :
+                  message.messageType === "AUDIO" ? '[Audio]' : message.messageType === "VIDEO" ? '[Video]' : '',
+          type: 'group-chat'
+        }));
+        if (message.messageType !== 'NOTIFICATION' || (message.messageType === 'NOTIFICATION' && message.notificationType === 'ADD_MEMBER') ) dispatch(visibleModal(true));
+      }
+    };
+    if(index == -1)
+      getConversation(id).then(conv => {
+        dispatchNotification(conv);
+        dispatch(addLastConversation(conv));
       })
+    else {
+      dispatchNotification(conversationsRef.current[index]);
+      dispatch(addLastMessage({ message: message, index: index }));
+      // kiểm tra xem tin nhắn nhận được có phải tin nhắn trong group đang chat hay không
+      if (checkIsChatting(message.sender.id, message.receiver.id)) {
+        getListMember(id, idGroup).then(members => {
+          let newMess = onMessageReceive(message,
+            { id: currentUser.id, userName: currentUser.userName, avt: currentUser.avt },
+            { id: idGroup, members: members })
+          if (newMess)
+            dispatch(addMess(newMess))
+        })
+      }
     }
-    if(!message.messageType=='NOTIFICATION') dispatch(visibleModal(true));
+    
   }
 
   const onRetrieveMessage = (payload) => {
@@ -255,7 +230,17 @@ const ListChat = ({ navigation }) => {
     else dispatch(deleteConv(conversation.user.id));
   }
 
-  const onremoveMemberInGroup = (payload) => {
+  const onRemoveMemberInGroup = (payload) => {
+    const message = JSON.parse(payload.body);
+    const userRemovedId = message.lastMessage.user.id;
+    if(userRemovedId === id){
+      Alert.alert(`Bạn đã bị xoá ra khỏi nhóm chat \"${message.nameGroup}\"`)
+      dispatch(deleteConv(message.idGroup));
+      navigation.navigate('ListChat');
+    }
+  }
+
+  const onOutGroup = (payload) => {
 
   }
 
@@ -274,11 +259,13 @@ const ListChat = ({ navigation }) => {
   const onAcceptAddFriend = (payload) => {
     const friendRequest = JSON.parse(payload.body);
     if (friendRequest.sender.id === id) {
-      dispatch(notify({
-        userName: friendRequest.receiver.userName, avt: friendRequest.receiver.avt,
-        type: "accept-add-friend"
-      }));
-      dispatch(visibleModal(true));
+      getFriendByUser(id, friendRequest.receiver.id).then(friend => {
+        dispatch(notify({
+          userName: friend.user.userName, avt: friend.user.avt,
+          type: "accept-add-friend"
+        }));
+        dispatch(visibleModal(true));
+      })
     }
   }
 
@@ -455,7 +442,7 @@ const ListChat = ({ navigation }) => {
             size: 0,
             titleFile: 'Cuộc gọi video từ ',
             url: null
-        };
+          };
           stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
         },
         // onOutgoingCallRejectedCauseBusy: (callID, invitee) => {
@@ -475,7 +462,7 @@ const ListChat = ({ navigation }) => {
             size: 0,
             titleFile: ' từ chối cuộc gọi video từ ',
             url: null
-        };
+          };
           stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
         },
         onIncomingCallTimeout: (callID, inviter) => {
@@ -509,7 +496,7 @@ const ListChat = ({ navigation }) => {
             size: 0,
             titleFile: 'bị nhở cuộc gọi video từ ',
             url: null
-        };
+          };
           stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
         },
         ringtoneConfig: {
@@ -606,7 +593,19 @@ const ListChat = ({ navigation }) => {
                                 || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
                                 'Bạn: ' + item.lastMessage.titleFile :
                                 item.lastMessage.messageType == 'AUDIO' ? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO' ?
-                                  'Bạn: [Video]' : item.lastMessage.content == 'đã bị mời ra khỏi nhóm bởi'? 'Một người tham gia đã bị xoá khỏi nhóm': ''}</Text>
+                                  'Bạn: [Video]' : item.lastMessage.messageType == 'Text' ? 'Bạn: ' + item.lastMessage.content : 
+                                item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' : 
+                                item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' : 
+                                item.lastMessage.content.includes('thêm') ? 'Một thành viên mới được thêm vào nhóm' : 
+                                item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
+                                item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
+                                item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' :
+                                item.lastMessage.content.includes('mời') ? 'Một thành viên đã bị xoá ra khỏi nhóm' : 
+                                item.lastMessage.content.includes('thêm') ? 'Một thành viên mới được thêm vào nhóm' : 
+                                item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
+                                item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
+                                item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' :
+                                ''}</Text>
                         : <Text style={{
                           fontSize: 14, color: item.lastMessage && item.lastMessage.seen ? 'grey' : 'black',
                           fontWeight: item.lastMessage && item.lastMessage.seen ? 'normal' : 'bold'
@@ -620,7 +619,14 @@ const ListChat = ({ navigation }) => {
                                   || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
                                   item.lastMessage.titleFile :
                                   item.lastMessage.messageType == 'AUDIO' ? '[Audio]' : item.lastMessage.messageType == 'VIDEO' ?
-                                    '[Video]' : item.lastMessage.content
+                                    '[Video]' : item.lastMessage.messageType == 'Text' ? 'Bạn: ' + item.lastMessage.content : 
+                                  item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' :
+                                  item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' :
+                                  item.lastMessage.content.includes('mời') ? 'Một người tham gia đã bị xoá ra khỏi nhóm' :
+                                  item.lastMessage.content.includes('thêm') ? item.lastMessage.user.id === id ? 'Bạn đã được thêm vào nhóm' : 'Một thành viên mới được thêm vào nhóm' :
+                                  item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
+                                  item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
+                                  item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' : ''
                           }</Text> : null
                     }
                   </View>

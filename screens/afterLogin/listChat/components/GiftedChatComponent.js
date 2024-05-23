@@ -34,6 +34,8 @@ const GiftedChatComponent = ({ receiverName, status, memberType, onPress, messag
             return <ImageMessage currentMessage={currentMessage} onLongPress={onLongPressMessage} isSender={currentMessage.user._id == senderId ? true : false}/>
         if (currentMessage.call)
             return <CallMessage currentMessage={currentMessage} isSender={currentMessage.user._id == senderId ? true : false} nameUser={currentMessage.user.name} receiverName={receiverName}/>
+        // if (currentMessage.system)
+        //     return <Text>Hello</Text>
         return null
     }
 

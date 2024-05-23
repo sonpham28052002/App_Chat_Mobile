@@ -31,7 +31,7 @@ const getMessage = async (sender, receiver) => {
                     },
                     retrieve: message.messageType === 'RETRIEVE'? true : false,
                     extraData:{
-                        react: [...message.react]
+                        react: message.react? [...message.react]: []
                     },
                     replyMessage: message.replyMessage? {
                         userName: message.replyMessage.sender.id == sender.id ? sender.userName : isGroup ? getMember(receiver.members, message.replyMessage.sender.id).member.userName : receiver.userName,
@@ -44,7 +44,35 @@ const getMessage = async (sender, receiver) => {
                             : ''
                     } : null
                 }
-                if (message.messageType === 'RETRIEVE')
+                if(message.messageType === 'NOTIFICATION'){
+                    if(["đã tạo nhóm.", "đã rời nhóm"].includes(message.content))
+                        newMess.text = getMember(receiver.members, message.sender.id).member.userName+ " " + message.content
+                    else {
+                        if(!message.content) newMess.text = "Cuộc gọi nhóm"
+                        else{
+                        const actions = [
+                            "đã phân phó nhóm cho",
+                            "tước quyền phó nhóm của",
+                            "đã nhường quyền trưởng nhóm lại cho"
+                        ];
+                        const actions2 = [
+                            "đã bị mời ra khỏi nhóm bởi",
+                            "đã được thêm vào nhóm bởi"
+                        ]
+                        if (actions.includes(message.content)) {
+                            const user = getMember(receiver.members, message.user.id).member.userName;
+                            const sender = getMember(receiver.members, message.sender.id).member.userName;
+                            newMess.text = `${sender} ${message.content} ${user}`;
+                        } else{
+                            const user = getMember(receiver.members, message.user.id).member.userName;
+                            const sender = getMember(receiver.members, message.sender.id).member.userName;
+                            newMess.text = `${user} ${message.content} ${sender}`;
+                        }
+                    }
+                    }
+                    newMess.system = true
+                }
+                else if (message.messageType === 'RETRIEVE')
                     newMess.text = "Tin nhắn đã bị thu hồi!";
                 else if (message.content)
                     newMess.text = message.content

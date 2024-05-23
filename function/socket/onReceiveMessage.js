@@ -30,10 +30,23 @@ function addMessage(message, type){
                                     : ''
         } : null
     };
-    if (message.content)
+    if (message.messageType == 'NOTIFICATION') {
+        if (message.content == "đã bị mời ra khỏi nhóm bởi")
+            newMessage.text = getMember(message.user.id).member.userName + " " + message.content + " " + getMember(message.sender.id).member.userName;
+        else if (message.content == "đã được thêm vào nhóm bởi")
+            newMessage.text = getMember(message.user.id).member.userName + " " + message.content + " " + getMember(message.sender.id).member.userName;
+        else if (message.content == "đã phân phó nhóm cho")
+            newMessage.text = getMember(message.user.id).member.userName + " " + message.content + " " + getMember(message.sender.id).member.userName;
+        else if (message.content == "tước quyền phó nhóm của")
+            newMessage.text = getMember(message.user.id).member.userName + " " + message.content + " " + getMember(message.sender.id).member.userName;
+        newMessage.system = true;
+    }
+    else if (message.content)
         newMessage.text = message.content;
     else {
-        if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
+        if (message.messageType == 'CALLSINGLE')
+            newMessage.call = message.titleFile
+        else if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
             newMessage.image = message.url;
         else if (message.messageType == 'AUDIO')
             newMessage.audio = message.url;

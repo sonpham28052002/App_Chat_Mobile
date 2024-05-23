@@ -11,19 +11,36 @@ export const onUserLogin = async (userID, userName) => {
     userName,
     [ZIM, ZPNs],
     {
-      // onIncomingCallDeclineButtonPressed: (navigation) => {
-      //   const id = uuidv4();
-      //   const messageSend = {
-
-      //   };
-      //   stompClient.current.send("/app/private-single-message", {}, JSON.stringify(messageSend));
-      // },
-      // onIncomingCallReceived: (callID, inviter, type, invitees) => {
-      //   console.log('Incoming call: ', callID, inviter, type, invitees)
-      // },
-      // onOutgoingCallRejectedCauseBusy(callID, invitee) {
-      //   console.log('onOutgoingCallRejectedCauseBusy: ', callID, invitee);
-      // },
+      onIncomingCallDeclineButtonPressed: (navigation) => {
+        console.log('onIncomingCallDeclineButtonPressed: ', navigation);
+      },
+      onIncomingCallAcceptButtonPressed: (navigation) => {
+        console.log('onIncomingCallAcceptButtonPressed: ', navigation);
+      },
+      onOutgoingCallCancelButtonPressed: (navigation, callID, invitees, type) => {
+        console.log('onOutgoingCallCancelButtonPressed: ', navigation, callID, invitees, type);
+      },
+      onIncomingCallReceived: (callID, inviter, type, invitees) => {
+        console.log('Incoming call: ', callID, inviter, type, invitees)
+      },
+      onIncomingCallCanceled: (callID, inviter) => {
+        console.log('Incoming call canceled: ', callID, inviter)
+      },
+      onOutgoingCallAccepted: (callID, invitee) => {
+        console.log('Outgoing call accepted: ', callID, invitee)
+      },
+      onOutgoingCallRejectedCauseBusy: (callID, invitee) => {
+        console.log('onOutgoingCallRejectedCauseBusy: ', callID, invitee);
+      },
+      onOutgoingCallDeclined: (callID, invitee) => {
+        console.log('Outgoing call declined: ', callID, invitee)
+      },
+      onIncomingCallTimeout: (callID, inviter) => {
+        console.log('Incoming call timeout: ', callID, inviter)
+      },
+      onOutgoingCallTimeout: (callID, invitees) => {
+        console.log('Outgoing call timeout: ', callID, invitees)
+      },
       ringtoneConfig: {
         incomingCallFileName: require('../../assets/ringtone-205162.mp3'),
         outgoingCallFileName: require('../../assets/happy-pop-1-185286.mp3'),

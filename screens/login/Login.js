@@ -20,10 +20,9 @@ const Login = ({ navigation }) => {
   const [showError, setShowError] = useState(false);
   const dispatch = useDispatch();
   const phoneInput = useRef(null);
-  const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('84814929002');
+  const [phoneNumberWithoutPlus, setPhoneNumberWithoutPlus] = useState('84387866829');
 
   const handleLogin = async () => {
-    // navigation.navigate("TabHome");
     let found = false;
     try {
       // Gọi API để kiểm tra tài khoản
@@ -41,7 +40,6 @@ const Login = ({ navigation }) => {
           console.log("Dữ liệu đã lưu vào AsyncStorage:", 
           await AsyncStorage.getItem('account'));
           navigation.navigate("TabHome", { id: userRes.data.id });
-        
         }
       } else {
         if (!found) {
@@ -63,7 +61,7 @@ const Login = ({ navigation }) => {
   };
 
   const handleLoginOtp = (user) => {
-    navigation.navigate('PhoneInputText', "TabHome");
+    navigation.navigate('PhoneInputText', { screen: "TabHome" });
   };
 
   const handleForgotPassword = () => {
@@ -78,22 +76,22 @@ const Login = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
- useEffect(() => {
+  useEffect(() => {
     const checkLoginStatus = async () => {
       try {
         const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
-       if (isLoggedIn === 'true') {
-  const accountString = await AsyncStorage.getItem('account');
-  if (accountString) {
-    const account = JSON.parse(accountString);
-    // dispatch(save(account));
-   navigation.navigate("TabHome", { id: account.account });
-  } else {
-    navigation.navigate("Login");
-  }
-} else {
-  navigation.navigate("Login");
-}
+        if (isLoggedIn === 'true') {
+          const accountString = await AsyncStorage.getItem('account');
+          if (accountString) {
+            const account = JSON.parse(accountString);
+            // dispatch(save(account));
+            navigation.navigate("TabHome", { id: account.account });
+          } else {
+            navigation.navigate("Login");
+          }
+        } else {
+          navigation.navigate("Login");
+        }
 
       } catch (error) {
         console.error('Lỗi khi kiểm tra trạng thái đăng nhập:', error);
@@ -110,16 +108,16 @@ const Login = ({ navigation }) => {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <TouchableOpacity style={{ width: '100%', height: 50, paddingVertical: 10, alignItems: "center", justifyContent: 'center', backgroundColor: "#1fadea" }}>
+        <View style={{ width: '100%', height: 50, alignItems: "center", justifyContent: 'center', backgroundColor: "#1fadea" }}>
           <Text style={{ color: "#fdf8f8", fontSize: 30 }}>Đăng nhập</Text>
-        </TouchableOpacity>
+        </View>
         <View style={{ height: 200, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
           <Image source={require('../../assets/bgr.png')} style={{ width: 200, height: 200 }} />
         </View>
         {showError && (
           <Text style={{ color: "red", fontSize: 16, marginHorizontal: 15 }}>{error}</Text>
         )}
-        <View style={{ justifyContent: 'center', height: 100, marginTop:10, alignContent: 'center', paddingHorizontal: 10 }}>
+        <View style={{ justifyContent: 'center', height: 100, marginTop: 10, alignContent: 'center', paddingHorizontal: 10 }}>
           <View style={{ flex: 1, justifyContent: 'center', width: '100%' }}>
             <PhoneInput ref={phoneInput}
               initialCountry='vn'
@@ -153,7 +151,7 @@ const Login = ({ navigation }) => {
             <InputPassword setPassword={setPassword} placeholder="Nhập mật khẩu" />
           </View>
         </View>
-        <View style={{ marginTop: 10, height: 50}}>
+        <View style={{ marginTop: 10, height: 50 }}>
           <Text style={{ color: "#2752eb", marginLeft: 10, fontSize: 20, textDecorationLine: "underline", textDecorationColor: "#2752eb" }} onPress={handleForgotPassword}>Lấy lại mật khẩu</Text>
         </View>
 
@@ -170,7 +168,7 @@ const Login = ({ navigation }) => {
             <Text style={styles.buttonTextOtp}>Đăng nhập bằng OTP</Text>
           </TouchableOpacity>
         </View>
-        <Text style={{ color: "#635b5b", fontSize: 12, marginLeft: 126}}>Các câu hỏi thường gặp</Text>
+        <Text style={{ color: "#635b5b", fontSize: 12, marginLeft: 126 }}>Các câu hỏi thường gặp</Text>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -205,7 +203,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#1faeeb",
     borderRadius: 20,
-    height: 50,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 13,

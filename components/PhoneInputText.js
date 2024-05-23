@@ -1,20 +1,14 @@
 import { View, Image } from 'react-native'
 import React, { useRef, useState, useEffect } from 'react'
 import ButtonCustom from './button'
-// // import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
-// // import { firebaseConfig } from '../config'
-// import { sendVerification } from '../function/sendVerification';
+import { Dialog } from '@rneui/themed';
 import PhoneInput from "react-native-phone-input";
 import auth from '@react-native-firebase/auth';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const PhoneInputText = ({ navigation, route }) => {
 
-  // If null, no SMS has been sent
-  const [confirm, setConfirm] = useState(null);
-
-  // verification code (OTP - One-Time-Passcode)
-  const [code, setCode] = useState('');
+  const [visible, setVisible] = useState(false);
 
   const phoneInput = useRef(null);
   const [phone, setPhone] = useState('');
@@ -39,11 +33,12 @@ const PhoneInputText = ({ navigation, route }) => {
 
   // Handle the button press
   async function signInWithPhoneNumber() {
+    setVisible(true);
     const confirmation = await auth().verifyPhoneNumber(phone);
     navigation.navigate('AuthenticateOTP', {
-      phone: phone,
+      phone: phone.slice(1),
       verificationId: confirmation.verificationId,
-      screen: route.params.screens
+      screen: route.params.screen
     })
   }
 
@@ -108,6 +103,9 @@ const PhoneInputText = ({ navigation, route }) => {
         />
       } */}
       </View>
+      <Dialog isVisible={visible}>
+        <Dialog.Loading />
+      </Dialog>
     </LinearGradient>
   )
 }

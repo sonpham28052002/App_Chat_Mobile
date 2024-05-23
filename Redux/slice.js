@@ -73,7 +73,6 @@ const messSlice = createSlice({
     },
     saveMess: (state, action) => {
       state.messages = action.payload;
-      // state = {...state, messages: action.payload}
     },
     addMess: (state, action) => {
       if(action.payload.pending == false){
@@ -105,25 +104,6 @@ const messSlice = createSlice({
         state.messages[index].extraData.react = action.payload.react;
     }
   }
-});
-
-const chatSlice = createSlice({
-  name: 'chat',
-  initialState: {
-    conversations: [],
-  },
-  reducers: {
-    deleteConversation: (state, action) => {
-      state.conversations = state.conversations.filter(conversation => {
-        if (conversation.user && conversation.user.id !== action.payload) {
-          return true;
-        } else if (conversation.conversationType === 'group') {
-          return false;
-        }
-        return false;
-      });
-    },
-  },
 });
 
 const socketSlice = createSlice({
@@ -159,6 +139,16 @@ const modalSlice = createSlice({
   },
 });
 
+// const callSlice = createSlice({
+//   name: 'call',
+//   initialState: '',
+//   reducers: {
+//     callAction: (action) => {
+//       state = action.payload;
+//     },
+//   },
+// });
+
 export const { save, updateAvatar,updateCoverImage, updateLastMessage, addToFriendList, addLastMessage, 
                 retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
                 removeFriend, addFriendRequest } = accountSlice.actions;
@@ -166,8 +156,10 @@ export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reac
 // export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;
 export const { visibleModal, notify } = modalSlice.actions;
+// export const { callAction } = callSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;
-export const chatReducer = chatSlice.reducer
+// export const chatReducer = chatSlice.reducer
 export const socketReducer = socketSlice.reducer;
 export const modalReducer = modalSlice.reducer;
+// export const callReducer = callSlice.reducer;

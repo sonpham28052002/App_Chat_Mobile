@@ -7,7 +7,7 @@ const MessageCustom = ({ currentMessage, isSender, onLongPress, retrieve }) => {
 
     const calcWidthMessage = (message, size) => {
         const length = message.length * size
-        if (length < 65) return 85
+        if (length < 160) return 180
         if (length < width - 130) return length + 20
         return width - 150
     }

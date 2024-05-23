@@ -1,6 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StyleSheet } from 'react-native';
 import Login from '../login/Login'
 import Register from '../register/Register'
 import LoginOtp from '../login/LoginOtp.js';
@@ -30,11 +29,6 @@ export default function Auth() {
       <Stack.Navigator screenOptions={{ headerShown: true }}>
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen name="LoginOtp" component={LoginOtp} options={{ headerShown: false }} />
-        {/* <Stack.Screen name="LoginController" component={LoginController}
-          options={{
-            headerShown: false
-          }}
-        /> */}
         <Stack.Screen name="PhoneInputText" component={PhoneInputText} options={{ headerShown: false }} />
         <Stack.Screen name="AuthenticateOTP" component={AuthenticateOTP} options={{ headerShown: false }} />
         <Stack.Screen name="Register" options={{ headerShown: false }} component={Register} />
@@ -43,16 +37,7 @@ export default function Auth() {
         <Stack.Screen name="TabHome" component={TabHome} options={{ headerShown: false }} />
         <Stack.Screen name="UserProfile" component={UserProfile} />
         <Stack.Screen name="ListChat" component={ListChat} />
-        <Stack.Screen name="Chat" component={Chat}
-          options={{
-            headerStyle: {
-              backgroundColor: 'cyan',
-            },
-            headerTitleStyle: {
-              fontSize: 20,
-            }
-          }}
-        />
+        <Stack.Screen name="Chat" component={Chat} options={{ headerStyle: { backgroundColor: 'cyan' }, headerTitleStyle: { fontSize: 20 }}} />
         <Stack.Screen name="OptionChat" component={OptionChat} />
         <Stack.Screen
           name="OptionChat2"
@@ -84,27 +69,18 @@ export default function Auth() {
           }}
         />
         <Stack.Screen
-                options={{ headerShown: false }}
-                // DO NOT change the name 
-                name="ZegoUIKitPrebuiltCallWaitingScreen"
-                component={ZegoUIKitPrebuiltCallWaitingScreen}
-            />
-            <Stack.Screen
-                options={{ headerShown: false }}
-                // DO NOT change the name
-                name="ZegoUIKitPrebuiltCallInCallScreen"
-                component={ZegoUIKitPrebuiltCallInCallScreen}
-            />
+          options={{ headerShown: false }}
+          // DO NOT change the name 
+          name="ZegoUIKitPrebuiltCallWaitingScreen"
+          component={ZegoUIKitPrebuiltCallWaitingScreen}
+        />
+        <Stack.Screen
+          options={{ headerShown: false }}
+          // DO NOT change the name
+          name="ZegoUIKitPrebuiltCallInCallScreen"
+          component={ZegoUIKitPrebuiltCallInCallScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

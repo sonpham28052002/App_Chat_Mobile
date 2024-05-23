@@ -9,7 +9,7 @@ const Register = () => {
     <Stack.Navigator
     >
       <Stack.Screen name="PhoneInputText" component={PhoneInputText}
-      initialParams={ {screens: "CreatePassword"}} // màn hình tiếp theo sau khi xác thực thành công
+      initialParams={{screen: "CreatePassword"}} // màn hình tiếp theo sau khi xác thực thành công
       options={{title: 'Số điện thoại'}}
       />
       <Stack.Screen name="AuthenticateOTP" component={AuthenticateOTP}

@@ -93,7 +93,7 @@ const CreatePassword = ({ navigation, route }) => {
                 <View style={{ height: 230, justifyContent: 'space-between', marginBottom: 20 }}>
                     <TextInput style={{
                         padding: 10,
-                        height: 40,
+                        height: 50,
                         fontSize: 20,
                         borderColor: 'black',
                         borderWidth: 2,

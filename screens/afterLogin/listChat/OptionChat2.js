@@ -21,7 +21,6 @@ function Anh({ route }) {
     try {
       const res = await axios.get(
         `${host}users/getMessageByIdSenderAndIsReceiver?idSender=${account.id}&idReceiver=${route.params.account.id}`
-
       );
       if (res.data) {
         const sortedData = res.data.sort(
@@ -230,7 +229,6 @@ function File({route}) {
         <Text style={styles.fileDetails}>{getNameUserById(item.sender.id)}</Text> 
         <TouchableOpacity style={styles.fileOptionsButton}>
           <Text style={styles.fileOptionsButtonText}>...</Text>
-
         </TouchableOpacity>
       </TouchableOpacity>
     );

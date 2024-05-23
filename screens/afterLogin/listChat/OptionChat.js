@@ -39,8 +39,8 @@ const OptionChat = ({ navigation, route }) => {
         `${host}messages/getMemberByIdSenderAndIdGroup?idSender=${account.id}&idGroup=${route.params.id}`
       )
       .then((res) => {
-      setDataMember(res.data);
-      let arr = res.data.filter((item) => item.memberType !== "LEFT_MEMBER");
+        setDataMember(res.data);
+        let arr = res.data.filter((item) => item.memberType !== "LEFT_MEMBER");
         setMember(arr.length);
       })
       .catch((err) => {
@@ -62,7 +62,7 @@ const OptionChat = ({ navigation, route }) => {
   }, []);
 
   const onConnected = () => {
-    stompClient.current.subscribe('/user/' + account.id + '/outGroup', (payload)=>{
+    stompClient.current.subscribe('/user/' + account.id + '/outGroup', (payload) => {
       navigation.navigate("ListChat")
     })
     // stompClient.current.subscribe('/user/' + id + '/singleChat', onReceiveFromSocket)
@@ -135,7 +135,7 @@ const OptionChat = ({ navigation, route }) => {
     }
   }
   const hadleProfile = () => {
-    navigation.navigate("UserDetailAddFriend",{user:route.params})
+    navigation.navigate("UserDetailAddFriend", { user: route.params })
   }
   return (
     <View style={styles.container}>
@@ -293,7 +293,7 @@ const OptionChat = ({ navigation, route }) => {
             </View>
           </View>
         </View>
-          {isGroup ? null : (<View
+        {isGroup ? null : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -307,8 +307,8 @@ const OptionChat = ({ navigation, route }) => {
             </Text>
           </TouchableOpacity>
         </View>)}
-        
-        {isGroup ? null : ( <View
+
+        {isGroup ? null : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -334,7 +334,7 @@ const OptionChat = ({ navigation, route }) => {
               <View style={{}}>
                 <Text style={styles.text}>Ảnh, file, link đã gửi</Text>
                 <View style={{ flexDirection: "row", gap: 5 }}>
-                  {isGroup? firtFourImageGroup.map((item, index) => {
+                  {isGroup ? firtFourImageGroup.map((item, index) => {
                     return item.messageType === "VIDEO" ? (
                       <Video
                         key={index}
@@ -350,7 +350,7 @@ const OptionChat = ({ navigation, route }) => {
                         style={{ width: 57, height: 67, borderRadius: 10 }}
                       />
                     );
-                  }):firtFourImage.map((item, index) => {
+                  }) : firtFourImage.map((item, index) => {
                     return item.messageType === "VIDEO" ? (
                       <Video
                         key={index}
@@ -395,13 +395,13 @@ const OptionChat = ({ navigation, route }) => {
         >
           <TouchableOpacity style={styles.item}>
             <View style={styles.contentButton}>
-            <Ionicons name="calendar-outline" size={22} color="#767A7F" />
+              <Ionicons name="calendar-outline" size={22} color="#767A7F" />
               <Text style={styles.text}>
                 Lịch nhóm
               </Text>
             </View>
           </TouchableOpacity>
-        </View>): (<View
+        </View>) : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -419,7 +419,7 @@ const OptionChat = ({ navigation, route }) => {
         >
           <TouchableOpacity style={styles.item}>
             <View style={styles.contentButton}>
-            <AntDesign name="pushpino" size={22} color="#767A7F" />
+              <AntDesign name="pushpino" size={22} color="#767A7F" />
               <Text style={styles.text}>
                 Tin nhắn đã ghim
               </Text>
@@ -438,20 +438,20 @@ const OptionChat = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>)}
 
-        {isGroup ? (   <View
+        {isGroup ? (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
-          <TouchableOpacity 
-          onPress={() => {
-            navigation.navigate("ListMemberGroup", { member: dataMember, idGroup: route.params.id});
-          }}
-          style={styles.item}>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("ListMemberGroup", { member: dataMember, idGroup: route.params.id });
+            }}
+            style={styles.item}>
             <View style={styles.contentButton}>
               <Feather name="users" size={22} color="#767A7F" />
               <Text style={styles.text}>Xem thành viên ({member})</Text>
             </View>
           </TouchableOpacity>
-        </View>):(   <View
+        </View>) : (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 1 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -478,11 +478,11 @@ const OptionChat = ({ navigation, route }) => {
         >
           <TouchableOpacity style={styles.item}>
             <View style={styles.contentButton}>
-            <Entypo name="link" size={22} color="#767A7F" />
+              <Entypo name="link" size={22} color="#767A7F" />
               <Text style={styles.text}>Link tham gia nhóm</Text>
             </View>
           </TouchableOpacity>
-        </View>) :  <View
+        </View>) : <View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
           <TouchableOpacity style={styles.item}>
@@ -498,7 +498,7 @@ const OptionChat = ({ navigation, route }) => {
         >
           <TouchableOpacity style={styles.item}>
             <View style={styles.contentButton}>
-            <AntDesign name="pushpino" size={24} color="black" />
+              <AntDesign name="pushpino" size={24} color="black" />
               <Text style={styles.text}>Ghim trò chuyện</Text>
             </View>
           </TouchableOpacity>
@@ -518,7 +518,7 @@ const OptionChat = ({ navigation, route }) => {
         >
           <TouchableOpacity style={styles.item}>
             <View style={styles.contentButton}>
-            <FontAwesome5 name="user-cog" size={22} color="#767A7F" />
+              <FontAwesome5 name="user-cog" size={22} color="#767A7F" />
               <Text style={styles.text}>Cài đặt cá nhân</Text>
             </View>
           </TouchableOpacity>
@@ -551,17 +551,17 @@ const OptionChat = ({ navigation, route }) => {
         {isGroup ? (<View
           style={{ backgroundColor: "white", width: "100%", marginVertical: 2 }}
         >
-          <TouchableOpacity style={styles.item} 
-            onPress={()=>{
+          <TouchableOpacity style={styles.item}
+            onPress={() => {
               let datasend = {
-                userId : account.id,
+                userId: account.id,
                 idGroup: route.params.id
               }
               outGroup(datasend)
             }}
           >
             <View style={styles.contentButton}>
-            <Feather name="log-out" size={22} color="red" />
+              <Feather name="log-out" size={22} color="red" />
               <Text style={styles.text}>Rời nhóm</Text>
             </View>
           </TouchableOpacity>

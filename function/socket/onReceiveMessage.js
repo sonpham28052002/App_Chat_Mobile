@@ -46,6 +46,8 @@ function addMessage(message, type){
     else {
         if (message.messageType == 'CALLSINGLE')
             newMessage.call = message.titleFile
+        else if (message.messageType == 'STICKER')
+            newMessage.image = message.url;
         else if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
             newMessage.image = message.url;
         else if (message.messageType == 'AUDIO')

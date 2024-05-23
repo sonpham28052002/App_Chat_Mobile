@@ -133,7 +133,8 @@ const ListChat = ({ navigation }) => {
         dispatch(notify({
           userName: conv.user.userName, avt: conv.user.avt,
           content: message.messageType === "CALLSINGLE" ? message.titleFile.startsWith('Cuộc gọi') ? '[Cuộc gọi]' : '[Cuộc gọi nhỡ]'
-            : message.messageType === "Text" ? message.content :
+          : message.messageType === "STICKER" ? '[Sticker]'
+          : message.messageType === "Text" ? message.content :
               message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
                 message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
                   message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
@@ -174,7 +175,8 @@ const ListChat = ({ navigation }) => {
           userName: conv.nameGroup,
           avt: conv.avtGroup,
           content: message.messageType === "NOTIFICATION" ? "Bạn đã được thêm vào nhóm" :
-            message.messageType === "Text" ? message.content :
+          message.messageType === "STICKER" ? '[Sticker]' :  
+          message.messageType === "Text" ? message.content :
               message.messageType === "PNG" || message.messageType === "JPG" || message.messageType === "JPEG" ? '[Hình ảnh]' :
                 message.messageType === "PDF" || message.messageType === "DOC" || message.messageType === "DOCX" ||
                   message.messageType === "XLS" || message.messageType === "XLSX" || message.messageType === "PPT" ||
@@ -583,51 +585,57 @@ const ListChat = ({ navigation }) => {
                       </TouchableOpacity>
                     }
                     {
-                      item.lastMessage ? item.lastMessage.sender.id == id ?
-                        <Text style={{ fontSize: 14, color: 'grey' }} numberOfLines={1}>{
-                          item.lastMessage.messageType == 'CALLSINGLE' ? 'Bạn: [Cuộc gọi]' :
-                          item.lastMessage.messageType == 'RETRIEVE' ? 'Bạn đã thu hồi một tin nhắn' :
-                            item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
-                              'Bạn: [Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
-                                || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
-                                || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
-                                'Bạn: ' + item.lastMessage.titleFile :
-                                item.lastMessage.messageType == 'AUDIO' ? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO' ?
-                                  'Bạn: [Video]' : item.lastMessage.messageType == 'Text' ? 'Bạn: ' + item.lastMessage.content : 
-                                item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' : 
-                                item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' : 
-                                item.lastMessage.content.includes('thêm') ? 'Một thành viên mới được thêm vào nhóm' : 
-                                item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
-                                item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
-                                item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' :
-                                item.lastMessage.content.includes('mời') ? 'Một thành viên đã bị xoá ra khỏi nhóm' : 
-                                item.lastMessage.content.includes('thêm') ? 'Một thành viên mới được thêm vào nhóm' : 
-                                item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
-                                item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
-                                item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' :
-                                ''}</Text>
-                        : <Text style={{
-                          fontSize: 14, color: item.lastMessage && item.lastMessage.seen ? 'grey' : 'black',
-                          fontWeight: item.lastMessage && item.lastMessage.seen ? 'normal' : 'bold'
-                        }} numberOfLines={1}>
-                          {
-                            item.lastMessage.messageType == 'CALLSINGLE' ? '[Cuộc gọi]' :
-                            item.lastMessage.messageType == 'RETRIEVE' ? 'Đã thu hồi một tin nhắn' :
-                              item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
-                                '[Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
-                                  || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
-                                  || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
-                                  item.lastMessage.titleFile :
-                                  item.lastMessage.messageType == 'AUDIO' ? '[Audio]' : item.lastMessage.messageType == 'VIDEO' ?
-                                    '[Video]' : item.lastMessage.messageType == 'Text' ? 'Bạn: ' + item.lastMessage.content : 
-                                  item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' :
-                                  item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' :
-                                  item.lastMessage.content.includes('mời') ? 'Một người tham gia đã bị xoá ra khỏi nhóm' :
-                                  item.lastMessage.content.includes('thêm') ? item.lastMessage.user.id === id ? 'Bạn đã được thêm vào nhóm' : 'Một thành viên mới được thêm vào nhóm' :
-                                  item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
-                                  item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
-                                  item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' : ''
-                          }</Text> : null
+                        item.lastMessage ? item.lastMessage.sender.id === id ?
+                          <Text style={{ fontSize: 14, color: 'grey' }} numberOfLines={1}>
+                            {
+                            item.lastMessage.messageType == 'STICKER' ? 'Bạn: [Sticker]' :
+                              item.lastMessage.messageType == 'CALLSINGLE' ? 'Bạn: [Cuộc gọi]' :
+                                item.lastMessage.messageType == 'RETRIEVE' ? 'Bạn đã thu hồi một tin nhắn' :
+                                  item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
+                                    'Bạn: [Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
+                                      || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
+                                      || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
+                                      'Bạn: ' + item.lastMessage.titleFile :
+                                      item.lastMessage.messageType == 'AUDIO' ? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO' ?
+                                        'Bạn: [Video]' : item.lastMessage.messageType == 'Text' ? 'Bạn: ' + item.lastMessage.content :
+                                          item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' :
+                                            item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' :
+                                              item.lastMessage.content.includes('thêm') ? 'Một thành viên mới được thêm vào nhóm' :
+                                                item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
+                                                  item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
+                                                    item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' :
+                                                      item.lastMessage.content.includes('mời') ? 'Một thành viên đã bị xoá ra khỏi nhóm' :
+                                                        item.lastMessage.content.includes('thêm') ? 'Một thành viên mới được thêm vào nhóm' :
+                                                          item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
+                                                            item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
+                                                              item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' : ''}
+                          </Text>
+                          :
+                          <Text style={{
+                            fontSize: 14, color: item.lastMessage && item.lastMessage.seen.includes({ id: id }) ? 'grey' : 'black',
+                            fontWeight: item.lastMessage && item.lastMessage.seen.includes({ id: id }) ? 'normal' : 'bold'
+                          }} numberOfLines={1}>
+                            {
+                              item.lastMessage.messageType == 'STICKER' ? '[Sticker]' :
+                                item.lastMessage.messageType == 'CALLSINGLE' ? '[Cuộc gọi]' :
+                                  item.lastMessage.messageType == 'RETRIEVE' ? 'Đã thu hồi một tin nhắn' :
+                                    item.lastMessage.messageType == 'PNG' || item.lastMessage.messageType == 'JPG' || item.lastMessage.messageType == 'JPEG' ?
+                                      '[Hình ảnh]' : item.lastMessage.messageType == 'PDF' || item.lastMessage.messageType == 'DOC' || item.lastMessage.messageType == 'DOCX'
+                                        || item.lastMessage.messageType == 'XLS' || item.lastMessage.messageType == 'XLSX' || item.lastMessage.messageType == 'PPT'
+                                        || item.lastMessage.messageType == 'PPTX' || item.lastMessage.messageType == 'RAR' || item.lastMessage.messageType == 'ZIP' ?
+                                        item.lastMessage.titleFile :
+                                        item.lastMessage.messageType == 'AUDIO' ? '[Audio]' : item.lastMessage.messageType == 'VIDEO' ?
+                                          '[Video]' : item.lastMessage.messageType == 'Text' ? item.lastMessage.content :
+                                            item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' :
+                                              item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' :
+                                                item.lastMessage.content.includes('mời') ? 'Một người tham gia đã bị xoá ra khỏi nhóm' :
+                                                  item.lastMessage.content.includes('thêm') ? item.lastMessage.user.id === id ? 'Bạn đã được thêm vào nhóm' : 'Một thành viên mới được thêm vào nhóm' :
+                                                    item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
+                                                      item.lastMessage.content.includes('tước') ? 'Một phó nhóm đã bị tước quyền' :
+                                                        item.lastMessage.content.includes('nhường') ? 'Trưởng nhóm đã nhường quyền lại cho một thành viên' : ''
+                            }
+                            </Text>
+                          : null
                     }
                   </View>
                   <View style={{ width: 70, marginRight: 10, justifyContent: 'center', alignItems: 'center' }}>
@@ -654,7 +662,6 @@ const ListChat = ({ navigation }) => {
                 </View>
               )}
             </View>
-
           )
           }
           keyExtractor={(item) => item.updateLast}

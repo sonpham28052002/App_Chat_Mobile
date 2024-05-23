@@ -73,7 +73,6 @@ const messSlice = createSlice({
     },
     saveMess: (state, action) => {
       state.messages = action.payload;
-      // state = {...state, messages: action.payload}
     },
     addMess: (state, action) => {
       if(action.payload.pending == false){
@@ -118,25 +117,6 @@ const messSlice = createSlice({
   }
 });
 
-const chatSlice = createSlice({
-  name: 'chat',
-  initialState: {
-    conversations: [],
-  },
-  reducers: {
-    deleteConversation: (state, action) => {
-      state.conversations = state.conversations.filter(conversation => {
-        if (conversation.user && conversation.user.id !== action.payload) {
-          return true;
-        } else if (conversation.conversationType === 'group') {
-          return false;
-        }
-        return false;
-      });
-    },
-  },
-});
-
 const socketSlice = createSlice({
   name: 'socket',
   initialState: {
@@ -169,6 +149,7 @@ const modalSlice = createSlice({
     }
   },
 });
+
 const userOnlineSlice = createSlice({
   name: "user",
   initialState: {
@@ -196,6 +177,15 @@ const userOnlineSlice = createSlice({
     },
   }
 });
+// const callSlice = createSlice({
+//   name: 'call',
+//   initialState: '',
+//   reducers: {
+//     callAction: (action) => {
+//       state = action.payload;
+//     },
+//   },
+// });
 export const { save, updateAvatar,updateCoverImage, updateLastMessage, addToFriendList, addLastMessage, 
                 retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
                 removeFriend, addFriendRequest } = accountSlice.actions;
@@ -208,5 +198,8 @@ export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;
 export const userOnlineReducer = userOnlineSlice.reducer;
 export const chatReducer = chatSlice.reducer
+// export const { callAction } = callSlice.actions;
+// export const chatReducer = chatSlice.reducer
 export const socketReducer = socketSlice.reducer;
 export const modalReducer = modalSlice.reducer;
+// export const callReducer = callSlice.reducer;

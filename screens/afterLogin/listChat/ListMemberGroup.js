@@ -99,8 +99,8 @@ function TatCa({ route }) {
   }, []);
 
   const removeMember = async (data) => {
-await   stompClient.current.send('/app/removeMemberInGroup', {}, JSON.stringify(data));
-   loadAllMember()
+    await stompClient.current.send('/app/removeMemberInGroup', {}, JSON.stringify(data));
+    loadAllMember()
   }
 
   const onConnected = () => {

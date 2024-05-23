@@ -8,11 +8,13 @@ const store = configureStore({
   reducer: {
     account: accountReducer,
     message: messageReducer,
-    chat: chatReducer,
+    // chat: chatReducer,
     socket: socketReducer,
     modal: modalReducer,
     user:userOnlineReducer,
   },
+    // call: callReducer
+  }
   // middleware,
 });
 

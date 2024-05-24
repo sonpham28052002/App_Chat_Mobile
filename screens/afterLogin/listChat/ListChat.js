@@ -1,12 +1,9 @@
 import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, SafeAreaView, Platform, Alert } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
-// import { TextInput, Portal, PaperProvider, Modal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  addLastMessage, retrieveLastMessage, addLastConversation, deleteConv,
-  retrieveMess, addMess, deleteMess, initSocket, visibleModal, notify, addFriendRequest, reactMessage, seenMessage, saveCall
-} from '../../../Redux/slice';
+import { addLastMessage, retrieveLastMessage, addLastConversation, deleteConv, 
+  retrieveMess, addMess, deleteMess, initSocket, visibleModal, notify, addFriendRequest, reactMessage, seenMessage, saveCall,updateListUserOnline,setListUserOnline } from '../../../Redux/slice';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import axios from 'axios';
@@ -19,21 +16,23 @@ import host from '../../../configHost'
 import * as ZIM from 'zego-zim-react-native';
 import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import * as ZPNs from 'zego-zpns-react-native';
-import { getListFriendByUser } from '../../../function/getListFriendByUser';
 import 'react-native-get-random-values';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import { getFriendByUser } from '../../../function/getListFriendByUser';
 const { v4: uuidv4 } = require('uuid');
 
-const ListChat = ({ navigation }) => {
+const ListChat = ({ navigation,route }) => {
   const { width } = Dimensions.get('window');
   var stompClient = useRef(null);
   const socketConnected = useSelector((state) => state.socket.connected);
   const [isConnected, setIsConnected] = useState(false);
   const dispatch = useDispatch();
-
+  const routeId = route.params.id;
+  const account = useSelector((state) => state.account);
+  const idFromRedux = account ? account.id : undefined;
+  const id = idFromRedux !== undefined ? idFromRedux : routeId;
+            
   // account reducer
-  const id = useSelector((state) => state.account.id);
+  // const id = useSelector((state) => state.account.id);
   const currentUser = useSelector((state) => state.account);
   const [conversations, setConversations] = useState(currentUser.conversation);
   let conversationsRef = useRef(conversations);
@@ -44,7 +43,6 @@ const ListChat = ({ navigation }) => {
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteMode, setDeleteMode] = useState(false);
-  const [isRes, setIsRes] = useState(false);
 
   // visible modal option (add friend, create group)
   const [visible, setVisible] = useState(false);
@@ -60,9 +58,12 @@ const ListChat = ({ navigation }) => {
   const [visibleCreateGroup, setVisibleCreateGroup] = useState(false);
   const showModalCreateGroup = () => setVisibleCreateGroup(true);
   const hideModalCreateGroup = () => setVisibleCreateGroup(false);
+//user online
+  const usersOnline = useSelector((state) => state.user.listUserOnline);
+  const [online, setOnline] = useState(false);
+  const [userStatus, setUserStatus] = useState(online?"Đang hoạt động":"Offline");
 
   const [deleteTimeout, setDeleteTimeout] = useState(null);
-  // const [restoring, setRestoring] = useState(false);
 
   useEffect(() => {
     r.current = receiverId;
@@ -80,10 +81,12 @@ const ListChat = ({ navigation }) => {
     if (!socketConnected) {
       let socket = new SockJS(`${host}ws`);
       stompClient.current = Stomp.over(socket);
-      stompClient.current.connect({}, onConnected, onError);
+      stompClient.current.connect({login:id}, onConnected, onError);
+      setIsConnected(true);
+      dispatch(initSocket(true));
     }
     onUserLogin(id, currentUser.userName);
-  }, [])
+  }, [id])
 
   useEffect(() => {
     if (!socketConnected && isConnected) {
@@ -103,8 +106,33 @@ const ListChat = ({ navigation }) => {
     stompClient.current.subscribe('/user/' + id + '/acceptAddFriend', onAcceptAddFriend)
     stompClient.current.subscribe('/user/' + id + '/react-message', onReactMessage)
     stompClient.current.subscribe('/user/' + id + '/removeMemberInGroup', onRemoveMemberInGroup)
+    // stompClient.current.subscribe('/user/' + id + '/addMemberIntoGroup', onCreateGroup)
+    // stompClient.current.subscribe('/user/' + id + '/outGroup', onCreateGroup)
+     stompClient.current.subscribe('/user/' + id + '/ListUserOnline', onListUserOnline)
     stompClient.current.subscribe('/user/' + id + '/outGroup', onOutGroup)
   }
+  useEffect(() => {
+    console.log('Danh sách người dùng trực tuyến đã thay đổi:', usersOnline);
+  }, [usersOnline]);
+
+ const onListUserOnline = (payload) => {
+    console.log("Màn hình ListChat", payload.body);
+    const newUsersOnlineData = JSON.parse(payload.body);
+    console.log(newUsersOnlineData);
+    dispatch(updateListUserOnline(newUsersOnlineData));
+
+    const isSingleChat = conversations.some(conv => conv.conversationType === "single" && newUsersOnlineData.includes(conv.user.id));
+    if (isSingleChat) {
+        setOnline(true);
+        console.log(online);
+    } else {
+        setOnline(false);
+    }
+};
+useEffect(() => {
+    setUserStatus(online ? "Đang hoạt động" : "Offline");
+    console.log("Trạng thái người dùng:", userStatus);
+}, [online]);
 
   const onCreateGroup = (payload) => {
     const conversation = JSON.parse(payload.body);
@@ -316,23 +344,23 @@ const ListChat = ({ navigation }) => {
   }
   const [secondsLeft, setSecondsLeft] = useState(10);
 
-  const handleDelete = (item) => {
-    setSelectedItem(item);
-    setDeleteMode(true);
-    setSecondsLeft(10);
-    setIsRes(true)
-    startDeleteTimeout();
-  };
+  // const handleDelete = (item) => {
+  //   setSelectedItem(item);
+  //   setDeleteMode(true);
+  //   setSecondsLeft(10);
+  //   setIsRes(true)
+  //   startDeleteTimeout();
+  // };
 
   const cancelDelete = () => {
     clearTimeout(deleteTimeout);
     setDeleteMode(false);
   };
 
-  const restoreConversation = () => {
-    cancelDelete();
-    setIsRes(false)
-  };
+  // const restoreConversation = () => {
+  //   cancelDelete();
+  //   setIsRes(false)
+  // };
 
   const startDeleteTimeout = () => {
     const timeout = setInterval(() => {
@@ -528,13 +556,6 @@ const ListChat = ({ navigation }) => {
         <View style={{ width: 45, marginHorizontal: 10, justifyContent: 'center', alignItems: 'center' }}>
           <FontAwesome name="search" size={40} color="white" />
         </View>
-        {/* <TextInput style={{
-          fontSize: 20, height: 40, width: '60%',
-          backgroundColor: 'white', borderRadius: 5, borderWidth: 1
-        }}
-          placeholder='Tìm kiếm...'
-          placeholderTextColor={'grey'}
-        /> */}
         <View style={{
           fontSize: 20, height: 40, width: '60%',
           backgroundColor: 'white', borderRadius: 5, borderWidth: 1, justifyContent: 'center', paddingLeft: 5
@@ -573,7 +594,8 @@ const ListChat = ({ navigation }) => {
                     index = conversationsRef.current.findIndex(conv => conv.idGroup && conv.idGroup === item.idGroup);
                   dispatch(seenMessage({id: id, index: index}));
                   navigation.navigate("Chat", item.user ? item.user :
-                  { id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members, memberType: getMember(item.members, id).memberType })}
+                  { online: item.user ? usersOnline.some(user => user.id === item.user.id) : false,
+                  id: item.idGroup, avt: item.avtGroup, nameGroup: item.nameGroup, status: item.status, members: item.members, memberType: getMember(item.members, id).memberType})}
                 }
                 onLongPress={() => {
                   setSelectedItem(item);

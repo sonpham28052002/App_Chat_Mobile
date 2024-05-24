@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Dimensions, TouchableOpacity, Text, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform,Text } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
@@ -7,7 +7,7 @@ import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveReceiverId, saveMess, addMess, reactMessage, updateMessage } from '../../../Redux/slice';
+import { saveReceiverId, saveMess, addMess, reactMessage, updateMessage, updateListUserOnline } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
@@ -21,9 +21,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import {ZegoSendCallInvitationButton} from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
-import * as ZIM from 'zego-zim-react-native';
-import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
-import * as ZPNs from 'zego-zpns-react-native';
 
 const Chat = ({ navigation, route }) => {
     const { width, height } = Dimensions.get('window');
@@ -34,7 +31,7 @@ const Chat = ({ navigation, route }) => {
     const [position, setPosition] = useState({ start: 0, end: 0 });
     const [showEmoji, setShowEmoji] = useState(false);
     const [messLoad, setMessLoad] = useState([]);
-
+    // const [seenMessages, setSeenMessages] = useState([]);
     // message when long press
     const [messTarget, setMessTarget] = useState();
 
@@ -47,7 +44,7 @@ const Chat = ({ navigation, route }) => {
     // message reducer
     const receiverId = useSelector((state) => state.message.id);
     const messages = useSelector((state) => state.message.messages)
-
+    //user online
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
     const [uriVideo, setUriVideo] = useState(null);
@@ -57,7 +54,6 @@ const Chat = ({ navigation, route }) => {
     const [sizeVideo, setSizeVideo] = useState(0);
     const [sizeAudio, setSizeAudio] = useState(0);
     const [durationInSeconds, setdurationInSeconds] = useState(0);
-
     let listMember = useRef([]);
 
     // visible modal recall message, forward message, delete message
@@ -78,11 +74,18 @@ const Chat = ({ navigation, route }) => {
     const [visibleMessageForward, setVisibleMessageForward] = useState(false);
     const showModalMessageForward = () => setVisibleMessageForward(true);
     const hideModalMessageForward = () => setVisibleMessageForward(false);
-
+    //user online
+ const usersOnline = useSelector((state) => state.user.listUserOnline);
+    const [online, setOnline] = useState(usersOnline.includes(receiverId)?true:false);
+    const [userStatus, setUserStatus] = useState(online?"Đang hoạt động":"Offline");
     useEffect(() => {
+        //  useFocusEffect(
+        // React.useCallback(() => {
         navigation.setOptions({
             title: route.params.userName ? route.params.userName : route.params.nameGroup,
-            
+            headerTitleContainerStyle: {
+                flexDirection: 'column',
+            },
             headerRight: () => (
                 <View style={{
                     height: 50,
@@ -90,12 +93,19 @@ const Chat = ({ navigation, route }) => {
                     paddingHorizontal: 10,
                     justifyContent: 'space-between',
                     alignItems: 'center'
-                }}>
+                }}>         
+                    <View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            {online && <Entypo name="dot-single" size={20} color="green" />}
+                            <Text style={{ color: online ? 'green' : 'red' }}>{userStatus}</Text>
+                        </View>
+                    </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        {route.params.members? <TouchableOpacity
+                    {route.params.members? <TouchableOpacity
                                 onPress={() => navigation.navigate('CallGroup', sender)} style={{ width: 35 }}
                             ><Ionicons name="call" size={30} color="black" /></TouchableOpacity> :
                         <ZegoSendCallInvitationButton
+
                             invitees={[
                                 {
                                     userID: route.params.id,
@@ -123,13 +133,16 @@ const Chat = ({ navigation, route }) => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            )
+            ),
+        headerSubtitleStyle: {
+        color: online ? 'green' : 'red'
+    },
+        headerSubtitle: userStatus
         });
 
         const socket = new SockJS(`${host}ws`);
         stompClient.current = Stomp.over(socket);
-        stompClient.current.connect({}, onConnected, onError);
-
+        stompClient.current.connect({login:sender.id}, onConnected, onError);
         if (receiverId !== route.params.id) {
             toggleDialog3();
             dispatch(saveReceiverId(route.params.id));
@@ -147,11 +160,6 @@ const Chat = ({ navigation, route }) => {
                     else setVisible3(false);
                 });
         }
-
-        // if(ZegoUIKitPrebuiltCallService){
-        //     ZegoUIKitPrebuiltCallService.uninit();
-        //     onUserLogin(sender.id, sender.userName);
-        // }
     }, []);
 
     useFocusEffect(
@@ -164,6 +172,7 @@ const Chat = ({ navigation, route }) => {
         }, [])
     );
 
+
     useEffect(() => {
         if (messLoad.length > 0){
             dispatch(saveMess(messLoad.reverse()));
@@ -174,6 +183,29 @@ const Chat = ({ navigation, route }) => {
     useEffect(() => {
         hideModal()
     }, [messages]);
+//Kiểm tra user online
+  useEffect(() => {
+    console.log("User online:", usersOnline);
+    console.log("Receiver id:", receiverId);
+    if (Array.isArray(usersOnline) && receiverId) {
+        const isOnline = usersOnline.includes(receiverId);
+        console.log("Is online:", isOnline);
+        setOnline(isOnline);
+        if(isOnline) {
+        setUserStatus(online?"Đang hoạt động":"Offline");
+        }
+    }
+}, [usersOnline, receiverId]);
+//Check trạng thái user online
+useEffect(() => {
+    console.log('User status:', userStatus);
+}, [userStatus]);
+useEffect(() => {
+  setUserStatus(online?"Đang hoạt động":"Offline");
+}, [online]);
+useEffect(() => {
+    console.log('Danh sách người dùng trực tuyến:', usersOnline);
+  }, [usersOnline]);
 
     const getListMember = async () => {
         let api = `${host}messages/getMemberByIdSenderAndIdGroup?idSender=${sender.id}&idGroup=${route.params.id}`
@@ -192,16 +224,16 @@ const Chat = ({ navigation, route }) => {
     }
 
     function onConnected() {
-        // stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
-        //     let message = JSON.parse(payload.body)
-        //     let members = message.members;
-        //     let isRemove = members.filter(item => item.member.id == sender.id && item.memberType == "LEFT_MEMBER");
-        //     if(route.params.id === message.idGroup && isRemove.length > 0){
-        //         Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
-        //         navigation.navigate('ListChat')
-        //     }
-        // })
-        if(route.params.nameGroup){
+        stompClient.current.subscribe('/user/' + sender.id + '/ListUserOnline', (payload) => {
+            console.log("Màn hình Chat", payload.body);
+            const newUsersOnlineData = JSON.parse(payload.body);
+            dispatch(updateListUserOnline(newUsersOnlineData));
+            console.log(newUsersOnlineData);
+            const isOnline = Array.isArray(newUsersOnlineData) && newUsersOnlineData.includes(receiverId);
+            setOnline(isOnline);
+            setUserStatus(isOnline ? "Đang hoạt động" : "Offline");
+        });
+        if (route.params.nameGroup) {
             stompClient.current.subscribe('/user/' + route.params.id + '/updateMessage', (payload) => {
                 let message = JSON.parse(payload.body);
                 let date = new Date(message.senderDate);
@@ -213,7 +245,7 @@ const Chat = ({ navigation, route }) => {
                         name: message.sender.id === sender.id ? sender.userName : getMember(message.sender.id).member.userName,
                         avatar: message.sender.id === sender.id ? sender.avt : getMember(message.sender.id).member.avt,
                     },
-                    extraData:{
+                    extraData: {
                         react: []
                     },
                     call: message.titleFile
@@ -226,114 +258,6 @@ const Chat = ({ navigation, route }) => {
     function onError(error) {
         console.log('Could not connect to WebSocket server. Please refresh and try again!');
     }
-
-    // const onUserLogin = async (userID, userName) => {
-    //     var a = ZegoUIKitPrebuiltCallService.init(
-    //       940263346, // You can get it from ZEGOCLOUD's console
-    //       '40da48b6a31a24ddfc594d8c998e7bb36a542e86f83697fb889f2b85bf1c572a', // You can get it from ZEGOCLOUD's console
-    //       '1111111',
-    //       userID, // It can be any valid characters, but we recommend using a phone number.
-    //       userName,
-    //       [ZIM, ZPNs],
-    //       {
-    //         // onIncomingCallDeclineButtonPressed: (navigation) => {
-    //         //   console.log('onIncomingCallDeclineButtonPressed: ', navigation);
-    //         // },
-    //         // onIncomingCallAcceptButtonPressed: (navigation) => {
-    //         //   console.log('onIncomingCallAcceptButtonPressed: ', navigation);
-    //         // },
-    //         // onOutgoingCallCancelButtonPressed: (navigation, callID, invitees, type) => {
-    //         //   console.log('onOutgoingCallCancelButtonPressed: ', navigation, callID, invitees, type);
-    //         // },
-    //         // onIncomingCallReceived: (callID, type, invitees) => {
-    //         //   console.log('Incoming call: ', callID, type, invitees)
-    //         // },
-    //         // onIncomingCallCanceled: (callID, inviter) => {
-    //         //   console.log('Incoming call canceled: ', callID, inviter)
-    //         // },
-    //         // onOutgoingCallAccepted: (callID, invitee) => {
-    //         //   console.log('Outgoing call accepted: ', callID, invitee)
-    //         //   var chatMessage = {
-    //         //     id: uuidv4(),
-    //         //     sender: { id: id },
-    //         //     seen: [{ id: id }],
-    //         //     replyMessage: null,
-    //         //     reply: null,
-    //         //     messageType: 'CALLSINGLE',
-    //         //     receiver: { id: invitee.userID },
-    //         //     react: [],
-    //         //     size: 0,
-    //         //     titleFile: 'Cuộc gọi video từ ',
-    //         //     url: null
-    //         //   };
-    //         //   stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
-    //         // },
-    //         // // onOutgoingCallRejectedCauseBusy: (callID, invitee) => {
-    //         // //   console.log('onOutgoingCallRejectedCauseBusy: ', callID, invitee);
-    //         // // },
-    //         // onOutgoingCallDeclined: (callID, invitee) => {
-    //         //   console.log('Outgoing call declined: ', callID, invitee);
-    //         //   var chatMessage = {
-    //         //     id: uuidv4(),
-    //         //     sender: { id: id },
-    //         //     seen: [{ id: id }],
-    //         //     replyMessage: null,
-    //         //     reply: null,
-    //         //     messageType: 'CALLSINGLE',
-    //         //     receiver: { id: invitee.userID },
-    //         //     react: [],
-    //         //     size: 0,
-    //         //     titleFile: ' từ chối cuộc gọi video từ ',
-    //         //     url: null
-    //         //   };
-    //         //   stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
-    //         // },
-    //         // onIncomingCallTimeout: (callID, inviter) => {
-    //         //   console.log('Incoming call timeout: ', callID, inviter)
-    //         //   var chatMessage = {
-    //         //     id: uuidv4(),
-    //         //     sender: { id: id },
-    //         //     seen: [{ id: id }],
-    //         //     replyMessage: null,
-    //         //     reply: null,
-    //         //     messageType: 'CALLSINGLE',
-    //         //     receiver: { id: inviter.userID },
-    //         //     react: [],
-    //         //     size: 0,
-    //         //     titleFile: 'bị nhở cuộc gọi video từ ',
-    //         //     url: null
-    //         //   };
-    //         //   stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
-    //         // },
-    //         // onOutgoingCallTimeout: (callID, invitees) => {
-    //         //   console.log('Outgoing call timeout: ', callID, invitees)
-    //         //   var chatMessage = {
-    //         //     id: uuidv4(),
-    //         //     sender: { id: id },
-    //         //     seen: [{ id: id }],
-    //         //     replyMessage: null,
-    //         //     reply: null,
-    //         //     messageType: 'CALLSINGLE',
-    //         //     receiver: { id: invitees[0].userID },
-    //         //     react: [],
-    //         //     size: 0,
-    //         //     titleFile: 'bị nhở cuộc gọi video từ ',
-    //         //     url: null
-    //         //   };
-    //         //   stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
-    //         // },
-    //         ringtoneConfig: {
-    //           incomingCallFileName: require('../../../assets/ringtone-205162.mp3'),
-    //           outgoingCallFileName: require('../../../assets/happy-pop-1-185286.mp3'),
-    //         },
-    //         androidNotificationConfig: {
-    //           channelID: 'ZegoUIKit',
-    //           channelName: 'ZegoUIKit',
-    //         },
-    //       },
-    //     );
-    //     return a;
-    //   }
 
     function sendMessage(id, type) {
         if (stompClient.current) {
@@ -451,10 +375,6 @@ const Chat = ({ navigation, route }) => {
     };
 
     const handleFileSelect = (uri, size) => {
-        // const type = uri.substring(uri.lastIndexOf(".") + 1);
-        // const uriFile = uri.substring(0, uri.lastIndexOf("."));
-        // setUriFile(uriFile + "_" + size + "." + type);
-        // hideModal2();
         setUriFile(uri);
         setSize((parseInt(size) / 1024).toFixed(2))
         hideModal2();
@@ -478,7 +398,11 @@ const Chat = ({ navigation, route }) => {
     };
 
     return (
-        <View style={{ width: width, flex: 1, height: height - 80, justifyContent: 'space-between' }}>
+        <View style={{ width: width,height: height - 80, justifyContent: 'space-between' }}>
+                  {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ color: online ? 'green' : 'red' }}>{online ? 'Đang hoạt động' : 'Offline'}</Text>
+                {online && <Entypo name="dot-single" size={20} color="green" />}
+            </View> */}
             <KeyboardAvoidingView style={{ flex: 1 }}
                 keyboardVerticalOffset={50}
                 behavior={Platform.OS == "ios" ? "padding" : undefined}
@@ -558,11 +482,12 @@ const Chat = ({ navigation, route }) => {
                                 showModal();
                                 setMessTarget(message);
                             }}
-                            // renderMessage={(messageProps) => renderMessage(messageProps)}
                             onSelectionChange={event => setPosition(event.nativeEvent.selection)}
                             onPressModal2={showModal2}
                             onSelectAudio={handleAudioSelect}
                             handleSend={handleSend}
+                            // renderMessageText={renderMessageText}
+                            // seenMessages={seenMessages}
                         />
                     </View>
                 </PaperProvider>

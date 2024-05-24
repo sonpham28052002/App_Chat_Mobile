@@ -11,7 +11,7 @@ export default function VoiceCallPage(props) {
                 appSign={'40da48b6a31a24ddfc594d8c998e7bb36a542e86f83697fb889f2b85bf1c572a'}
                 userID={props.route.params.id} // userID can be something like a phone number or the user id on your own user system. 
                 userName={props.route.params.userName}
-                callID={'mIsuKw3mTiEbsjoLPpCVqdesY'} // callID can be any unique string. 
+                callID={'UHoKafmPwftcxMAVpvFoznZIq'} // callID can be any unique string. 
 
                 config={{
                     // You can also use ONE_ON_ONE_VOICE_CALL_CONFIG/GROUP_VIDEO_CALL_CONFIG/GROUP_VOICE_CALL_CONFIG to make more types of calls.

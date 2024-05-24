@@ -48,7 +48,7 @@ const accountSlice = createSlice({
     deleteConv: (state, action) => {
       let id = action.payload;
       let conversations = [...state.conversation];
-      if(id.indexOf('-') !== -1) // id là id của group
+      if (id.indexOf('-') !== -1) // id là id của group
         conversations = conversations.filter(conv => conv.idGroup !== id);
       else // id là id của user
         conversations = conversations.filter(conv => conv.idGroup || (conv.user && conv.user.id !== id));
@@ -60,8 +60,8 @@ const accountSlice = createSlice({
     seenMessage: (state, action) => {
       let id = action.payload.id;
       let index = action.payload.index
-      if(state.conversation[index].lastMessage.seen.findIndex(seen => seen.id === id) === -1)
-        state.conversation[index].lastMessage.seen = [...state.conversation[index].lastMessage.seen, {id: id}];
+      if (state.conversation[index].lastMessage.seen.findIndex(seen => seen.id === id) === -1)
+        state.conversation[index].lastMessage.seen = [...state.conversation[index].lastMessage.seen, { id: id }];
       console.log(state.conversation[index].lastMessage.seen);
     }
   },
@@ -73,7 +73,7 @@ const messSlice = createSlice({
     id: '',
     messages: [],
   },
-  reducers:{
+  reducers: {
     saveReceiverId: (state, action) => {
       // state = {...state, id: action.payload};
       state.id = action.payload;
@@ -82,13 +82,13 @@ const messSlice = createSlice({
       state.messages = action.payload;
     },
     addMess: (state, action) => {
-      if(action.payload.pending == false){
+      if (action.payload.pending == false) {
         const index = state.messages.findIndex(mess => mess._id === action.payload._id);
-        if(index == -1)
+        if (index == -1)
           state.messages = [action.payload, ...state.messages];
         else
           state.messages[index] = action.payload;
-      } else if(state.messages.findIndex(mess => mess._id === action.payload._id) === -1)
+      } else if (state.messages.findIndex(mess => mess._id === action.payload._id) === -1)
         state.messages = [action.payload, ...state.messages];
     },
     retrieveMess: (state, action) => {
@@ -107,21 +107,32 @@ const messSlice = createSlice({
     },
     reactMessage: (state, action) => {
       let index = state.messages.findIndex(mess => mess._id === action.payload.id);
-      if(index !== -1)
+      if (index !== -1)
         state.messages[index].extraData.react = action.payload.react;
     },
     updateMessage: (state, action) => {
       let index = state.messages.findIndex(mess => mess._id === action.payload._id);
-      if(index !== -1)
+      if (index !== -1)
         state.messages[index] = action.payload;
-    }
+    },
+    markMessageAsSeen: (state, action) => {
+      const messageId = action.payload;
+      const message = state.messages.find(msg => msg.id === messageId);
+      if (message) {
+        message.isSeen = true;
+      }
+    },
+    //  setListUserOnline(state, action) {
+    //   onsole.log("Updating listUserOnline in state: ", action.payload);
+    //         state.listUserOnline = action.payload;
+    //     },
   }
 });
 
 const socketSlice = createSlice({
   name: 'socket',
   initialState: {
-    connected : false,
+    connected: false,
   },
   reducers: {
     initSocket: (state, action) => {
@@ -160,7 +171,7 @@ const callSlice = createSlice({
   reducers: {
     saveCall: (action) => {
       let index = state.findIndex(call => call.idGroup === action.payload.idGroup);
-      if(index !== -1)
+      if (index !== -1)
         state[index] = action.payload;
       else
         state.push(action.payload);
@@ -168,16 +179,48 @@ const callSlice = createSlice({
   },
 });
 
-export const { save, updateAvatar,updateCoverImage, updateLastMessage, addToFriendList, addLastMessage, 
-                retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
-                removeFriend, addFriendRequest, seenMessage } = accountSlice.actions;
-export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reactMessage, updateMessage } = messSlice.actions;
+const userOnlineSlice = createSlice({
+  name: "user",
+  initialState: {
+    listUserOnline: [],
+  },
+  reducers: {
+    updateListUserOnline: (state, action) => {
+      console.log("Đã vào Redux");
+      state.listUserOnline = action.payload;
+      console.log("List user online: ", state.listUserOnline);
+    },
+    addUserIntoList: (state, action) => {
+      const idUser = action.payload;
+      const arr = [...state.listUserOnline];
+      if (!arr.includes(idUser)) {
+        state.listUserOnline = [...arr, idUser];
+      }
+    },
+    removeUserIntoList: (state, action) => {
+      const idUser = action.payload;
+      const arr = [...state.listUserOnline];
+      if (arr.includes(idUser)) {
+        state.listUserOnline = [...arr.filter((item) => item !== idUser)];
+      }
+    },
+  }
+});
+
+export const { save, updateAvatar, updateCoverImage, updateLastMessage, addToFriendList, addLastMessage,
+  retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
+  removeFriend, addFriendRequest, seenMessage } = accountSlice.actions;
+export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reactMessage, markMessageAsSeen, updateMessage } = messSlice.actions;
 // export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;
 export const { visibleModal, notify } = modalSlice.actions;
+export const { updateListUserOnline, addUserIntoList, removeUserIntoList } = userOnlineSlice.actions;
 export const { saveCall } = callSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;
+export const userOnlineReducer = userOnlineSlice.reducer;
+// export const chatReducer = chatSlice.reducer
+// export const { callAction } = callSlice.actions;
 // export const chatReducer = chatSlice.reducer
 export const socketReducer = socketSlice.reducer;
 export const modalReducer = modalSlice.reducer;

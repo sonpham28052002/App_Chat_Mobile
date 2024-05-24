@@ -5,6 +5,7 @@ import ButtonCustom from '../../../components/button'
 import axios from 'axios'
 import { useSelector } from 'react-redux'
 import { LinearGradient } from 'expo-linear-gradient'
+import host from '../../../configHost'
 
 const ChangePassword = ({ navigation }) => {
   const phone = useSelector((state) => state.account.phone)

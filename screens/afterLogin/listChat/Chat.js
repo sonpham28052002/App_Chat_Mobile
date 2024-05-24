@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform,Text } from 'react-native';
+import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Text } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
@@ -7,7 +7,7 @@ import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveReceiverId, saveMess, addMess, reactMessage, updateMessage, updateListUserOnline } from '../../../Redux/slice';
+import { saveReceiverId, saveMess, addMess, reactMessage, updateMessage, updateListUserOnline, removeCall, saveCall } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
@@ -44,6 +44,16 @@ const Chat = ({ navigation, route }) => {
     // message reducer
     const receiverId = useSelector((state) => state.message.id);
     const messages = useSelector((state) => state.message.messages)
+
+    // call reducer
+    const call = useSelector((state) => state.call);
+    let callRef = useRef(call);
+    const [urlCall, setUrlCall] = useState(()=>{
+        let idGroup = route.params.id
+        let c = callRef.current.find(call => call.idGroup === idGroup);
+        return c? c.url : ''
+    });
+
     //user online
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
@@ -75,17 +85,19 @@ const Chat = ({ navigation, route }) => {
     const showModalMessageForward = () => setVisibleMessageForward(true);
     const hideModalMessageForward = () => setVisibleMessageForward(false);
     //user online
- const usersOnline = useSelector((state) => state.user.listUserOnline);
+    const usersOnline = useSelector((state) => state.user.listUserOnline);
     const [online, setOnline] = useState(usersOnline.includes(receiverId)?true:false);
     const [userStatus, setUserStatus] = useState(online?"Đang hoạt động":"Offline");
+
     useEffect(() => {
-        //  useFocusEffect(
-        // React.useCallback(() => {
         navigation.setOptions({
-            title: route.params.userName ? route.params.userName : route.params.nameGroup,
-            headerTitleContainerStyle: {
-                flexDirection: 'column',
-            },
+            headerTitle: () => (<View>
+                <Text style={{ fontSize: 20, fontWeight: 'bold', width: width - 180 }} numberOfLines={1}>{route.params.userName ? route.params.userName : route.params.nameGroup}</Text>
+                <View style={{ flexDirection: 'row' }}>
+                    {online && <Entypo name="dot-single" size={20} color="green" />}
+                    <Text style={{ color: online ? 'green' : 'red' }}>{userStatus}</Text>
+                </View>
+            </View>),
             headerRight: () => (
                 <View style={{
                     height: 50,
@@ -93,40 +105,88 @@ const Chat = ({ navigation, route }) => {
                     paddingHorizontal: 10,
                     justifyContent: 'space-between',
                     alignItems: 'center'
-                }}>         
-                    <View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            {online && <Entypo name="dot-single" size={20} color="green" />}
-                            <Text style={{ color: online ? 'green' : 'red' }}>{userStatus}</Text>
-                        </View>
-                    </View>
+                }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    {route.params.members? <TouchableOpacity
-                                onPress={() => navigation.navigate('CallGroup', sender)} style={{ width: 35 }}
-                            ><Ionicons name="call" size={30} color="black" /></TouchableOpacity> :
-                        <ZegoSendCallInvitationButton
-
-                            invitees={[
-                                {
-                                    userID: route.params.id,
-                                    userName: route.params.userName,
-                                },
-                            ]}
-                            isVideoCall={false}
-                            backgroundColor={'cyan'}
-                        />}
-                        {route.params.members?
+                        {route.params.members ? <TouchableOpacity
+                            onPress={() => {
+                                let mess = {
+                                    roomID: urlCall,
+                                    userId: sender.id,
+                                    idGroup: route.params.id,
+                                }
+                                stompClient.current.send("/app/inCall", {}, JSON.stringify(mess));
+                                navigation.navigate('CallGroup', { ...sender, url: urlCall })
+                            }} style={{ width: 35 }}
+                        ><Ionicons name="call" size={30} color="black" />
+                        </TouchableOpacity> :
+                            <ZegoSendCallInvitationButton
+                                invitees={[
+                                    {
+                                        userID: route.params.id,
+                                        userName: route.params.userName,
+                                    },
+                                ]}
+                                isVideoCall={false}
+                                backgroundColor={'cyan'}
+                            />}
+                        {route.params.members ?
                             <TouchableOpacity
-                                onPress={() => navigation.navigate('CallGroup', sender)} style={{ width: 35 }}
+                                onPress={() => {
+                                    if(urlCall === ''){
+                                        var chars = "12345qwertyuiopasdfgh67890jklmnbvcxzMNBVCZXASDQWERTYHGFUIOLKJP",
+                                          maxPos = chars.length,
+                                          i;
+                                          let result = ""
+                                        for (i = 0; i < 25; i++) {
+                                            result += chars.charAt(Math.floor(Math.random() * maxPos));
+                                        }
+                                        setUrlCall(result)
+                                        dispatch(saveCall({ idGroup: route.params.id, url: urlCall }))
+                                        let mess = {
+                                            id: uuidv4(),
+                                            messageType: "CALLGROUP",
+                                            sender: { id: sender.id },
+                                            seen: [
+                                              {
+                                                id: sender.id,
+                                              },
+                                            ],
+                                            size: undefined,
+                                            titleFile: "Bắt đầu cuộc gọi nhóm",
+                                            url: result,
+                                            idGroup: route.params.id,
+                                            receiver: { id: `group_${route.params.id}` },
+                                            react: [],
+                                            replyMessage: undefined,
+                                            reply: undefined,
+                                          };
+                                          const createCall = { userId: sender.id, idGroup: route.params.id, roomID: result };
+                                          stompClient.current.send("/app/createCall", {}, JSON.stringify(createCall));
+                                          stompClient.current.send(
+                                            "/app/private-single-message",
+                                            {},
+                                            JSON.stringify(mess)
+                                          );
+                                          navigation.navigate('CallGroup', { ...sender, url: result })
+                                    } else
+                                    {let mess = {
+                                        roomID: urlCall,
+                                        userId: sender.id,
+                                        idGroup: route.params.id,
+                                    }
+                                    stompClient.current.send("/app/inCall", {}, JSON.stringify(mess));
+                                    navigation.navigate('CallGroup', { ...sender, url: url })}
+                                    }
+                                } style={{ width: 35 }}
                             ><Entypo name="video-camera" size={30} color="black" /></TouchableOpacity> :
-                        <ZegoSendCallInvitationButton
-                            invitees={[{
-                                userID: route.params.id,
-                                userName: route.params.userName
-                            }]}
-                            isVideoCall={true}
-                            backgroundColor={'cyan'}
-                        />}
+                            <ZegoSendCallInvitationButton
+                                invitees={[{
+                                    userID: route.params.id,
+                                    userName: route.params.userName
+                                }]}
+                                isVideoCall={true}
+                                backgroundColor={'cyan'}
+                            />}
                         <TouchableOpacity style={{ width: 35 }}
                             onPress={() => navigation.navigate('OptionChat', route.params)}>
                             <Entypo name="menu" size={40} color="white" />
@@ -134,15 +194,12 @@ const Chat = ({ navigation, route }) => {
                     </View>
                 </View>
             ),
-        headerSubtitleStyle: {
-        color: online ? 'green' : 'red'
-    },
-        headerSubtitle: userStatus
+            headerSubtitleStyle: {
+                color: online ? 'green' : 'red'
+            },
+            headerSubtitle: userStatus
         });
 
-        const socket = new SockJS(`${host}ws`);
-        stompClient.current = Stomp.over(socket);
-        stompClient.current.connect({login:sender.id}, onConnected, onError);
         if (receiverId !== route.params.id) {
             toggleDialog3();
             dispatch(saveReceiverId(route.params.id));
@@ -164,6 +221,9 @@ const Chat = ({ navigation, route }) => {
 
     useFocusEffect(
         React.useCallback(() => {
+            const socket = new SockJS(`${host}ws`);
+            stompClient.current = Stomp.over(socket);
+            stompClient.current.connect({login:sender.id}, onConnected, onError);
             return () => {
                 if (stompClient.current) {
                     stompClient.current.disconnect();
@@ -172,7 +232,14 @@ const Chat = ({ navigation, route }) => {
         }, [])
     );
 
+    useEffect(() => {
+        callRef.current = call;
+    }, [call]);
 
+    useEffect(() => {
+        setUrlCall(callRef.current.find(call => call.idGroup === route.params.id)?.url);
+    }, [callRef.current]);
+      
     useEffect(() => {
         if (messLoad.length > 0){
             dispatch(saveMess(messLoad.reverse()));
@@ -251,6 +318,7 @@ useEffect(() => {
                     call: message.titleFile
                 }
                 dispatch(updateMessage(newMessage));
+                dispatch(removeCall(route.params.id))
             })
         }
     }
@@ -472,6 +540,15 @@ useEffect(() => {
                             onPress={() => {
                                 setShowEmoji(!showEmoji);
                                 handleFocusText();
+                            }}
+                            joinCall={() => {
+                                let mess = {
+                                    roomID: urlCall,
+                                    userId: sender.id,
+                                    idGroup: route.params.id,
+                                }
+                                stompClient.current.send("/app/inCall", {}, JSON.stringify(mess));
+                                navigation.navigate('CallGroup', {...sender, url: urlCall})
                             }}
                             user={{
                                 _id: sender.id,

@@ -169,13 +169,16 @@ const callSlice = createSlice({
     url: ''
   }],
   reducers: {
-    saveCall: (action) => {
+    saveCall: (state, action) => {
       let index = state.findIndex(call => call.idGroup === action.payload.idGroup);
       if (index !== -1)
         state[index] = action.payload;
       else
         state.push(action.payload);
     },
+    removeCall: (state, action) => {
+      state = state.filter(call => call.idGroup !== action.payload);
+    }
   },
 });
 
@@ -215,7 +218,7 @@ export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reac
 export const { initSocket } = socketSlice.actions;
 export const { visibleModal, notify } = modalSlice.actions;
 export const { updateListUserOnline, addUserIntoList, removeUserIntoList } = userOnlineSlice.actions;
-export const { saveCall } = callSlice.actions;
+export const { saveCall, removeCall } = callSlice.actions;
 export default accountSlice.reducer;
 export const messageReducer = messSlice.reducer;
 export const userOnlineReducer = userOnlineSlice.reducer;

@@ -12,7 +12,7 @@ import { visibleModal } from "../../Redux/slice";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState("123");
+  const [password, setPassword] = useState("Son12345");
   const [showPassword, setShowPassword] = useState(false);
   const [account, setAccount] = useState([]);
   const [error, setError] = useState("");

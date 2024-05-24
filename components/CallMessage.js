@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { MaterialIcons, FontAwesome, Entypo } from '@expo/vector-icons';
 
-const CallMessage = ({ currentMessage, isSender, nameUser, receiverName }) => {
+const CallMessage = ({ currentMessage, isSender, nameUser, receiverName, joinCall }) => {
     return (
         <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity style={{
@@ -34,7 +34,9 @@ const CallMessage = ({ currentMessage, isSender, nameUser, receiverName }) => {
                                 <Entypo name="video-camera" size={35} color="black" />
                                 <Text style={{ color: 'black', marginLeft: 5 }}>Cuộc gọi nhóm</Text>
                             </View>
-                            <TouchableOpacity style={{ backgroundColor: 'green', padding: 5, borderRadius: 10 }}>
+                            <TouchableOpacity style={{ backgroundColor: 'green', padding: 5, borderRadius: 10 }}
+                                onPress={() => joinCall()}
+                            >
                                 <Text style={{ color: 'white', fontWeight: 'bold' }}>Tham gia</Text>
                             </TouchableOpacity>
                         </View>

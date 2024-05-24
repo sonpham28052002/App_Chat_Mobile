@@ -216,7 +216,7 @@ useEffect(() => {
       }
     };
 
-    if(message.title && message.title === 'Bắt đầu cuộc gọi nhóm') 
+    if(message.titleFile && message.titleFile === 'Bắt đầu cuộc gọi nhóm') 
       dispatch(saveCall({idGroup: idGroup, url: message.url}));
     if(index == -1)
       getConversation(id).then(conv => {
@@ -632,8 +632,10 @@ useEffect(() => {
                               'Bạn: ' + item.lastMessage.titleFile :
                             item.lastMessage.messageType == 'AUDIO' ? 'Bạn: [Audio]' : item.lastMessage.messageType == 'VIDEO' ?
                               'Bạn: [Video]' : item.lastMessage.messageType == 'Text' ? 'Bạn: ' + item.lastMessage.content :
-                            
+                              item.lastMessage.content === "đã tham gia cuộc gọi."? 'Bạn đã tham gia cuộc gọi nhóm' :
                             item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' :
+                            item.lastMessage.content.includes('ảnh') ? 'Bạn đã thay đổi ảnh nhóm' :
+                            item.lastMessage.content.includes('tham gia') ? 'Bạn đã tham gia cuộc gọi nhóm' :
                             item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' :
                             item.lastMessage.content.includes('thêm') ? 'Một thành viên mới được thêm vào nhóm' :
                             item.lastMessage.content.includes('phân') ? 'Một thành viên được phân làm phó nhóm' :
@@ -662,7 +664,11 @@ useEffect(() => {
                               item.lastMessage.titleFile :
                               item.lastMessage.messageType == 'AUDIO' ? '[Audio]' : item.lastMessage.messageType == 'VIDEO' ?
                                 '[Video]' : item.lastMessage.messageType == 'Text' ? item.lastMessage.content :
+                              item.lastMessage.content === "đã tham gia cuộc gọi."? 'Ai đó đã tham gia cuộc gọi nhóm' :
+                              item.lastMessage.content.includes('tham gia') ? 'Ai đó đã tham gia cuộc gọi nhóm' :
                               item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' :
+                              item.lastMessage.content.includes('đã thay đổi tên nhóm') ? 'Ai đó ' + item.lastMessage.content :
+                              item.lastMessage.content.includes('ảnh') ? 'Ai đó đã thay đổi ảnh nhóm' :
                               item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' :
                               item.lastMessage.content.includes('mời') ? 'Một người tham gia đã bị xoá ra khỏi nhóm' :
                               item.lastMessage.content.includes('thêm') ? item.lastMessage.user.id === id ? 'Bạn đã được thêm vào nhóm' : 'Một thành viên mới được thêm vào nhóm' :

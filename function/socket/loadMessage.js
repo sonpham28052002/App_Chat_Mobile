@@ -62,7 +62,8 @@ const getMessage = async (sender, receiver) => {
                         const actions3 = [
                             "đã kết thúc cuộc gọi.",
                             "đã rời khỏi cuộc gọi.",
-                            "đã tham gia cuộc gọi."
+                            "đã tham gia cuộc gọi.",
+                            "đã thay đổi ảnh nhóm"
                         ]
                         if (actions.includes(message.content)) {
                             const user = getMember(receiver.members, message.user.id).member.userName;
@@ -72,10 +73,18 @@ const getMessage = async (sender, receiver) => {
                             const user = getMember(receiver.members, message.user.id).member.userName;
                             const sender = getMember(receiver.members, message.sender.id).member.userName;
                             newMess.text = `${user} ${message.content} ${sender}`;
-                        } else if(actions3.includes(message.content)){
+                        } else if (actions3.includes(message.content)) {
                             const sender = getMember(receiver.members, message.sender.id).member.userName;
                             newMess.text = `${sender} ${message.content}`;
-                        } else newMess.text = 'Tin nhắn không hợp lệ!'
+                        }
+                        else if (actions3.includes(message.content)) {
+                            const sender = getMember(receiver.members, message.sender.id).member.userName;
+                            newMess.text = `${sender} ${message.content}`;
+                        }else if (message.content.includes("đã thay đổi tên nhóm")) {
+                            const sender = getMember(receiver.members, message.sender.id).member.userName;
+                            newMess.text = `${sender} ${message.content}`;
+                        }
+                         else newMess.text = 'Tin nhắn không hợp lệ!'
                     }
                     }
                     newMess.user = {

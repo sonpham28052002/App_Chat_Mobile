@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform,Text } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
-import { Entypo } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
 import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveReceiverId, saveMess, addMess, reactMessage, updateListUserOnline } from '../../../Redux/slice';
+import { saveReceiverId, saveMess, addMess, reactMessage, updateMessage, updateListUserOnline } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
@@ -21,6 +21,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import {ZegoSendCallInvitationButton} from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
+
 const Chat = ({ navigation, route }) => {
     const { width, height } = Dimensions.get('window');
     const dispatch = useDispatch();
@@ -30,7 +31,7 @@ const Chat = ({ navigation, route }) => {
     const [position, setPosition] = useState({ start: 0, end: 0 });
     const [showEmoji, setShowEmoji] = useState(false);
     const [messLoad, setMessLoad] = useState([]);
-   const [seenMessages, setSeenMessages] = useState([]);
+    // const [seenMessages, setSeenMessages] = useState([]);
     // message when long press
     const [messTarget, setMessTarget] = useState();
 
@@ -43,7 +44,7 @@ const Chat = ({ navigation, route }) => {
     // message reducer
     const receiverId = useSelector((state) => state.message.id);
     const messages = useSelector((state) => state.message.messages)
-//user online
+    //user online
     const [uriImage, setUriImage] = useState(null);
     const [uriFile, setUriFile] = useState(null);
     const [uriVideo, setUriVideo] = useState(null);
@@ -82,9 +83,9 @@ const Chat = ({ navigation, route }) => {
         // React.useCallback(() => {
         navigation.setOptions({
             title: route.params.userName ? route.params.userName : route.params.nameGroup,
-                 headerTitleContainerStyle: {
-            flexDirection: 'column' 
-        },
+            headerTitleContainerStyle: {
+                flexDirection: 'column',
+            },
             headerRight: () => (
                 <View style={{
                     height: 50,
@@ -92,15 +93,19 @@ const Chat = ({ navigation, route }) => {
                     paddingHorizontal: 10,
                     justifyContent: 'space-between',
                     alignItems: 'center'
-                }}>
-                            <View>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-               {online && <Entypo name="dot-single" size={20} color="green" />}
-    <Text style={{ color: online ? 'green' : 'red' }}>{userStatus}</Text>
-</View>
-          </View>
-                    <View style={{ flexDirection: 'row' }}>
-                        {/* <ZegoSendCallInvitationButton
+                }}>         
+                    <View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            {online && <Entypo name="dot-single" size={20} color="green" />}
+                            <Text style={{ color: online ? 'green' : 'red' }}>{userStatus}</Text>
+                        </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    {route.params.members? <TouchableOpacity
+                                onPress={() => navigation.navigate('CallGroup', sender)} style={{ width: 35 }}
+                            ><Ionicons name="call" size={30} color="black" /></TouchableOpacity> :
+                        <ZegoSendCallInvitationButton
+
                             invitees={[
                                 {
                                     userID: route.params.id,
@@ -109,17 +114,19 @@ const Chat = ({ navigation, route }) => {
                             ]}
                             isVideoCall={false}
                             backgroundColor={'cyan'}
-                        />
+                        />}
+                        {route.params.members?
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('CallGroup', sender)} style={{ width: 35 }}
+                            ><Entypo name="video-camera" size={30} color="black" /></TouchableOpacity> :
                         <ZegoSendCallInvitationButton
-                            invitees={[
-                                {
-                                    userID: route.params.id,
-                                    userName: route.params.userName,
-                                },
-                            ]}
+                            invitees={[{
+                                userID: route.params.id,
+                                userName: route.params.userName
+                            }]}
                             isVideoCall={true}
                             backgroundColor={'cyan'}
-                        />
+                        />}
                         <TouchableOpacity style={{ width: 35 }}
                             onPress={() => navigation.navigate('OptionChat', route.params)}>
                             <Entypo name="menu" size={40} color="white" />
@@ -153,7 +160,7 @@ const Chat = ({ navigation, route }) => {
                     else setVisible3(false);
                 });
         }
-    }, [online, userStatus,receiverId,sender.id]);
+    }, []);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -211,54 +218,41 @@ useEffect(() => {
             console.log(error);
         }
     }
-// const onMessageSeen = async (payload) => {
-//     console.log('đã vào');
-//     console.log(payload.body);
-//     const messageSeen = JSON.parse(payload.body);
-//         setSeenMessages(prevSeenMessages => [...prevSeenMessages, messageSeen.id]);
-//       console.log(messageSeen);
-// };
-    function onConnected() {
-        //   stompClient.current.subscribe('/user/' + sender.id + '/SeenMessageSingle', (payload)=>{
-        //     let messageSeen = JSON.parse(payload.body);
-        //     setSeenMessages(prevSeenMessages => [...prevSeenMessages, messageSeen.id]);
-        //     console.log(messageSeen);
-        // })
-       stompClient.current.subscribe('/user/' + sender.id + '/ListUserOnline', (payload) => {
-        console.log("Màn hình Chat", payload.body);
-        const newUsersOnlineData = JSON.parse(payload.body);
-        dispatch(updateListUserOnline(newUsersOnlineData));
-        console.log(newUsersOnlineData);
-        const isOnline = Array.isArray(newUsersOnlineData) && newUsersOnlineData.includes(receiverId);
-        setOnline(isOnline);
-        setUserStatus(isOnline ? "Đang hoạt động" : "Offline");
-    });
-        stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
-            let message = JSON.parse(payload.body)
-            let members = message.members;
-            let isRemove = members.filter(item => item.member.id == sender.id && item.memberType == "LEFT_MEMBER");
-            if(route.params.id === message.idGroup && isRemove.length > 0){
-                Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
-                navigation.navigate('ListChat')
-            }
-        })
-         
-        // stompClient.current.subscribe('/user/' + sender.id + '/react-message', onReactMessage)
+
+    const getMember = (id) => {
+        return listMember.current.find(item => item.member.id === id);
     }
-    
-    // const onReactMessage = (payload) => {
-    //     const message = JSON.parse(payload.body);
-    //     dispatch(reactMessage({ id: message.id, react: message.react }));
-    //   }
-        // stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
-        //     let message = JSON.parse(payload.body)
-        //     let members = message.members;
-        //     let isRemove = members.filter(item => item.member.id == sender.id && item.memberType == "LEFT_MEMBER");
-        //     if(route.params.id === message.idGroup && isRemove.length > 0){
-        //         Alert.alert("Bạn đã bị xóa khỏi nhóm chat");
-        //         navigation.navigate('ListChat')
-        //     }
-        // })
+
+    function onConnected() {
+        stompClient.current.subscribe('/user/' + sender.id + '/ListUserOnline', (payload) => {
+            console.log("Màn hình Chat", payload.body);
+            const newUsersOnlineData = JSON.parse(payload.body);
+            dispatch(updateListUserOnline(newUsersOnlineData));
+            console.log(newUsersOnlineData);
+            const isOnline = Array.isArray(newUsersOnlineData) && newUsersOnlineData.includes(receiverId);
+            setOnline(isOnline);
+            setUserStatus(isOnline ? "Đang hoạt động" : "Offline");
+        });
+        if (route.params.nameGroup) {
+            stompClient.current.subscribe('/user/' + route.params.id + '/updateMessage', (payload) => {
+                let message = JSON.parse(payload.body);
+                let date = new Date(message.senderDate);
+                let newMessage = {
+                    _id: message.id,
+                    createdAt: date.setUTCHours(date.getUTCHours() + 7),
+                    user: {
+                        _id: message.sender.id,
+                        name: message.sender.id === sender.id ? sender.userName : getMember(message.sender.id).member.userName,
+                        avatar: message.sender.id === sender.id ? sender.avt : getMember(message.sender.id).member.avt,
+                    },
+                    extraData: {
+                        react: []
+                    },
+                    call: message.titleFile
+                }
+                dispatch(updateMessage(newMessage));
+            })
+        }
     }
 
     function onError(error) {
@@ -381,10 +375,6 @@ useEffect(() => {
     };
 
     const handleFileSelect = (uri, size) => {
-        // const type = uri.substring(uri.lastIndexOf(".") + 1);
-        // const uriFile = uri.substring(0, uri.lastIndexOf("."));
-        // setUriFile(uriFile + "_" + size + "." + type);
-        // hideModal2();
         setUriFile(uri);
         setSize((parseInt(size) / 1024).toFixed(2))
         hideModal2();
@@ -404,21 +394,6 @@ useEffect(() => {
     const handleFocusText = () => {
         if (textInputRef.current) {
             textInputRef.current.focus();
-        }
-    };
- const renderMessageText = (props) => {
-        const { currentMessage } = props;
-        console.log(currentMessage._id);
-        if (currentMessage.pending) {
-            return null;
-        } else if (seenMessages.includes(currentMessage._id)) {
-            return (
-                <View>
-                    <Text style={{ color: 'red' }}>Đã xem</Text>
-                </View>
-            );
-        } else {
-            return <MessageText {...props} />;
         }
     };
 
@@ -507,13 +482,12 @@ useEffect(() => {
                                 showModal();
                                 setMessTarget(message);
                             }}
-                            // renderMessage={(messageProps) => renderMessage(messageProps)}
                             onSelectionChange={event => setPosition(event.nativeEvent.selection)}
                             onPressModal2={showModal2}
                             onSelectAudio={handleAudioSelect}
                             handleSend={handleSend}
-                            renderMessageText={renderMessageText}
-                            seenMessages={seenMessages}
+                            // renderMessageText={renderMessageText}
+                            // seenMessages={seenMessages}
                         />
                     </View>
                 </PaperProvider>
@@ -526,10 +500,9 @@ useEffect(() => {
                         setMess(emoji.emoji)
                 }}
                     open={showEmoji} onClose={() => setShowEmoji(false)}
-/>
+                />
             }
         </View>
-        
     );
 }
 

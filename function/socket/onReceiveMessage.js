@@ -39,6 +39,11 @@ function addMessage(message, type){
             newMessage.text = getMember(message.user.id).member.userName + " " + message.content + " " + getMember(message.sender.id).member.userName;
         else if (message.content == "tước quyền phó nhóm của")
             newMessage.text = getMember(message.user.id).member.userName + " " + message.content + " " + getMember(message.sender.id).member.userName;
+        else if (message.content == "đã rời khỏi cuộc gọi.")
+            newMessage.text = getMember(message.sender.id).member.userName + " " + message.content;
+        newMessage.user={
+            id: 1
+        }
         newMessage.system = true;
     }
     else if (message.content)
@@ -46,6 +51,10 @@ function addMessage(message, type){
     else {
         if (message.messageType == 'CALLSINGLE')
             newMessage.call = message.titleFile
+        else if (message.messageType == 'CALLGROUP')
+            newMessage.call = message.titleFile
+        else if (message.messageType == 'STICKER')
+            newMessage.image = message.url;
         else if (message.messageType == 'PNG' || message.messageType == 'JPG' || message.messageType == 'JPEG')
             newMessage.image = message.url;
         else if (message.messageType == 'AUDIO')

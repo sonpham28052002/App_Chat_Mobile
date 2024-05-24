@@ -9,6 +9,7 @@ import UserProfile from '../afterLogin/user/UserProfile.js';
 import ForgotPasswordStack from '../forgotPassword/ForgotPasswordStack.js';
 import ListChat from '../afterLogin/listChat/ListChat.js';
 import Chat from '../afterLogin/listChat/Chat.js';
+import CallGroup from '../afterLogin/listChat/CallGroup.js';
 import PhoneInputText from '../../components/PhoneInputText.js';
 import AuthenticateOTP from '../../components/otp/AuthenticateOTP.js';
 import OptionChat from '../afterLogin/listChat/OptionChat.js';
@@ -38,6 +39,7 @@ export default function Auth() {
         <Stack.Screen name="UserProfile" component={UserProfile} />
         <Stack.Screen name="ListChat" component={ListChat} />
         <Stack.Screen name="Chat" component={Chat} options={{ headerStyle: { backgroundColor: 'cyan' }, headerTitleStyle: { fontSize: 20 }}} />
+        <Stack.Screen name="CallGroup" component={CallGroup} />
         <Stack.Screen name="OptionChat" component={OptionChat} />
         <Stack.Screen
           name="OptionChat2"

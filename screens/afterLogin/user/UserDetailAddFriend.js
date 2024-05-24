@@ -7,19 +7,20 @@ import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-import { updateNickName } from "../../../Redux/slice";
-import host from '../../../configHost'
+import { updateNickName,save } from "../../../Redux/slice";
+import host from '../../../configHost';
 
 const UserDetailAddFriend = ({ route, navigation }) => {
   const currentUser = useSelector((state) => state.account);
   const [friendRequestSent, setFriendRequestSent] = useState([]);
   const [userFriend, setUserFriend] = useState({});
+  const [listFriend, setListFriend] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
   const [nickName, setNickName] = useState('');
   const [newNickName, setNewNickName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const [loading, setLoading] = useState(true); // State để theo dõi trạng thái loading
-  const [showCancelButton, setShowCancelButton] = useState(false); // State để kiểm tra hiển thị button Hủy kết bạn
+  const [loading, setLoading] = useState(true);
+  const [showCancelButton, setShowCancelButton] = useState(false);
   const dispatch = useDispatch();
   var stompClient = useRef(null);
   const { user } = route.params;
@@ -44,15 +45,14 @@ const UserDetailAddFriend = ({ route, navigation }) => {
           setNewNickName(friend.nickName);
         }
 
-        // Kiểm tra xem user.id có tồn tại trong danh sách receiver.id không
         const isRequestSent = friendRequestSent.some(request => request.receiver.id === user.id);
         setShowCancelButton(isRequestSent);
 
-        setLoading(false); // Đã load xong dữ liệu, đặt trạng thái loading thành false
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error fetching friend list:', error);
-      setLoading(false); // Nếu có lỗi, cũng cần đặt trạng thái loading thành false
+      setLoading(false);
     }
   };
 
@@ -65,15 +65,25 @@ const UserDetailAddFriend = ({ route, navigation }) => {
         console.error('Error fetching friend requests:', error);
       });
   };
+const updateFriend = () => {
+    axios.get(`${host}users/getUserById?id=${currentUser.id}`)
+      .then(response => {
+      console.log(response.data);
+      dispatch(save(response.data));
+      })
+      .catch(error => {
+        console.error('Error fetching friend requests:', error);
+      });
+  };
 
   useEffect(() => {
     getContacts();
-  }, [currentUser.friendList, friendRequestSent]);
+  }, [currentUser.friendList, friendRequestSent, listFriend]);
 
   useEffect(() => {
     const socket = new SockJS(`${host}ws`);
     stompClient.current = Stomp.over(socket);
-    stompClient.current.connect({login:currentUser.id}, onConnected, onError);
+    stompClient.current.connect({ login: currentUser.id }, onConnected, onError);
     fetchFriendRequests();
   }, []);
 
@@ -87,6 +97,8 @@ const UserDetailAddFriend = ({ route, navigation }) => {
     });
     stompClient.current.subscribe(`/user/${currentUser.id}/acceptAddFriend`, (payload) => {
       fetchFriendRequests();
+      setIsFriend(true);
+      updateFriend();
     });
   };
 
@@ -97,9 +109,9 @@ const UserDetailAddFriend = ({ route, navigation }) => {
         receiverId: user.id
       };
       stompClient.current.send("/app/request-add-friend", {}, JSON.stringify(request));
+      Alert.alert('Kết bạn', 'Yêu cầu kết bạn đã được gửi.');
       setIsFriend(false);
       setShowCancelButton(true);
-      Alert.alert('Kết bạn', 'Yêu cầu kết bạn đã được gửi.');
     } catch (error) {
       console.error('Error sending friend request:', error);
     }
@@ -108,8 +120,8 @@ const UserDetailAddFriend = ({ route, navigation }) => {
   const handleRejectRequest = (senderId, receiverId) => {
     stompClient.current.send(`/app/decline-friend-request`, {}, JSON.stringify(
       { sender: { id: senderId }, receiver: { id: receiverId } }));
-    setShowCancelButton(false);
     setIsFriend(false);
+    setShowCancelButton(false);
     Alert.alert('Hủy kết bạn', `Hủy yêu cầu kết bạn thành công với ${user.userName}`);
   };
 
@@ -138,13 +150,9 @@ const UserDetailAddFriend = ({ route, navigation }) => {
     </View>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
+  useEffect(() => {
+    setIsFriend(currentUser.friendList.some(friend => friend.user.id === user.id));
+  }, [currentUser.friendList, user.id]);
 
   return (
     <View style={styles.container}>
@@ -252,11 +260,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   centeredView: {
     flex: 1,
     justifyContent: "center",
@@ -296,10 +299,6 @@ const styles = StyleSheet.create({
   textStyle: {
     color: "white",
     fontWeight: "bold",
-    textAlign: "center"
-  },
-  modalText: {
-    marginBottom: 15,
     textAlign: "center"
   },
   container2: {

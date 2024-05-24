@@ -59,16 +59,27 @@ const getMessage = async (sender, receiver) => {
                             "đã bị mời ra khỏi nhóm bởi",
                             "đã được thêm vào nhóm bởi"
                         ]
+                        const actions3 = [
+                            "đã kết thúc cuộc gọi.",
+                            "đã rời khỏi cuộc gọi.",
+                            "đã tham gia cuộc gọi."
+                        ]
                         if (actions.includes(message.content)) {
                             const user = getMember(receiver.members, message.user.id).member.userName;
                             const sender = getMember(receiver.members, message.sender.id).member.userName;
                             newMess.text = `${sender} ${message.content} ${user}`;
-                        } else{
+                        } else if(actions2.includes(message.content)){
                             const user = getMember(receiver.members, message.user.id).member.userName;
                             const sender = getMember(receiver.members, message.sender.id).member.userName;
                             newMess.text = `${user} ${message.content} ${sender}`;
-                        }
+                        } else if(actions3.includes(message.content)){
+                            const sender = getMember(receiver.members, message.sender.id).member.userName;
+                            newMess.text = `${sender} ${message.content}`;
+                        } else newMess.text = 'Tin nhắn không hợp lệ!'
                     }
+                    }
+                    newMess.user = {
+                        _id: 1
                     }
                     newMess.system = true
                 }
@@ -98,6 +109,12 @@ const getMessage = async (sender, receiver) => {
                     newMess.audio = message.url
                 else if (message.messageType === 'CALLSINGLE')
                     newMess.call = message.titleFile
+                else if (message.messageType === 'CALLGROUP') {
+                    newMess.call = message.titleFile
+                    newMess.link = message.url
+                }
+                else
+                    newMess.text = "Tin nhắn không hợp lệ!"
                 return newMess;
             });
         }

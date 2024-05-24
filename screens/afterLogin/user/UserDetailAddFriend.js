@@ -12,12 +12,14 @@ import host from '../../../configHost'
 
 const UserDetailAddFriend = ({ route, navigation }) => {
   const currentUser = useSelector((state) => state.account);
+  const [friendRequestSent, setFriendRequestSent] = useState([]);
   const [userFriend, setUserFriend] = useState({});
-  const [isFriend, setIsFriend] = useState(true);
+  const [isFriend, setIsFriend] = useState(false);
   const [nickName, setNickName] = useState('');
   const [newNickName, setNewNickName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true); // State để theo dõi trạng thái loading
+  const [showCancelButton, setShowCancelButton] = useState(false); // State để kiểm tra hiển thị button Hủy kết bạn
   const dispatch = useDispatch();
   var stompClient = useRef(null);
   const { user } = route.params;
@@ -41,6 +43,11 @@ const UserDetailAddFriend = ({ route, navigation }) => {
           setNickName(friend.nickName);
           setNewNickName(friend.nickName);
         }
+
+        // Kiểm tra xem user.id có tồn tại trong danh sách receiver.id không
+        const isRequestSent = friendRequestSent.some(request => request.receiver.id === user.id);
+        setShowCancelButton(isRequestSent);
+
         setLoading(false); // Đã load xong dữ liệu, đặt trạng thái loading thành false
       }
     } catch (error) {
@@ -49,22 +56,39 @@ const UserDetailAddFriend = ({ route, navigation }) => {
     }
   };
 
+  const fetchFriendRequests = () => {
+    axios.get(`${host}users/getFriendRequestListByOwnerId?owner=${currentUser.id}`)
+      .then(response => {
+        setFriendRequestSent(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching friend requests:', error);
+      });
+  };
+
   useEffect(() => {
     getContacts();
-  }, [currentUser.friendList]);
+  }, [currentUser.friendList, friendRequestSent]);
 
   useEffect(() => {
     const socket = new SockJS(`${host}ws`);
     stompClient.current = Stomp.over(socket);
-    stompClient.current.connect({}, onConnected, onError);
+    stompClient.current.connect({login:currentUser.id}, onConnected, onError);
+    fetchFriendRequests();
   }, []);
 
   const onError = (error) => {
     console.log('Could not connect to WebSocket server. Please refresh and try again!');
-  }
+  };
 
   const onConnected = () => {
-  }
+    stompClient.current.subscribe(`/user/${currentUser.id}/declineAddFriend`, (payload) => {
+      fetchFriendRequests();
+    });
+    stompClient.current.subscribe(`/user/${currentUser.id}/acceptAddFriend`, (payload) => {
+      fetchFriendRequests();
+    });
+  };
 
   const handleAddFriend = async () => {
     try {
@@ -73,11 +97,20 @@ const UserDetailAddFriend = ({ route, navigation }) => {
         receiverId: user.id
       };
       stompClient.current.send("/app/request-add-friend", {}, JSON.stringify(request));
+      setIsFriend(false);
+      setShowCancelButton(true);
       Alert.alert('Kết bạn', 'Yêu cầu kết bạn đã được gửi.');
-      // navigation.navigate("Contact")
     } catch (error) {
       console.error('Error sending friend request:', error);
     }
+  };
+
+  const handleRejectRequest = (senderId, receiverId) => {
+    stompClient.current.send(`/app/decline-friend-request`, {}, JSON.stringify(
+      { sender: { id: senderId }, receiver: { id: receiverId } }));
+    setShowCancelButton(false);
+    setIsFriend(false);
+    Alert.alert('Hủy kết bạn', `Hủy yêu cầu kết bạn thành công với ${user.userName}`);
   };
 
   const update = async () => {
@@ -85,18 +118,16 @@ const UserDetailAddFriend = ({ route, navigation }) => {
       Alert.alert('Cập nhật không thành công');
       return;
     }
-    
+
     try {
       dispatch(updateNickName({ userId: user.id, newNickName }));
-      // await axios.put('https://deploybackend-production.up.railway.app/users/updateUser', currentUser);
-      // console.log('User updated:', currentUser);
       setModalVisible(false);
       Alert.alert('Cập nhật tên gợi nhớ ' + newNickName + ' thành công');
     } catch (error) {
       console.log('Error updating user:', error);
       Alert.alert('Cập nhật không thành công');
     }
-  }
+  };
 
   const renderUserInfo = (label, value, defaultValue = 'Chưa cập nhật') => (
     <View style={styles.profileItem}>
@@ -108,7 +139,6 @@ const UserDetailAddFriend = ({ route, navigation }) => {
   );
 
   if (loading) {
-    // Nếu đang loading, hiển thị component ActivityIndicator
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -118,7 +148,7 @@ const UserDetailAddFriend = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-     <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate("UserOptionsScreen", { user: user })}>
+      <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate("UserOptionsScreen", { user: user })}>
         <Ionicons name="ellipsis-vertical" size={24} color="black" />
       </TouchableOpacity>
       <Modal
@@ -180,20 +210,31 @@ const UserDetailAddFriend = ({ route, navigation }) => {
             </View>
           </TouchableOpacity>
         ) : (
-          <View style={styles.container2}>
-            <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Chat", user)}>
-              <View style={{ flexDirection: 'row', borderWidth: 1, borderRadius: 10, padding: 10, borderColor: '#99CCFF', backgroundColor: "#99CCFF" }}>
-                <Text style={styles.addButtonText}>Nhắn tin</Text>
-                <Ionicons name="chatbox-ellipses-outline" size={24} color="#006AF5" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddFriend}>
-              <View style={{ flexDirection: 'row', borderWidth: 1, borderRadius: 10, padding: 10, borderColor: '#006AF5', }}>
-                <AntDesign name="adduser" size={24} color="#006AF5" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        )}
+            <View style={styles.container2}>
+              <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Chat", user)}>
+                <View style={{ flexDirection: 'row', borderWidth: 1, borderRadius: 10, padding: 10, borderColor: '#99CCFF', backgroundColor: "#99CCFF" }}>
+                  <Text style={styles.addButtonText}>Nhắn tin</Text>
+                  <Ionicons name="chatbox-ellipses-outline" size={24} color="#006AF5" />
+                </View>
+              </TouchableOpacity>
+              {showCancelButton && (
+                <TouchableOpacity style={styles.addButton} onPress={() => handleRejectRequest(currentUser.id, user.id)}>
+                  <View style={{ flexDirection: 'row', borderWidth: 1, borderRadius: 10, padding: 10, borderColor: '#99CCFF' }}>
+                    <Text style={styles.addButtonText}>Hủy yêu cầu</Text>
+                    <AntDesign name="delete" size={24} color="#006AF5" />
+                  </View>
+                </TouchableOpacity>
+              )}
+              {!showCancelButton && (
+                <TouchableOpacity style={styles.addButton} onPress={handleAddFriend}>
+                  <View style={{ flexDirection: 'row', borderWidth: 1, borderRadius: 10, padding: 10, borderColor: '#006AF5', }}>
+                    <Text style={styles.addButtonText}>Kết bạn</Text>
+                    <AntDesign name="adduser" size={24} color="#006AF5" />
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
       </View>
       <View style={styles.profile}>
         {renderUserInfo('Số điện thoại', userFriend.phone)}

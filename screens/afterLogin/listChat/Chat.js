@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Dimensions, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Dimensions, TouchableOpacity, Text, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Modal, Portal, PaperProvider } from 'react-native-paper';
-import { Entypo } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import EmojiPicker from 'rn-emoji-keyboard'
 import { Dialog } from '@rneui/themed';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveReceiverId, saveMess, addMess, reactMessage } from '../../../Redux/slice';
+import { saveReceiverId, saveMess, addMess, reactMessage, updateMessage } from '../../../Redux/slice';
 import axios from 'axios';
 import ImagePickerComponent from '../../../components/ImagePickerComponent';
 import FilePickerComponent from '../../../components/FilePickerComponent';
@@ -21,6 +21,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import {ZegoSendCallInvitationButton} from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import 'react-native-get-random-values';
 const { v4: uuidv4 } = require('uuid');
+import * as ZIM from 'zego-zim-react-native';
+import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import * as ZPNs from 'zego-zpns-react-native';
 
 const Chat = ({ navigation, route }) => {
     const { width, height } = Dimensions.get('window');
@@ -79,6 +82,7 @@ const Chat = ({ navigation, route }) => {
     useEffect(() => {
         navigation.setOptions({
             title: route.params.userName ? route.params.userName : route.params.nameGroup,
+            
             headerRight: () => (
                 <View style={{
                     height: 50,
@@ -87,7 +91,10 @@ const Chat = ({ navigation, route }) => {
                     justifyContent: 'space-between',
                     alignItems: 'center'
                 }}>
-                    <View style={{ flexDirection: 'row' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {route.params.members? <TouchableOpacity
+                                onPress={() => navigation.navigate('CallGroup', sender)} style={{ width: 35 }}
+                            ><Ionicons name="call" size={30} color="black" /></TouchableOpacity> :
                         <ZegoSendCallInvitationButton
                             invitees={[
                                 {
@@ -97,17 +104,19 @@ const Chat = ({ navigation, route }) => {
                             ]}
                             isVideoCall={false}
                             backgroundColor={'cyan'}
-                        />
+                        />}
+                        {route.params.members?
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('CallGroup', sender)} style={{ width: 35 }}
+                            ><Entypo name="video-camera" size={30} color="black" /></TouchableOpacity> :
                         <ZegoSendCallInvitationButton
-                            invitees={[
-                                {
-                                    userID: route.params.id,
-                                    userName: route.params.userName,
-                                },
-                            ]}
+                            invitees={[{
+                                userID: route.params.id,
+                                userName: route.params.userName
+                            }]}
                             isVideoCall={true}
                             backgroundColor={'cyan'}
-                        />
+                        />}
                         <TouchableOpacity style={{ width: 35 }}
                             onPress={() => navigation.navigate('OptionChat', route.params)}>
                             <Entypo name="menu" size={40} color="white" />
@@ -138,6 +147,11 @@ const Chat = ({ navigation, route }) => {
                     else setVisible3(false);
                 });
         }
+
+        // if(ZegoUIKitPrebuiltCallService){
+        //     ZegoUIKitPrebuiltCallService.uninit();
+        //     onUserLogin(sender.id, sender.userName);
+        // }
     }, []);
 
     useFocusEffect(
@@ -173,6 +187,10 @@ const Chat = ({ navigation, route }) => {
         }
     }
 
+    const getMember = (id) => {
+        return listMember.current.find(item => item.member.id === id);
+    }
+
     function onConnected() {
         // stompClient.current.subscribe('/user/' + sender.id + '/removeMemberInGroup', (payload)=>{
         //     let message = JSON.parse(payload.body)
@@ -183,11 +201,139 @@ const Chat = ({ navigation, route }) => {
         //         navigation.navigate('ListChat')
         //     }
         // })
+        if(route.params.nameGroup){
+            stompClient.current.subscribe('/user/' + route.params.id + '/updateMessage', (payload) => {
+                let message = JSON.parse(payload.body);
+                let date = new Date(message.senderDate);
+                let newMessage = {
+                    _id: message.id,
+                    createdAt: date.setUTCHours(date.getUTCHours() + 7),
+                    user: {
+                        _id: message.sender.id,
+                        name: message.sender.id === sender.id ? sender.userName : getMember(message.sender.id).member.userName,
+                        avatar: message.sender.id === sender.id ? sender.avt : getMember(message.sender.id).member.avt,
+                    },
+                    extraData:{
+                        react: []
+                    },
+                    call: message.titleFile
+                }
+                dispatch(updateMessage(newMessage));
+            })
+        }
     }
 
     function onError(error) {
         console.log('Could not connect to WebSocket server. Please refresh and try again!');
     }
+
+    // const onUserLogin = async (userID, userName) => {
+    //     var a = ZegoUIKitPrebuiltCallService.init(
+    //       940263346, // You can get it from ZEGOCLOUD's console
+    //       '40da48b6a31a24ddfc594d8c998e7bb36a542e86f83697fb889f2b85bf1c572a', // You can get it from ZEGOCLOUD's console
+    //       '1111111',
+    //       userID, // It can be any valid characters, but we recommend using a phone number.
+    //       userName,
+    //       [ZIM, ZPNs],
+    //       {
+    //         // onIncomingCallDeclineButtonPressed: (navigation) => {
+    //         //   console.log('onIncomingCallDeclineButtonPressed: ', navigation);
+    //         // },
+    //         // onIncomingCallAcceptButtonPressed: (navigation) => {
+    //         //   console.log('onIncomingCallAcceptButtonPressed: ', navigation);
+    //         // },
+    //         // onOutgoingCallCancelButtonPressed: (navigation, callID, invitees, type) => {
+    //         //   console.log('onOutgoingCallCancelButtonPressed: ', navigation, callID, invitees, type);
+    //         // },
+    //         // onIncomingCallReceived: (callID, type, invitees) => {
+    //         //   console.log('Incoming call: ', callID, type, invitees)
+    //         // },
+    //         // onIncomingCallCanceled: (callID, inviter) => {
+    //         //   console.log('Incoming call canceled: ', callID, inviter)
+    //         // },
+    //         // onOutgoingCallAccepted: (callID, invitee) => {
+    //         //   console.log('Outgoing call accepted: ', callID, invitee)
+    //         //   var chatMessage = {
+    //         //     id: uuidv4(),
+    //         //     sender: { id: id },
+    //         //     seen: [{ id: id }],
+    //         //     replyMessage: null,
+    //         //     reply: null,
+    //         //     messageType: 'CALLSINGLE',
+    //         //     receiver: { id: invitee.userID },
+    //         //     react: [],
+    //         //     size: 0,
+    //         //     titleFile: 'Cuộc gọi video từ ',
+    //         //     url: null
+    //         //   };
+    //         //   stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
+    //         // },
+    //         // // onOutgoingCallRejectedCauseBusy: (callID, invitee) => {
+    //         // //   console.log('onOutgoingCallRejectedCauseBusy: ', callID, invitee);
+    //         // // },
+    //         // onOutgoingCallDeclined: (callID, invitee) => {
+    //         //   console.log('Outgoing call declined: ', callID, invitee);
+    //         //   var chatMessage = {
+    //         //     id: uuidv4(),
+    //         //     sender: { id: id },
+    //         //     seen: [{ id: id }],
+    //         //     replyMessage: null,
+    //         //     reply: null,
+    //         //     messageType: 'CALLSINGLE',
+    //         //     receiver: { id: invitee.userID },
+    //         //     react: [],
+    //         //     size: 0,
+    //         //     titleFile: ' từ chối cuộc gọi video từ ',
+    //         //     url: null
+    //         //   };
+    //         //   stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
+    //         // },
+    //         // onIncomingCallTimeout: (callID, inviter) => {
+    //         //   console.log('Incoming call timeout: ', callID, inviter)
+    //         //   var chatMessage = {
+    //         //     id: uuidv4(),
+    //         //     sender: { id: id },
+    //         //     seen: [{ id: id }],
+    //         //     replyMessage: null,
+    //         //     reply: null,
+    //         //     messageType: 'CALLSINGLE',
+    //         //     receiver: { id: inviter.userID },
+    //         //     react: [],
+    //         //     size: 0,
+    //         //     titleFile: 'bị nhở cuộc gọi video từ ',
+    //         //     url: null
+    //         //   };
+    //         //   stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
+    //         // },
+    //         // onOutgoingCallTimeout: (callID, invitees) => {
+    //         //   console.log('Outgoing call timeout: ', callID, invitees)
+    //         //   var chatMessage = {
+    //         //     id: uuidv4(),
+    //         //     sender: { id: id },
+    //         //     seen: [{ id: id }],
+    //         //     replyMessage: null,
+    //         //     reply: null,
+    //         //     messageType: 'CALLSINGLE',
+    //         //     receiver: { id: invitees[0].userID },
+    //         //     react: [],
+    //         //     size: 0,
+    //         //     titleFile: 'bị nhở cuộc gọi video từ ',
+    //         //     url: null
+    //         //   };
+    //         //   stompClient.current.send('/app/private-single-message', {}, JSON.stringify(chatMessage));
+    //         // },
+    //         ringtoneConfig: {
+    //           incomingCallFileName: require('../../../assets/ringtone-205162.mp3'),
+    //           outgoingCallFileName: require('../../../assets/happy-pop-1-185286.mp3'),
+    //         },
+    //         androidNotificationConfig: {
+    //           channelID: 'ZegoUIKit',
+    //           channelName: 'ZegoUIKit',
+    //         },
+    //       },
+    //     );
+    //     return a;
+    //   }
 
     function sendMessage(id, type) {
         if (stompClient.current) {

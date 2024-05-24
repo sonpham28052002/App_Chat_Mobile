@@ -23,6 +23,21 @@ const CallMessage = ({ currentMessage, isSender, nameUser, receiverName }) => {
                                 <Text style={{ fontWeight: isSender ? 'normal' : 'bold' }}> {isSender ? 'bạn' : receiverName}</Text>
                             </Text>
                         </View>
+                        : currentMessage.call.startsWith('đã kết thúc cuộc gọi.')? 
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Entypo name="video-camera" size={35} color="black" />
+                            <Text style={{ color: 'black', width: 200, marginLeft: 10 }}>Cuộc gọi đã kết thúc</Text>
+                        </View>
+                        : currentMessage.call.startsWith('Bắt đầu cuộc gọi nhóm')? 
+                        <View style={{ alignItems: 'center', flexDirection: 'row' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 5 }}>
+                                <Entypo name="video-camera" size={35} color="black" />
+                                <Text style={{ color: 'black', marginLeft: 5 }}>Cuộc gọi nhóm</Text>
+                            </View>
+                            <TouchableOpacity style={{ backgroundColor: 'green', padding: 5, borderRadius: 10 }}>
+                                <Text style={{ color: 'white', fontWeight: 'bold' }}>Tham gia</Text>
+                            </TouchableOpacity>
+                        </View>
                         : // bị nhỡ cuộc gọi video/thoại từ...
                         isSender ?
                             <View style={{ flexDirection: 'row', marginLeft: 10, alignItems: 'center' }}>

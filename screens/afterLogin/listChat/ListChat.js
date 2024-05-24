@@ -635,6 +635,7 @@ useEffect(() => {
                               item.lastMessage.content === "đã tham gia cuộc gọi."? 'Bạn đã tham gia cuộc gọi nhóm' :
                             item.lastMessage.content.includes('tạo') ? 'Bạn đã là thành viên của nhóm' :
                             item.lastMessage.content.includes('ảnh') ? 'Bạn đã thay đổi ảnh nhóm' :
+                            item.lastMessage.content.includes('đã thay đổi tên nhóm') ? 'Bạn ' + item.lastMessage.content :
                             item.lastMessage.content.includes('tham gia') ? 'Bạn đã tham gia cuộc gọi nhóm' :
                             item.lastMessage.content.includes('rời') ? 'Một thành viên đã rời khỏi nhóm' :
                             item.lastMessage.content.includes('thêm') ? 'Một thành viên mới được thêm vào nhóm' :

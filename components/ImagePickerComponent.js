@@ -6,7 +6,7 @@ import { SimpleLineIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import host from '../configHost'
 
-const ImagePickerComponent = ({ onSelectImage ,buttonText}) => {
+const ImagePickerComponent = ({ onSelectImage ,buttonText, sizeIcon}) => {
     const [isVideo, setIsVideo] = useState(false);
 
     const selectImage = async (isAvatar) => {
@@ -115,7 +115,7 @@ const ImagePickerComponent = ({ onSelectImage ,buttonText}) => {
 
     return (
         <TouchableOpacity onPress={handleSelectOption} style={{ height: 50, flexDirection: 'row', alignItems: 'center' }}>
-            <SimpleLineIcons name="picture" size={35} color="black" />
+            <SimpleLineIcons name="picture" size={sizeIcon? sizeIcon : 35} color="black" />
             <Text style={{ fontSize: 20, marginLeft: 10 }}>{buttonText}</Text>
         </TouchableOpacity>
     );

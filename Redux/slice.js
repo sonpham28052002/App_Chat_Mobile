@@ -63,6 +63,24 @@ const accountSlice = createSlice({
       if (state.conversation[index].lastMessage.seen.findIndex(seen => seen.id === id) === -1)
         state.conversation[index].lastMessage.seen = [...state.conversation[index].lastMessage.seen, { id: id }];
       console.log(state.conversation[index].lastMessage.seen);
+    },
+    updateGroupAvatar: (state, action) => {
+      const { groupId, avtGroup } = action.payload;
+      console.log(groupId, avtGroup);
+      state.conversation.forEach(conv => {
+        if (conv.conversationType === 'group' && conv.idGroup === groupId) {
+          conv.avtGroup = avtGroup
+        }
+      });
+    },
+    updateGroupName: (state, action) => {
+      const { groupId, nameGroup } = action.payload;
+      console.log(groupId, nameGroup);
+      state.conversation.forEach(conv => {
+        if (conv.conversationType === 'group' && conv.idGroup === groupId) {
+          conv.nameGroup = nameGroup;
+        }
+      });
     }
   },
 });
@@ -212,7 +230,7 @@ const userOnlineSlice = createSlice({
 
 export const { save, updateAvatar, updateCoverImage, updateLastMessage, addToFriendList, addLastMessage,
   retrieveLastMessage, addLastConversation, deleteConv, updateNickName,
-  removeFriend, addFriendRequest, seenMessage } = accountSlice.actions;
+  removeFriend, addFriendRequest, seenMessage, updateGroupName, updateGroupAvatar } = accountSlice.actions;
 export const { saveReceiverId, saveMess, addMess, retrieveMess, deleteMess, reactMessage, markMessageAsSeen, updateMessage } = messSlice.actions;
 // export const { deleteConversation } = chatSlice.actions;
 export const { initSocket } = socketSlice.actions;

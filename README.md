@@ -1,5 +1,6 @@
 * Mô phỏng ứng dụng chat Zalo:
 * APK download: https://drive.google.com/file/d/1IX3ib8wFugRpdJunB7YGolDkCTHrPcZT/view?usp=drive_link
+* Công nghệ: React Native, Spring Boot, SockJS, Microsoft Azure, Firebase, Zegocloud
 * Các chức năng chính:
   - Đăng nhập: có 3 hình thức đăng nhập:
     + API account: https://deploybackend-production.up.railway.app/account/all
@@ -32,9 +33,13 @@
 
   - Tạo group: Nhập thông tin group và chọn những người bạn muốn tạo group
     ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/3b8f684f-9512-4b29-bb31-65a6824ef371)
-
+    
+  - Thực hiện các thao tác với thành viên trong group như thêm thành viên, chọn làm phó nhóm, thu hồi quyền phó nhóm, xoá thành viên hoặc rời nhóm
   - Chat: Chat đơn hoặc chat group. Có thể gửi tin nhắn text, image, video, record audio.
     ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/a41164ff-7a25-4150-80fd-708cfe0d110a)
+
+  - Voice call hoặc video call đơn hoặc group:
+    ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/569d8ceb-8510-4d16-ae1b-98eb7d93b868)
 
   - Thao tác với tin nhắn: Nhấn giữ và thực hiện thao tác như thu hồi tin nhắn, chuyển tiếp tin nhắn, xoá tin nhắn.
     ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/405144aa-5c06-4a66-ba6b-38fd1c8c0fa4)

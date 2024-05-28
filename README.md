@@ -1,6 +1,8 @@
 * Mô phỏng ứng dụng chat Zalo:
+* APK download: https://drive.google.com/file/d/1IX3ib8wFugRpdJunB7YGolDkCTHrPcZT/view?usp=drive_link
 * Các chức năng chính:
-  - Đăng nhập: có 3 hình thức đăng nhập
+  - Đăng nhập: có 3 hình thức đăng nhập:
+    + API account: https://deploybackend-production.up.railway.app/account/all
     + Đăng nhập bằng tài khoản + mật khẩu: Người dùng thực hiện đăng nhập bằng số điện thoại và mật khẩu đã đăng ký.
       ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/6ec83f63-e397-4d41-82e6-dbc84b0f900c)
       
@@ -9,7 +11,6 @@
       ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/cb229902-9d74-4937-b655-db2d6be58a27)
       
     + Đăng nhập bằng mã QR: Người dùng thực hiện quét QR trên ứng dụng web để cho phép đăng nhập trên web.
-    + 
   - Đăng ký: Người dùng có thể thực hiện đăng ký bằng mã OTP gửi đến số điện thoại và nhập thông tin để đăng ký.
       ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/fe2644f9-0604-4075-9418-27d1efd4e95c)
       ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/cb229902-9d74-4937-b655-db2d6be58a27)
@@ -22,7 +23,7 @@
     ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/d187431e-efcd-42e8-98e0-d30cb4482563)
     ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/55d18487-445f-4e24-8fc3-b1526e36dda6)
 
-  - Thêm bạn bè: Thực hiện thêm bạn bè bằng cách nhập số điện thoại người đã đăng ký trong hệ thống và chờ họ đồng ý.
+  - Thêm bạn bè: Thực hiện thêm bạn bè bằng cách nhập số điện thoại người đã đăng ký trong hệ thống hoặc quét mã QR để hiển thị trang cá nhân, chọn kết bạn và chờ họ đồng ý.
     ![image](https://github.com/sonpham28052002/App_Chat_Mobile/assets/115455297/1402194e-31a9-44d7-90ad-e8bc6c7c5d50)
 
   - Xác nhận hoặc từ chối lời mời kết bạn: Người dùng có thể đồng ý hoặc từ chối lời mời kết bạn từ một người dùng khác.

@@ -1,6 +1,5 @@
-* Mô phỏng ứng dụng chat Zalo:
 * APK download: https://drive.google.com/file/d/1IX3ib8wFugRpdJunB7YGolDkCTHrPcZT/view?usp=drive_link
-* Công nghệ: React Native, Spring Boot, SockJS, Microsoft Azure, Firebase, Zegocloud
+* Công nghệ: React Native, Spring Boot, SockJS, Microsoft Azure, Firebase, Zegocloud, WebSocket, Atlas
 * Các chức năng chính:
   - Đăng nhập: có 3 hình thức đăng nhập:
     + API account: https://deploybackend-production.up.railway.app/account/all
